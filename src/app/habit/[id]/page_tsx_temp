@@ -1,0 +1,123 @@
+'use client';
+
+import React, { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import useEmblaCarousel from 'embla-carousel-react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Cell,
+  PieChart,
+  Pie 
+} from 'recharts';
+import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { 
+  ArrowLeft, 
+  Trophy, 
+  Calendar, 
+  CheckCircle2, 
+  BarChart3, 
+  TrendingUp, 
+  Flame 
+} from 'lucide-react';
+
+import { useHabitStore } from '@/store/useHabitStore';
+import { YearlyHeatmap } from '@/components/ui/YearlyHeatmap';
+import { Badge } from '@/components/ui/Badge';
+
+export default function HabitDetail({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const { habits } = useHabitStore();
+  const habit = habits.find((h) => h.id === params.id);
+  
+  const [mounted, setMounted] = useState(false);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (emblaApi) {
+      const onSelect = () => {
+        setSelectedIndex(emblaApi.selectedScrollSnap());
+      };
+      emblaApi.on('select', onSelect);
+      onSelect();
+    }
+  }, [emblaApi]);
+
+  const stats = useMemo(() => {
+    if (!habit) return null;
+    const historyEntries = Object.entries(habit.history);
+    const totalCompletions = historyEntries.filter(([_, completed]) => completed).length;
+    
+    // Activity by last 6 months
+    const last6Months = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subDays(new Date(), i * 30);
+      const monthStart = startOfMonth(monthDate);
+      const monthEnd = endOfMonth(monthDate);
+      
+      const completionsInMonth = historyEntries.filter(([dateStr, completed]) => {
+        if (!completed) return false;
+        const d = new Date(dateStr);
+        return d >= monthStart && d <= monthEnd;
+      }).length;
+
+      last6Months.push({
+        name: format(monthDate, 'MMM', { locale: es }),
+        count: completionsInMonth,
+      });
+    }
+
+    // Comparison vs others
+    const otherHabitsCompletions = habits
+        .filter(h => h.id !== habit.id)
+        .reduce((acc, h) => acc + Object.values(h.history).filter(v => v).length, 0);
+
+    const comparisonData = [
+        { name: habit.title, value: totalCompletions, color: 'var(--theme-color)' },
+        { name: 'Otros', value: Math.max(1, otherHabitsCompletions), color: '#262626' }
+    ];
+
+    return {
+      totalCompletions,
+      last6Months,
+      comparisonData
+    };
+  }, [habit, habits]);
+
+  if (!mounted) return null;
+  if (!habit || !stats) {
+    return (
+      <div className="p-6 pt-12 text-center text-neutral-400">
+        <button onClick={() => router.push('/')} className="mb-4 flex items-center gap-2 mx-auto">
+          <ArrowLeft size={16} /> Volver
+        </button>
+        Hábito no encontrado
+      </div>
+    );
+  }
+
+  const themeColors: Record<string, string> = {
+    emerald: '#10b981',
+    indigo: '#6366f1',
+    rose: '#f43f5e',
+    amber: '#f59e0b',
+    sky: '#0ea5e9',
+  };
+
+  const activeColor = themeColors[habit.colorTheme] || themeColors.emerald;
+
+  return (
+    <motion_replacement_placeholder_div>
+        {/* Usamos motion de framer-motion de forma segura */}
+    </motion_replacement_placeholder_div>
+  );
+}
