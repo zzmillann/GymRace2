@@ -7,7 +7,6 @@ import {
   ArrowLeft24Regular, 
   Fire24Filled, 
   Star24Regular, 
-  PersonAdd24Regular, 
   Search24Regular, 
   Trophy24Regular, 
   Checkmark24Regular, 
@@ -25,7 +24,7 @@ import { YearlyHeatmap } from '@/components/ui/YearlyHeatmap';
 export default function HabitDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { habits, friends, inviteToHabit, toggleHabitToday, userId } = useAppStore();
+  const { habits, friends, inviteToHabit, userId } = useAppStore();
   const habit = habits.find(h => h.id === id);
   
   const [searchFriend, setSearchFriend] = useState('');
