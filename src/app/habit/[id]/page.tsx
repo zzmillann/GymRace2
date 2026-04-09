@@ -233,7 +233,11 @@ export default function HabitDetailPage() {
                             <div key={f.id} className="bg-black/20 border border-white/5 p-4 rounded-3xl flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-neutral-800 flex items-center justify-center text-lg overflow-hidden border border-white/5 shadow-inner">
-                                        {f.avatar.startsWith('http') ? <img src={f.avatar} className="w-full h-full object-cover" /> : f.avatar}
+                                        {f.avatar?.startsWith('http') ? (
+                                            <img src={f.avatar} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Person24Regular className="text-neutral-500" />
+                                        )}
                                     </div>
                                     <h4 className="font-black text-white">{f.name}</h4>
                                 </div>
