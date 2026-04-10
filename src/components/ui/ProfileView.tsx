@@ -9,14 +9,19 @@ import {
   Checkmark24Regular, 
   Save24Regular, 
   Trophy24Regular,
-  Person24Regular,
-  Camera24Regular
+  Person24Regular
 } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 
+const AVATAR_SEEDS = [
+  'Felix', 'Aneka', 'Abigail', 'Aiden', 'George', 'Jack', 'Jasper', 'Jordan', 'Kingston', 'Lulu', 
+  'Misty', 'Peanut', 'Rocco', 'Shadow', 'Tiger', 'Zoe', 'Cookie', 'Max', 'Buddy', 'Lucky'
+];
+
 export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const { userCode, userName, userAvatar, updateProfile, uploadAvatar, signOut, habits } = useAppStore();
+  const { userCode, userName, userAvatar, updateProfile, signOut, habits } = useAppStore();
   const [newName, setNewName] = useState(userName);
+  const [selectedAvatar, setSelectedAvatar] = useState(userAvatar);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{t: string, type: 's'|'e'} | null>(null);
@@ -26,7 +31,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
   const handleUpdate = async () => {
     setLoading(true);
     setMsg(null);
-    const res = await updateProfile(newName, userAvatar);
+    const res = await updateProfile(newName, selectedAvatar);
     if (res.success) {
       setMsg({ t: '¡Perfil actualizado!', type: 's' });
       setTimeout(() => setMsg(null), 2000);
@@ -35,21 +40,6 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
     }
     setLoading(false);
   };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLoading(true);
-    const res = await uploadAvatar(file);
-    if (res.success && res.url) {
-        setMsg({ t: '¡Imagen subida!', type: 's' });
-    } else {
-        setMsg({ t: res.error || 'Error al subir imagen', type: 'e' });
-    }
-    setLoading(false);
-  };
-
-  const isImage = userAvatar && userAvatar.startsWith('http');
 
   const copyCode = () => {
     navigator.clipboard.writeText(userCode);
@@ -74,24 +64,35 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <Dismiss24Regular />
             </button>
 
-            <header className="flex flex-col items-center mb-8">
-                <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
-                    <div className="w-24 h-24 rounded-[32px] bg-neutral-800 border-2 border-white/10 flex items-center justify-center text-5xl shadow-2xl transition-transform group-hover:scale-105 overflow-hidden">
-                        {isImage ? (
-                            <img src={userAvatar} className="w-full h-full object-cover" alt="Profile" />
-                        ) : (
-                            <Person24Regular style={{ fontSize: 40 }} className="text-neutral-500" />
-                        )}
-                    </div>
-                    <div className="absolute -bottom-2 -right-2 bg-white text-black p-2 rounded-xl shadow-lg">
-                        <Camera24Regular style={{ fontSize: 16 }} />
-                    </div>
-                    <input 
-                        id="avatar-upload" type="file" accept="image/*" 
-                        className="hidden" onChange={handleFileChange}
-                    />
+            <header className="flex flex-col items-center mb-6">
+                <div className="w-24 h-24 rounded-[32px] bg-neutral-800 border-2 border-white/10 flex items-center justify-center text-5xl shadow-2xl overflow-hidden mb-4">
+                    {selectedAvatar && selectedAvatar.startsWith('http') ? (
+                        <img src={selectedAvatar} className="w-full h-full object-cover" alt="Profile" />
+                    ) : (
+                        <Person24Regular style={{ fontSize: 40 }} className="text-neutral-500" />
+                    )}
                 </div>
-                <h2 className="text-2xl font-black text-white mt-4 tracking-tighter uppercase italic">Tu Leyenda</h2>
+
+                <div className="w-full">
+                  <p className="text-[8px] font-black text-neutral-600 uppercase tracking-widest text-center mb-3">Elige tu Avatar</p>
+                  <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar -mx-2 px-2">
+                    {AVATAR_SEEDS.map((seed) => {
+                      const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+                      const isSelected = selectedAvatar === url;
+                      return (
+                        <button
+                          key={seed}
+                          onClick={() => setSelectedAvatar(url)}
+                          className={`flex-shrink-0 w-12 h-12 rounded-xl border-2 transition-all overflow-hidden ${isSelected ? 'border-emerald-500 scale-110 shadow-lg' : 'border-white/5 opacity-40 hover:opacity-100'}`}
+                        >
+                          <img src={url} className="w-full h-full bg-neutral-800" alt={seed} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-black text-white mt-1 tracking-tighter uppercase italic">Tu Leyenda</h2>
             </header>
 
             <div className="space-y-6">
@@ -132,7 +133,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                     </p>
                 )}
 
-                <div className="flex gap-4">
+                <div className="flex gap-4 pb-4">
                     <button 
                         onClick={handleUpdate} disabled={loading}
                         className="flex-1 bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all outline-none"

@@ -100,9 +100,13 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <button 
                     onClick={() => setIsProfileOpen(true)}
-                    className="w-14 h-14 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center text-2xl shadow-xl active:scale-95 transition-all"
+                    className="w-14 h-14 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all overflow-hidden"
                 >
-                    {userAvatar}
+                    {userAvatar && userAvatar.startsWith('http') ? (
+                        <img src={userAvatar} className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="text-2xl">{userAvatar}</span>
+                    )}
                 </button>
                 <div className="flex flex-col gap-0.5">
                   <p className="text-neutral-500 text-[9px] font-black uppercase tracking-[0.2em]">{dateFormatted}</p>

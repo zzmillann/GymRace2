@@ -78,6 +78,7 @@ interface AppState {
   acceptFriendRequest: (requestId: string) => Promise<void>;
   declineFriendRequest: (requestId: string) => Promise<void>;
   removeFriend: (id: string) => void;
+  getGlobalLeaderboard: () => Promise<{ id: string; name: string; avatar: string; totalCompletions: number }[]>;
 
   // Navigation
   activeTab: 'habits' | 'gym' | 'library' | 'social';
@@ -253,8 +254,11 @@ export const useAppStore = create<AppState>()(
         if (!authData.user) return { success: false, error: 'Error al crear usuario' };
 
         const code = generateUserCode();
+        const randomSeeds = ['Hugo', 'Felix', 'Aneka', 'Abigail', 'Aiden'];
+        const randomAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeeds[Math.floor(Math.random() * randomSeeds.length)]}`;
+        
         const { error: profError } = await supabase.from('profiles').insert([
-          { id: authData.user.id, user_code: code, user_name: name, avatar_url: '👤', email_internal: email }
+          { id: authData.user.id, user_code: code, user_name: name, avatar_url: randomAvatar, email_internal: email }
         ]);
         if (profError) return { success: false, error: profError.message };
 
@@ -312,7 +316,7 @@ export const useAppStore = create<AppState>()(
 
         const fileExt = file.name.split('.').pop();
         const fileName = `${get().userId}-${Math.random()}.${fileExt}`;
-        const filePath = `avatars/${fileName}`;
+        const filePath = fileName;
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
@@ -561,6 +565,21 @@ export const useAppStore = create<AppState>()(
         }
       },
 
+      getGlobalLeaderboard: async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, user_name, avatar_url, total_completions')
+          .order('total_completions', { ascending: false })
+          .limit(10);
+        
+        if (error) return [];
+        return data.map(p => ({
+          id: p.id,
+          name: p.user_name,
+          avatar: p.avatar_url,
+          totalCompletions: p.total_completions || 0
+        }));
+      },
       removeFriend: (id) => set(state => ({ friends: state.friends.filter(f => f.id !== id) }))
     }),
     { name: 'gymrace-persistent-store-v7' }

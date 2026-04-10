@@ -15,22 +15,27 @@ import {
     Sparkle24Regular,
     PersonCheckmark24Regular,
     ArrowClockwise24Regular,
-    Person24Regular
+    Person24Regular,
+    Trophy24Regular
 } from '@fluentui/react-icons';
 import { useAppStore, Friend } from '@/store/useHabitStore';
 
 export function SocialView() {
-    const { userCode, friends, pendingRequests, outgoingRequests, habitInvitations, searchUsers, addFriendById, acceptFriendRequest, declineFriendRequest, acceptHabitInvitation, declineHabitInvitation } = useAppStore();
+    const { userCode, friends, pendingRequests, outgoingRequests, habitInvitations, searchUsers, addFriendById, acceptFriendRequest, declineFriendRequest, acceptHabitInvitation, declineHabitInvitation, getGlobalLeaderboard } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<{ id: string, name: string, avatar: string }[]>([]);
     const [feedback, setFeedback] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
     const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'search' | 'invites'>('friends');
+    const [leaderboard, setLeaderboard] = useState<{ id: string, name: string, avatar: string, totalCompletions: number }[]>([]);
+    const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        console.log("Current Friends in View:", friends);
-    }, [friends]);
+        if (isLeaderboardOpen) {
+            getGlobalLeaderboard().then(setLeaderboard);
+        }
+    }, [isLeaderboardOpen, getGlobalLeaderboard]);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
@@ -59,19 +64,27 @@ export function SocialView() {
                 <div className="flex flex-col gap-1 mb-6">
                     <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Comunidad</p>
                     <div className="flex items-center justify-between">
-                        <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Gimnasio Social</h1>
-                        <button
-                            onClick={async () => {
-                                const btn = document.getElementById('social-sync-btn');
-                                btn?.classList.add('animate-spin');
-                                await useAppStore.getState().initialize();
-                                setTimeout(() => btn?.classList.remove('animate-spin'), 1000);
-                            }}
-                            className="p-3 bg-neutral-900 border border-white/5 rounded-2xl text-white active:scale-95 transition-all outline-none"
-                            id="sync-btn-container"
-                        >
-                            <ArrowClockwise24Regular id="social-sync-btn" />
-                        </button>
+                        <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Social</h1>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setIsLeaderboardOpen(true)}
+                                className="p-3 bg-neutral-900 border border-white/5 rounded-2xl text-amber-500 active:scale-95 transition-all outline-none"
+                            >
+                                <Trophy24Regular />
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    const btn = document.getElementById('social-sync-btn');
+                                    btn?.classList.add('animate-spin');
+                                    await useAppStore.getState().initialize();
+                                    setTimeout(() => btn?.classList.remove('animate-spin'), 1000);
+                                }}
+                                className="p-3 bg-neutral-900 border border-white/5 rounded-2xl text-white active:scale-95 transition-all outline-none"
+                                id="sync-btn-container"
+                            >
+                                <ArrowClockwise24Regular id="social-sync-btn" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -88,7 +101,7 @@ export function SocialView() {
                             className={`flex-1 py-4 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id ? 'bg-white text-black shadow-lg font-black' : 'text-neutral-500'}`}
                         >
                             <tab.icon />
-                            {tab.label}
+                            <span>{tab.label}</span>
                             {(tab.id === 'pending' && pendingRequests.length > 0) || (tab.id === 'invites' && habitInvitations.length > 0) ? (
                                 <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
                             ) : null}
@@ -96,6 +109,114 @@ export function SocialView() {
                     ))}
                 </div>
             </header>
+
+            {/* Leaderboard Modal */}
+            <AnimatePresence>
+                {isLeaderboardOpen && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/95 backdrop-blur-3xl">
+                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-[40px] p-8 relative shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+                            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
+                            
+                            <button onClick={() => setIsLeaderboardOpen(false)} className="absolute top-6 right-6 p-2 bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors z-20">
+                                <Dismiss24Regular />
+                            </button>
+
+                            <div className="flex flex-col items-center mb-10 z-10">
+                                <Trophy24Regular className="text-amber-500 text-5xl mb-2 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" style={{ fontSize: 48 }} />
+                                <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Salón de la Fama</h2>
+                                <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mt-1">Global Top {leaderboard.length}</p>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto hide-scrollbar">
+                                {/* Podium UI */}
+                                {leaderboard.length >= 3 && (
+                                    <div className="flex justify-center items-end gap-2 mb-10 mt-12 pb-4 border-b border-white/5">
+                                        {/* 2nd Place */}
+                                        <div className="flex flex-col items-center gap-3 w-20">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 rounded-2xl bg-neutral-800 border-2 border-slate-400/30 overflow-hidden shadow-xl flex items-center justify-center">
+                                                    {leaderboard[1].avatar?.startsWith('http') ? (
+                                                        <img src={leaderboard[1].avatar} className="w-full h-full object-cover" alt="2nd" />
+                                                    ) : (
+                                                        <span className="text-2xl">{leaderboard[1].avatar || '👤'}</span>
+                                                    )}
+                                                </div>
+                                                <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-slate-400 text-black text-[10px] font-black rounded-lg flex items-center justify-center border-2 border-neutral-900">2</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-[10px] font-black text-white truncate w-20">{leaderboard[1].name}</p>
+                                                <p className="text-[9px] font-black text-slate-400">{leaderboard[1].totalCompletions}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* 1st Place */}
+                                        <div className="flex flex-col items-center gap-3 w-24">
+                                            <div className="relative -mt-12">
+                                                <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 3 }} className="absolute -top-10 left-1/2 -translate-x-1/2 text-amber-500">
+                                                    <Sparkle24Regular style={{ fontSize: 28 }} />
+                                                </motion.div>
+                                                <div className="w-20 h-20 rounded-[32px] bg-neutral-800 border-4 border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.3)] overflow-hidden flex items-center justify-center">
+                                                    {leaderboard[0].avatar?.startsWith('http') ? (
+                                                        <img src={leaderboard[0].avatar} className="w-full h-full object-cover" alt="1st" />
+                                                    ) : (
+                                                        <span className="text-4xl">{leaderboard[0].avatar || '👤'}</span>
+                                                    )}
+                                                </div>
+                                                <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-amber-500 text-black text-[12px] font-black rounded-xl flex items-center justify-center border-4 border-neutral-900">1</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-xs font-black text-white truncate w-24">{leaderboard[0].name}</p>
+                                                <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">{leaderboard[0].totalCompletions} Éxitos</p>
+                                            </div>
+                                        </div>
+
+                                        {/* 3rd Place */}
+                                        <div className="flex flex-col items-center gap-3 w-20">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 rounded-2xl bg-neutral-800 border-2 border-amber-700/30 overflow-hidden shadow-xl flex items-center justify-center">
+                                                    {leaderboard[2].avatar?.startsWith('http') ? (
+                                                        <img src={leaderboard[2].avatar} className="w-full h-full object-cover" alt="3rd" />
+                                                    ) : (
+                                                        <span className="text-2xl">{leaderboard[2].avatar || '👤'}</span>
+                                                    )}
+                                                </div>
+                                                <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-amber-700 text-black text-[10px] font-black rounded-lg flex items-center justify-center border-2 border-neutral-900">3</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-[10px] font-black text-white truncate w-20">{leaderboard[2].name}</p>
+                                                <p className="text-[9px] font-black text-amber-700">{leaderboard[2].totalCompletions}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Rest of Leaderboard */}
+                                <div className="space-y-3 px-2">
+                                    {leaderboard.slice(3).map((entry, idx) => (
+                                        <div key={entry.id} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] font-black text-neutral-500 w-4">#{idx + 4}</span>
+                                                <div className="w-10 h-10 rounded-xl bg-neutral-800 overflow-hidden border border-white/10 flex items-center justify-center">
+                                                     {entry.avatar?.startsWith('http') ? (
+                                                         <img src={entry.avatar} className="w-full h-full object-cover" alt={entry.name} />
+                                                     ) : (
+                                                         <span className="text-xl">{entry.avatar || '👤'}</span>
+                                                     )}
+                                                </div>
+                                                <p className="font-black text-white text-sm tracking-tight">{entry.name}</p>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-black text-white">{entry.totalCompletions}</span>
+                                                <Star24Regular className="text-amber-500" style={{ fontSize: 14 }} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="grid gap-4">
                 <AnimatePresence mode="wait">

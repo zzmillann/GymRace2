@@ -58,7 +58,7 @@ export default function SettingsPage() {
               <div>
                 <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Número de tarjeta</p>
                 <p className="text-white font-black text-lg tracking-[0.2em]">
-                  {cardNumber || '•••• •••• •••• ••••'}
+                  {cardNumber}
                 </p>
               </div>
             </motion.div>
@@ -66,7 +66,7 @@ export default function SettingsPage() {
             <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest text-center italic">
               "Te lo juro que no se queda en la base de datos<br/>
               y me voy a comprar un viaje a las islas mauricio<br/>
-              para montar en avestruz" 🦒
+              para montar en avestruz"
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -77,7 +77,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="1234 5678 9012 3456"
+                  placeholder=""
                   value={formatCard(cardNumber)}
                   onChange={e => setCardNumber(e.target.value.replace(/\s/g, ''))}
                   className="w-full bg-neutral-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-black tracking-widest outline-none focus:border-white/20 transition-all text-center"
@@ -93,7 +93,7 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     inputMode="numeric"
-                    placeholder="•••"
+                    placeholder=""
                     value={cvc}
                     onChange={e => setCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
                     className="w-full bg-neutral-950 border border-white/5 rounded-2xl px-4 py-4 text-white font-black tracking-widest outline-none focus:border-white/20 transition-all text-center"
@@ -106,7 +106,7 @@ export default function SettingsPage() {
                   <input
                     type="password"
                     inputMode="numeric"
-                    placeholder="••••"
+                    placeholder=""
                     value={pin}
                     onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                     className="w-full bg-neutral-950 border border-white/5 rounded-2xl px-4 py-4 text-white font-black tracking-widest outline-none focus:border-white/20 transition-all text-center"
@@ -119,7 +119,7 @@ export default function SettingsPage() {
                 type="submit"
                 className="w-full bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl mt-2"
               >
-                Financiar el Avestruz 🦒
+                Financiar el Avestruz
               </motion.button>
             </form>
           </motion.div>
