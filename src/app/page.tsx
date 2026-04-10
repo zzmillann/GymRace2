@@ -184,7 +184,7 @@ export default function Home() {
         {isModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-20 bg-black/60 backdrop-blur-sm"
           >
             <motion.div 
               initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
@@ -221,8 +221,8 @@ export default function Home() {
       {/* Global Gym/Library Add Modals */}
       <AnimatePresence>
         {isGymAddOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 pb-12 relative">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-20 bg-black/90 backdrop-blur-md">
+            <motion.div initial={{ y: -50 }} animate={{ y: 0 }} exit={{ y: -50 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-[40px] p-8 pb-12 relative">
               <button onClick={() => setIsGymAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
                 <X size={18} />
               </button>
@@ -246,8 +246,8 @@ export default function Home() {
         )}
 
         {isLibraryAddOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 pb-12 relative">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-20 bg-black/90 backdrop-blur-md">
+            <motion.div initial={{ y: -50 }} animate={{ y: 0 }} exit={{ y: -50 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-[40px] p-8 pb-12 relative">
               <button onClick={() => setIsLibraryAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
                 <X size={18} />
               </button>
