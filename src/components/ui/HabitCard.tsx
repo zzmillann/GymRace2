@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Fire24Filled, 
   CheckmarkCircle24Filled, 
@@ -131,19 +131,37 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
       </motion.div>
 
       {/* Botón flotante para marcar el día de hoy, separado del onClick de la tarjeta */}
-      <button 
+      <motion.button 
+        whileTap={{ scale: 1.4 }}
         onClick={(e) => {
           e.stopPropagation();
           onToggleToday?.();
         }}
-        className="absolute top-5 right-5 z-20"
+        className="absolute top-5 right-5 z-20 focus:outline-none"
       >
-        {isCompletedToday ? (
-          <CheckmarkCircle24Filled className={theme.text} style={{ fontSize: 28 }} />
-        ) : (
-          <Circle24Regular className="text-neutral-600 hover:text-neutral-400 transition-colors" style={{ fontSize: 28 }} />
-        )}
-      </button>
+        <AnimatePresence mode="wait">
+          {isCompletedToday ? (
+            <motion.div
+              key="checked"
+              initial={{ scale: 0, rotate: -45 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 45 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            >
+              <CheckmarkCircle24Filled className={theme.text} style={{ fontSize: 42 }} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="unchecked"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+            >
+              <Circle24Regular className="text-neutral-700 hover:text-neutral-500 transition-colors" style={{ fontSize: 42 }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.button>
     </div>
   );
 }

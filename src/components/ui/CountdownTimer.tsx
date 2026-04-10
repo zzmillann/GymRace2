@@ -4,16 +4,16 @@ import { useState, useEffect } from 'react';
 import { Timer } from 'lucide-react';
 
 export function CountdownTimer() {
-  const [timeLeft, setTimeLeft] = useState<{h: number, m: number, s: number} | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ h: number, m: number, s: number } | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
       const nextMidnight = new Date();
       nextMidnight.setHours(24, 0, 0, 0);
-      
+
       const diff = nextMidnight.getTime() - now.getTime();
-      
+
       setTimeLeft({
         h: Math.floor((diff / (1000 * 60 * 60)) % 24),
         m: Math.floor((diff / 1000 / 60) % 60),
@@ -36,7 +36,6 @@ export function CountdownTimer() {
         <span className="text-neutral-600">:</span>
         <span className="text-white tabular-nums">{timeLeft.s.toString().padStart(2, '0')}</span>
       </div>
-      <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-tight ml-1">Siguiente</span>
     </div>
   );
 }

@@ -167,6 +167,12 @@ export function AuthView() {
             </footer>
         </div>
       </motion.div>
+      
+      <div 
+        className="fixed bottom-12 left-0 right-0 text-center z-0 opacity-30"
+      >
+        <p className="text-[9px] text-white font-extralight uppercase tracking-[0.6em] italic">Developed by Alejandro Millán</p>
+      </div>
     </div>
   );
 }

@@ -24,6 +24,8 @@ export interface Friend {
   habits: { title: string; streak: number; color: string }[];
   totalCompletions: number;
   maxStreak: number;
+  currentStreak: number;
+  friendCount: number;
 }
 
 interface AppState {
@@ -151,7 +153,7 @@ export const useAppStore = create<AppState>()(
           // Step 3: Get Friend Profiles (Basic fetch for reliability)
           const { data: fProfiles } = friendIds.length > 0 ? await supabase
             .from('profiles')
-            .select('id, user_name, user_code, avatar_url, total_completions')
+            .select('id, user_name, user_code, avatar_url, total_completions, friends_list')
             .in('id', friendIds) : { data: [] };
 
           // Step 4: Get Friends' Habits (Owned & Participated)
@@ -221,11 +223,18 @@ export const useAppStore = create<AppState>()(
                     ...participated.map(h => h.streak)
                 ];
                 
+                const allMaxStreaks = [
+                    ...owned.map(h => h.max_streak),
+                    ...participated.map(h => (h as any).habits?.max_streak)
+                ];
+                
                 return {
                     id: p.id, name: p.user_name, code: p.user_code,
                     avatar: p.avatar_url, totalCompletions: p.total_completions || 0,
                     habits: [], // Simplified per user request
-                    maxStreak: allStreaks.length > 0 ? Math.max(...allStreaks) : 0
+                    maxStreak: allMaxStreaks.length > 0 ? Math.max(...allMaxStreaks.filter(Boolean)) : 0,
+                    currentStreak: allStreaks.length > 0 ? Math.max(...allStreaks) : 0,
+                    friendCount: (p.friends_list || []).length
                 };
             })
           });

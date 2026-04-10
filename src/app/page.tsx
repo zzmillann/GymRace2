@@ -3,7 +3,8 @@
 import { useAppStore } from '@/store/useHabitStore';
 import { HabitCard } from '@/components/ui/HabitCard';
 import { useRouter } from 'next/navigation';
-import { Plus, X, BookOpen, Dumbbell } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
+import { Settings24Regular } from '@fluentui/react-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { CountdownTimer } from '@/components/ui/CountdownTimer';
@@ -27,6 +28,18 @@ export default function Home() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGymAddOpen, setIsGymAddOpen] = useState(false);
+  const [isLibraryAddOpen, setIsLibraryAddOpen] = useState(false);
+  
+  // Gym item states
+  const [newExName, setNewExName] = useState('');
+  const [newExWeight, setNewExWeight] = useState('');
+  
+  // Library item states
+  const [newLibTitle, setNewLibTitle] = useState('');
+  const [newLibAuthor, setNewLibAuthor] = useState('');
+  const [newLibPages, setNewLibPages] = useState('');
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newTheme, setNewTheme] = useState('emerald');
@@ -54,14 +67,20 @@ export default function Home() {
 
   if (!mounted || !initialized) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8">
          <motion.div 
             animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-white font-black italic text-4xl tracking-tighter"
+            className="text-white font-black italic text-5xl tracking-tighter mb-4"
         >
             GYMRACE
         </motion.div>
+        
+        <div 
+            className="fixed bottom-12 left-0 right-0 text-center opacity-30"
+        >
+            <p className="text-[9px] text-white font-extralight uppercase tracking-[0.6em] italic">Developed by Alejandro Millán</p>
+        </div>
       </div>
     );
   }
@@ -72,7 +91,6 @@ export default function Home() {
 
   return (
     <div className="p-6 pt-12 relative min-h-screen bg-neutral-950 overflow-x-hidden">
-      
       <AnimatePresence mode="wait">
         {activeTab === 'habits' && (
           <motion.div 
@@ -91,19 +109,15 @@ export default function Home() {
                   <h1 className="text-3xl font-black tracking-tighter text-white leading-none">Hola, {userName.split(' ')[0]}</h1>
                 </div>
               </div>
-              <motion.button 
-                whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
-                onClick={() => setIsModalOpen(true)}
-                className="bg-white text-black p-3 rounded-2xl shadow-xl transition-all"
+              <button
+                onClick={() => router.push('/settings')}
+                className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center text-neutral-500 active:scale-95 transition-all hover:text-white"
               >
-                <Plus size={24} strokeWidth={3} />
-              </motion.button>
+                <Settings24Regular />
+              </button>
             </header>
 
             <section className="mb-10 flex flex-col gap-4">
-                <div className="flex justify-between items-end">
-                    <h2 className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Siguiente ventana</h2>
-                </div>
                 <CountdownTimer />
             </section>
 
@@ -155,8 +169,13 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <BottomNav />
+      <BottomNav 
+        onPlusClick={() => {
+          if (activeTab === 'habits') setIsModalOpen(true);
+          else if (activeTab === 'gym') setIsGymAddOpen(true);
+          else if (activeTab === 'library') setIsLibraryAddOpen(true);
+        }} 
+      />
 
       <ProfileView isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
@@ -194,6 +213,60 @@ export default function Home() {
                 </div>
                 <button type="submit" disabled={!newTitle.trim()} className="w-full bg-white text-black font-black py-4 rounded-2xl mt-4 uppercase tracking-widest hover:bg-neutral-200 transition-all">Crear Hábito</button>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Global Gym/Library Add Modals */}
+      <AnimatePresence>
+        {isGymAddOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 pb-12 relative">
+              <button onClick={() => setIsGymAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
+                <X size={18} />
+              </button>
+              <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tighter">Nuevo Ejercicio</h2>
+              <div className="flex flex-col gap-4">
+                <input autoFocus placeholder="Nombre (ej. Press Banca)" value={newExName} onChange={e => setNewExName(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
+                <input type="number" placeholder="Peso inicial (kg)" value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
+                <button 
+                  onClick={() => {
+                     if (!newExName || !newExWeight) return;
+                     useAppStore.getState().addExercise(newExName, 'Pecho', Number(newExWeight));
+                     setNewExName(''); setNewExWeight(''); setIsGymAddOpen(false);
+                  }}
+                  className="bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest mt-4 shadow-xl text-center w-full"
+                >
+                  Guardar Ejercicio
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {isLibraryAddOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 pb-12 relative">
+              <button onClick={() => setIsLibraryAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
+                <X size={18} />
+              </button>
+              <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tighter text-center">Añadir Libro</h2>
+              <div className="flex flex-col gap-4">
+                <input autoFocus placeholder="Título" value={newLibTitle} onChange={e => setNewLibTitle(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
+                <input placeholder="Autor" value={newLibAuthor} onChange={e => setNewLibAuthor(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
+                <input type="number" placeholder="Páginas" value={newLibPages} onChange={e => setNewLibPages(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
+                <button 
+                  onClick={() => {
+                      if (!newLibTitle || !newLibPages) return;
+                      useAppStore.getState().addBook(newLibTitle, newLibAuthor || 'Anónimo', Number(newLibPages));
+                      setNewLibTitle(''); setNewLibAuthor(''); setNewLibPages(''); setIsLibraryAddOpen(false);
+                  }}
+                  className="bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest mt-4 shadow-xl text-center w-full"
+                >
+                  Guardar en Biblioteca
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

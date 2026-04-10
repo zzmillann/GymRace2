@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, ArrowUpRight, History, Trash2, ChevronRight } from 'lucide-react';
+import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 
 const MUSCLES = ['Pecho', 'Espalda', 'Pierna', 'Hombro', 'Biceps', 'Triceps'];
@@ -19,6 +21,7 @@ const getInsultRole = (weight: number) => {
 
 export function GymView() {
   const { exercises, addExercise, updateWeight, deleteExercise } = useAppStore();
+  const router = useRouter();
   const [activeMuscle, setActiveMuscle] = useState('Pecho');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingExId, setEditingExId] = useState<string | null>(null);
@@ -51,13 +54,12 @@ export function GymView() {
       <header className="mb-10">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-black tracking-tighter text-white">Gimnasio</h1>
-          <motion.button 
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsAddModalOpen(true)}
-            className="p-3 bg-white text-black rounded-2xl shadow-xl"
+          <button
+            onClick={() => router.push('/settings')}
+            className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center text-neutral-500 active:scale-95 transition-all hover:text-white"
           >
-            <Plus size={24} strokeWidth={3} />
-          </motion.button>
+            <Settings24Regular />
+          </button>
         </div>
         
         <div className="flex gap-2 overflow-x-auto hide-scrollbar -mx-6 px-6">

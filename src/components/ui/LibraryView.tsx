@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Book as BookIcon, User, Trash2, CheckCircle2 } from 'lucide-react';
+import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 
 export function LibraryView() {
   const { books, addBook, updateReadPages, deleteBook } = useAppStore();
+  const router = useRouter();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBookId, setEditingBookId] = useState<string | null>(null);
   
@@ -41,13 +44,12 @@ export function LibraryView() {
             <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Conocimiento</p>
             <h1 className="text-4xl font-black tracking-tighter text-white">Biblioteca</h1>
           </div>
-          <motion.button 
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsAddModalOpen(true)}
-            className="p-3 bg-white text-black rounded-2xl shadow-xl shadow-white/5"
+          <button
+            onClick={() => router.push('/settings')}
+            className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center text-neutral-500 active:scale-95 transition-all hover:text-white"
           >
-            <Plus size={24} strokeWidth={3} />
-          </motion.button>
+            <Settings24Regular />
+          </button>
         </div>
       </header>
 

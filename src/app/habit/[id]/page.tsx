@@ -118,14 +118,6 @@ export default function HabitDetailPage() {
             </div>
         </div>
         <h1 className="text-4xl font-black tracking-tighter italic uppercase">{habit.title}</h1>
-        <div className="flex items-center gap-4 mt-2">
-            <div className="flex items-center gap-1.5 text-orange-500">
-                <Fire24Filled />
-                <span className="font-black text-lg">{habit.streak}</span>
-            </div>
-            <div className="w-1 h-1 rounded-full bg-neutral-800" />
-            <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Competición Élite</span>
-        </div>
       </header>
 
       <main className="p-6 space-y-12">
@@ -153,19 +145,18 @@ export default function HabitDetailPage() {
                                 )}
                             </div>
                             <div>
-                                <h3 className="font-black text-white leading-none mb-1 flex items-center gap-2">
+                                <h3 className="font-black text-white leading-none mb-1.5">
                                     {p.name === userId ? 'Tú' : p.name}
-                                    <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter italic ${i === 0 ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-white/10 text-neutral-400'}`}>
-                                        {(() => {
-                                            const L = RANK_TITLES.length;
-                                            const N = podium.length;
-                                            if (N === 1) return RANK_TITLES[0];
-                                            const pick = Math.floor((i / (N - 1)) * (L - 1));
-                                            return RANK_TITLES[pick];
-                                        })()}
-                                    </span>
                                 </h3>
-                                <p className="text-[8px] font-black text-neutral-500 uppercase tracking-widest italic">Éxitos Totales</p>
+                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest italic ${i === 0 ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-white/10 text-neutral-400'}`}>
+                                    {(() => {
+                                        const L = RANK_TITLES.length;
+                                        const N = podium.length;
+                                        if (N === 1) return RANK_TITLES[0];
+                                        const pick = Math.floor((i / (N - 1)) * (L - 1));
+                                        return RANK_TITLES[pick];
+                                    })()}
+                                </span>
                             </div>
                         </div>
                         <div className="flex flex-col items-end relative z-10">
