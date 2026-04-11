@@ -145,9 +145,14 @@ export default function HabitDetailPage() {
                                 )}
                             </div>
                             <div>
-                                <h3 className="font-black text-white leading-none mb-1.5">
-                                    {p.name === userId ? 'Tú' : p.name}
-                                </h3>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <h3 className="font-black text-white leading-none">
+                                        {p.name === userId ? 'Tú' : p.name}
+                                    </h3>
+                                    {p.name.toLowerCase() === 'zzmillann' && (
+                                        <span className="bg-amber-500/10 text-amber-500 text-[7px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-[0.1em]">El Creador</span>
+                                    )}
+                                </div>
                                 <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest italic ${i === 0 ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-white/10 text-neutral-400'}`}>
                                     {(() => {
                                         const L = RANK_TITLES.length;
@@ -186,7 +191,14 @@ export default function HabitDetailPage() {
                                 <Person24Regular className="text-neutral-500" style={{ fontSize: 16 }} />
                             )}
                          </div>
-                         <h4 className="font-black text-white text-sm uppercase tracking-tighter italic">{p.name === userId ? 'Tu Progreso' : `Progreso de ${p.name}`}</h4>
+                         <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                                <h4 className="font-black text-white text-sm uppercase tracking-tighter italic">{p.name === userId ? 'Tu Progreso' : `Progreso de ${p.name}`}</h4>
+                                {p.name.toLowerCase() === 'zzmillann' && (
+                                    <span className="bg-amber-500/10 text-amber-500 text-[7px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-[0.1em]">El Creador</span>
+                                )}
+                            </div>
+                         </div>
                     </div>
                     <YearlyHeatmap data={p.history} colorTheme={habit.colorTheme} startDate={habit.createdAt} />
                 </div>

@@ -143,8 +143,11 @@ export function SocialView() {
                                                 </div>
                                                 <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-slate-400 text-black text-[10px] font-black rounded-lg flex items-center justify-center border-2 border-neutral-900">2</div>
                                             </div>
-                                            <div className="text-center">
+                                            <div className="text-center flex flex-col items-center">
                                                 <p className="text-[10px] font-black text-white truncate w-20">{leaderboard[1].name}</p>
+                                                {leaderboard[1].name.toLowerCase() === 'zzmillann' && (
+                                                    <span className="bg-amber-500/10 text-amber-500 text-[6px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-tighter mb-1">El Creador</span>
+                                                )}
                                                 <p className="text-[9px] font-black text-slate-400">{leaderboard[1].totalCompletions}</p>
                                             </div>
                                         </div>
@@ -164,8 +167,11 @@ export function SocialView() {
                                                 </div>
                                                 <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-amber-500 text-black text-[12px] font-black rounded-xl flex items-center justify-center border-4 border-neutral-900">1</div>
                                             </div>
-                                            <div className="text-center">
+                                            <div className="text-center flex flex-col items-center">
                                                 <p className="text-xs font-black text-white truncate w-24">{leaderboard[0].name}</p>
+                                                {leaderboard[0].name.toLowerCase() === 'zzmillann' && (
+                                                    <span className="bg-amber-500/10 text-amber-500 text-[6px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-tighter mb-1">El Creador</span>
+                                                )}
                                                 <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">{leaderboard[0].totalCompletions} Éxitos</p>
                                             </div>
                                         </div>
@@ -182,8 +188,11 @@ export function SocialView() {
                                                 </div>
                                                 <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-amber-700 text-black text-[10px] font-black rounded-lg flex items-center justify-center border-2 border-neutral-900">3</div>
                                             </div>
-                                            <div className="text-center">
+                                            <div className="text-center flex flex-col items-center">
                                                 <p className="text-[10px] font-black text-white truncate w-20">{leaderboard[2].name}</p>
+                                                {leaderboard[2].name.toLowerCase() === 'zzmillann' && (
+                                                    <span className="bg-amber-500/10 text-amber-500 text-[6px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-tighter mb-1">El Creador</span>
+                                                )}
                                                 <p className="text-[9px] font-black text-amber-700">{leaderboard[2].totalCompletions}</p>
                                             </div>
                                         </div>
@@ -203,7 +212,14 @@ export function SocialView() {
                                                          <span className="text-xl">{entry.avatar || '👤'}</span>
                                                      )}
                                                 </div>
-                                                <p className="font-black text-white text-sm tracking-tight">{entry.name}</p>
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-black text-white text-sm tracking-tight">{entry.name}</p>
+                                                        {entry.name.toLowerCase() === 'zzmillann' && (
+                                                            <span className="bg-amber-500/10 text-amber-500 text-[7px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-[0.1em]">El Creador</span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <span className="font-black text-white">{entry.totalCompletions}</span>
@@ -297,7 +313,12 @@ export function SocialView() {
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="font-black text-white tracking-tight">{friend.name}</h3>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="font-black text-white tracking-tight leading-none">{friend.name}</h3>
+                                                {friend.name.toLowerCase() === 'zzmillann' && (
+                                                    <span className="bg-amber-500/10 text-amber-500 text-[7px] font-black px-1.5 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-widest">El Creador</span>
+                                                )}
+                                            </div>
                                             <div className="flex items-center gap-1 text-emerald-500">
                                                 <People24Regular style={{ fontSize: 16 }} />
                                                 <span className="text-[10px] font-black">{friend.friendCount || 0} amigos</span>
@@ -453,7 +474,12 @@ export function SocialView() {
                                         <Person24Regular style={{ fontSize: 32 }} className="text-neutral-500" />
                                     )}
                                 </div>
-                                <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-1">{selectedFriend.name}</h2>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">{selectedFriend.name}</h2>
+                                    {selectedFriend.name.toLowerCase() === 'zzmillann' && (
+                                        <span className="bg-amber-500/10 text-amber-500 text-[9px] font-black px-2 py-1 rounded-lg border border-amber-500/20 uppercase tracking-widest">El Creador</span>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mb-8">
