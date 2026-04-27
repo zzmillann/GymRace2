@@ -58,6 +58,8 @@ interface AppState {
 
   // Gym
   exercises: Exercise[];
+  activeGymMuscle: string;
+  setActiveGymMuscle: (muscle: string) => void;
   addExercise: (name: string, muscle: string, initialWeight: number) => void;
   updateWeight: (id: string, newWeight: number) => void;
   deleteExercise: (id: string) => void;
@@ -92,6 +94,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       userId: null, userCode: '', userName: '', userAvatar: '👤', pendingRequests: [], outgoingRequests: [], habitInvitations: [], initialized: false,
       activeTab: 'habits', setActiveTab: (activeTab) => set({ activeTab }),
+      activeGymMuscle: 'Pecho', setActiveGymMuscle: (activeGymMuscle) => set({ activeGymMuscle }),
 
       initialize: async () => {
         const { data: { session } } = await supabase.auth.getSession();

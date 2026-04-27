@@ -20,9 +20,8 @@ const getInsultRole = (weight: number) => {
 };
 
 export function GymView() {
-  const { exercises, addExercise, updateWeight, deleteExercise } = useAppStore();
+  const { exercises, addExercise, updateWeight, deleteExercise, activeGymMuscle, setActiveGymMuscle } = useAppStore();
   const router = useRouter();
-  const [activeMuscle, setActiveMuscle] = useState('Pecho');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingExId, setEditingExId] = useState<string | null>(null);
   
@@ -30,12 +29,12 @@ export function GymView() {
   const [newExWeight, setNewExWeight] = useState('');
   const [updateWeightVal, setUpdateWeightVal] = useState('');
 
-  const filteredExercises = exercises.filter(ex => ex.muscle === activeMuscle);
+  const filteredExercises = exercises.filter(ex => ex.muscle === activeGymMuscle);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newExName || !newExWeight) return;
-    addExercise(newExName, activeMuscle, Number(newExWeight));
+    addExercise(newExName, activeGymMuscle, Number(newExWeight));
     setNewExName('');
     setNewExWeight('');
     setIsAddModalOpen(false);
@@ -66,8 +65,8 @@ export function GymView() {
           {MUSCLES.map(m => (
             <button
               key={m}
-              onClick={() => setActiveMuscle(m)}
-              className={`px-6 py-3 rounded-2xl whitespace-nowrap font-black uppercase text-[10px] tracking-widest transition-all ${activeMuscle === m ? 'bg-white text-black scale-105 shadow-2xl shadow-white/10' : 'bg-neutral-900 text-neutral-500 border border-white/5'}`}
+              onClick={() => setActiveGymMuscle(m)}
+              className={`px-6 py-3 rounded-2xl whitespace-nowrap font-black uppercase text-[10px] tracking-widest transition-all ${activeGymMuscle === m ? 'bg-white text-black scale-105 shadow-2xl shadow-white/10' : 'bg-neutral-900 text-neutral-500 border border-white/5'}`}
             >
               {m}
             </button>
@@ -79,7 +78,7 @@ export function GymView() {
         <AnimatePresence mode="popLayout">
           {filteredExercises.length === 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-neutral-600 font-bold uppercase text-[10px] tracking-widest">
-                No hay ejercicios en {activeMuscle}
+                No hay ejercicios en {activeGymMuscle}
             </motion.div>
           )}
 

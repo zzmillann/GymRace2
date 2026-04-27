@@ -24,7 +24,7 @@ const THEMES = [
 ];
 
 export default function Home() {
-  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName } = useAppStore();
+  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName, activeGymMuscle } = useAppStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -237,7 +237,7 @@ export default function Home() {
                 <button 
                   onClick={() => {
                      if (!newExName || !newExWeight) return;
-                     useAppStore.getState().addExercise(newExName, 'Pecho', Number(newExWeight));
+                     useAppStore.getState().addExercise(newExName, activeGymMuscle, Number(newExWeight));
                      setNewExName(''); setNewExWeight(''); setIsGymAddOpen(false);
                   }}
                   className="bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest mt-4 shadow-xl text-center w-full"
