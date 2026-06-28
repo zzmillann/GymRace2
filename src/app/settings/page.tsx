@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft24Regular } from '@fluentui/react-icons';
 import { useAppStore, FREE_ACTIVITY_LIMIT } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
+import { ProfileView } from '@/components/ui/ProfileView';
 
 const APP_VERSION = '1.0.0';
 
@@ -14,14 +15,35 @@ export default function SettingsPage() {
   const t = useT();
   const {
     settings, updateSettings, isPro, subscriptionPlan, getActivityCount, openPaywall,
-    cancelPro, signOut, userName, userAvatar, userCode,
+    cancelPro, signOut, updatePassword, userName, userAvatar, userCode,
     habits, exercises, books,
   } = useAppStore();
 
   const [toast, setToast] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState('');
   useEffect(() => setMounted(true), []);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200); };
+
+  const handleChangePassword = async () => {
+    setPwError('');
+    if (newPass.length < 6) { setPwError('Mínimo 6 caracteres'); return; }
+    if (newPass !== confirmPass) { setPwError('Las contraseñas no coinciden'); return; }
+    setPwLoading(true);
+    const res = await updatePassword(newPass);
+    setPwLoading(false);
+    if (res.success) {
+      setPwOpen(false); setNewPass(''); setConfirmPass('');
+      showToast('Contraseña actualizada ✅');
+    } else {
+      setPwError(res.error || 'No se pudo cambiar la contraseña');
+    }
+  };
 
   const usage = getActivityCount();
   const usagePct = Math.min(100, (usage / FREE_ACTIVITY_LIMIT) * 100);
@@ -131,12 +153,12 @@ export default function SettingsPage() {
 
       {/* ───────── CUENTA ───────── */}
       <Section title={t('set.sec.account')}>
-        <NavRow icon="🧑" label={t('set.editProfile')} sub={userName} onClick={() => router.push('/')}>
+        <NavRow icon="🧑" label={t('set.editProfile')} sub={userName} onClick={() => setProfileOpen(true)}>
           <div className="w-8 h-8 rounded-lg bg-surface-2 overflow-hidden flex items-center justify-center text-sm">
             {userAvatar?.startsWith('http') ? <img src={userAvatar} className="w-full h-full object-cover" /> : userAvatar}
           </div>
         </NavRow>
-        <NavRow icon="🔑" label={t('set.changePass')} onClick={() => showToast(t('common.soon'))} />
+        <NavRow icon="🔑" label={t('set.changePass')} onClick={() => { setPwError(''); setNewPass(''); setConfirmPass(''); setPwOpen(true); }} />
         <NavRow icon="🎟️" label={t('set.inviteCode')} sub={userCode} onClick={() => { navigator.clipboard?.writeText(userCode); showToast('Código copiado'); }} />
       </Section>
 
@@ -242,6 +264,49 @@ export default function SettingsPage() {
             className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl z-[200] text-center"
           >
             {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Editor de perfil (nombre + avatar) */}
+      <ProfileView isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
+
+      {/* Modal cambiar contraseña */}
+      <AnimatePresence>
+        {pwOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[550] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-surface border border-line/10 w-full max-w-sm rounded-[36px] p-7 relative shadow-2xl"
+            >
+              <button onClick={() => setPwOpen(false)} className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted hover:text-content transition-colors text-lg font-bold">✕</button>
+              <div className="flex items-center gap-2 mb-6">
+                <span className="text-xl">🔑</span>
+                <h2 className="text-xl font-black text-content uppercase tracking-tighter italic">{t('set.changePass')}</h2>
+              </div>
+              <div className="flex flex-col gap-3">
+                <input
+                  type="password" placeholder={t('set.newPassword')} value={newPass}
+                  onChange={(e) => setNewPass(e.target.value)}
+                  className="w-full bg-app border border-line/5 rounded-2xl px-5 py-4 text-content font-bold outline-none focus:border-accent/50 transition-all"
+                />
+                <input
+                  type="password" placeholder={t('set.repeatPassword')} value={confirmPass}
+                  onChange={(e) => setConfirmPass(e.target.value)}
+                  className="w-full bg-app border border-line/5 rounded-2xl px-5 py-4 text-content font-bold outline-none focus:border-accent/50 transition-all"
+                />
+                {pwError && <p className="text-rose-500 text-[11px] font-black uppercase text-center">{pwError}</p>}
+                <button
+                  onClick={handleChangePassword} disabled={pwLoading}
+                  className="w-full bg-accent text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm mt-1 active:scale-[0.98] transition-transform disabled:opacity-50"
+                >
+                  {pwLoading ? '...' : t('common.save')}
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

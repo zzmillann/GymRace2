@@ -82,6 +82,8 @@ const DICT: Record<string, { es: string; en: string }> = {
 
   'set.editProfile': { es: 'Editar perfil', en: 'Edit profile' },
   'set.changePass': { es: 'Cambiar contraseña', en: 'Change password' },
+  'set.newPassword': { es: 'Nueva contraseña', en: 'New password' },
+  'set.repeatPassword': { es: 'Repite la contraseña', en: 'Repeat password' },
   'set.inviteCode': { es: 'Código de invitación', en: 'Invite code' },
   'set.pushNotifs': { es: 'Notificaciones push', en: 'Push notifications' },
   'set.dailyReminder': { es: 'Recordatorio diario', en: 'Daily reminder' },
