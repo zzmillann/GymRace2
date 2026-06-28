@@ -155,6 +155,8 @@ interface AppState {
   searchUsers: (query: string) => Promise<{ id: string; name: string; avatar: string }[]>;
   getProfileByCode: (code: string) => Promise<{ id: string; name: string; avatar: string; code: string } | null>;
   getUserDetails: (id: string) => Promise<{ id: string; name: string; code: string; avatar: string; friendCount: number; totalCompletions: number; maxStreak: number; rank: number } | null>;
+  logProfileView: (profileId: string) => Promise<void>;
+  getProfileViewers: () => Promise<{ id: string; name: string; avatar: string; when: string }[]>;
   addFriendByCode: (code: string) => Promise<{ success: boolean; message: string }>;
   addFriendById: (id: string) => Promise<{ success: boolean; message: string }>;
   acceptFriendRequest: (requestId: string) => Promise<void>;
@@ -799,6 +801,31 @@ export const useAppStore = create<AppState>()(
           .single();
         if (!data) return null;
         return { id: data.id, name: data.user_name, avatar: data.avatar_url || '👤', code: data.user_code };
+      },
+
+      logProfileView: async (profileId) => {
+        const uid = get().userId;
+        if (!uid || !profileId || uid === profileId) return;
+        try { await supabase.from('profile_views').insert({ viewer_id: uid, profile_id: profileId }); } catch { /* tabla aún sin crear */ }
+      },
+      getProfileViewers: async () => {
+        const uid = get().userId;
+        if (!uid) return [];
+        const { data } = await supabase
+          .from('profile_views')
+          .select('viewer_id, created_at, profiles!profile_views_viewer_id_fkey(user_name, avatar_url)')
+          .eq('profile_id', uid)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        if (!data) return [];
+        const seen = new Set<string>();
+        const out: { id: string; name: string; avatar: string; when: string }[] = [];
+        for (const v of data as any[]) {
+          if (seen.has(v.viewer_id)) continue;
+          seen.add(v.viewer_id);
+          out.push({ id: v.viewer_id, name: v.profiles?.user_name || 'Alguien', avatar: v.profiles?.avatar_url || '👤', when: v.created_at });
+        }
+        return out;
       },
 
       getUserDetails: async (id) => {

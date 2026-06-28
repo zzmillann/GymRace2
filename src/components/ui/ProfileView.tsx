@@ -12,6 +12,7 @@ import {
   Person24Regular
 } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
+import { Wrapped } from './Wrapped';
 
 const AVATAR_SEEDS = [
   'Felix', 'Aneka', 'Abigail', 'Aiden', 'George', 'Jack', 'Jasper', 'Jordan', 'Kingston', 'Lulu', 
@@ -19,12 +20,24 @@ const AVATAR_SEEDS = [
 ];
 
 export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const { userCode, userName, userAvatar, updateProfile, signOut, habits } = useAppStore();
+  const { userCode, userName, userAvatar, updateProfile, signOut, habits, getProfileViewers } = useAppStore();
   const [newName, setNewName] = useState(userName);
   const [selectedAvatar, setSelectedAvatar] = useState(userAvatar);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{t: string, type: 's'|'e'} | null>(null);
+  const [wrappedOpen, setWrappedOpen] = useState(false);
+  const [viewersOpen, setViewersOpen] = useState(false);
+  const [viewers, setViewers] = useState<{ id: string; name: string; avatar: string; when: string }[]>([]);
+  const [viewersLoading, setViewersLoading] = useState(false);
+
+  const openViewers = async () => {
+    setViewersOpen(true);
+    setViewersLoading(true);
+    const list = await getProfileViewers();
+    setViewers(list);
+    setViewersLoading(false);
+  };
 
   const totalStreak = habits.reduce((acc, h) => acc + h.streak, 0);
 
@@ -133,6 +146,20 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                     </p>
                 )}
 
+                <button
+                    onClick={() => setWrappedOpen(true)}
+                    className="w-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg"
+                >
+                    📊 Mi Wrapped del mes
+                </button>
+
+                <button
+                    onClick={openViewers}
+                    className="w-full bg-surface-2 text-content py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all border border-line/5"
+                >
+                    👀 Quién ha visto tu perfil
+                </button>
+
                 <div className="flex gap-4 pb-4">
                     <button 
                         onClick={handleUpdate} disabled={loading}
@@ -149,6 +176,37 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 </div>
             </div>
           </motion.div>
+
+          <Wrapped isOpen={wrappedOpen} onClose={() => setWrappedOpen(false)} />
+
+          {/* Quién te ha visto */}
+          <AnimatePresence>
+            {viewersOpen && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+                <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-7 relative shadow-2xl max-h-[80vh] flex flex-col">
+                  <button onClick={() => setViewersOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted text-lg font-bold">✕</button>
+                  <div className="flex items-center gap-2 mb-5">
+                    <span className="text-xl">👀</span>
+                    <h2 className="text-lg font-black text-content uppercase tracking-tighter italic">Quién te ha visto</h2>
+                  </div>
+                  <div className="flex-1 overflow-y-auto hide-scrollbar space-y-2">
+                    {viewersLoading ? (
+                      <div className="flex justify-center py-12"><div className="w-7 h-7 border-2 border-line/10 border-t-white rounded-full animate-spin" /></div>
+                    ) : viewers.length === 0 ? (
+                      <p className="text-center text-muted font-bold uppercase text-[10px] tracking-widest py-12">Aún no te ha visto nadie 👻</p>
+                    ) : viewers.map((v) => (
+                      <div key={v.id} className="flex items-center gap-3 bg-black/30 border border-line/5 rounded-2xl p-3">
+                        <div className="w-10 h-10 rounded-xl bg-surface-2 overflow-hidden flex items-center justify-center border border-line/5">
+                          {v.avatar?.startsWith('http') ? <img src={v.avatar} className="w-full h-full object-cover" /> : <Person24Regular className="text-muted" />}
+                        </div>
+                        <span className="font-black text-content text-sm italic uppercase">{v.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

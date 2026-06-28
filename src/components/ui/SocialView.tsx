@@ -56,7 +56,10 @@ export function SocialView() {
         return () => clearInterval(id);
     }, [refreshFriendsNowPlaying]);
 
+    const logProfileView = useAppStore((s) => s.logProfileView);
+
     const openUserDetails = async (id: string) => {
+        logProfileView(id);
         setDetailsLoading(true);
         setUserDetails({ id, loading: true });
         const d = await getUserDetails(id);
@@ -371,7 +374,7 @@ export function SocialView() {
                             )}
                             {friends.map((friend) => (
                                 <motion.div
-                                    layout key={friend.id} onClick={() => setSelectedFriend(friend)}
+                                    layout key={friend.id} onClick={() => { logProfileView(friend.id); setSelectedFriend(friend); }}
                                     className="bg-surface border border-line/5 rounded-[32px] p-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
                                 >
                                     <div className="flex items-center gap-4">
