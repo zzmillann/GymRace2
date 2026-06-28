@@ -76,7 +76,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<SpotifyT
   return res.json();
 }
 
-export interface NowPlaying { track: string; artist: string; isPlaying: boolean; albumArt?: string; }
+export interface NowPlaying { track: string; artist: string; isPlaying: boolean; albumArt?: string; url?: string; }
 
 export async function getCurrentlyPlaying(accessToken: string): Promise<NowPlaying | null> {
   const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -90,5 +90,6 @@ export async function getCurrentlyPlaying(accessToken: string): Promise<NowPlayi
     artist: (data.item.artists || []).map((a: any) => a.name).join(', '),
     isPlaying: !!data.is_playing,
     albumArt: data.item.album?.images?.[0]?.url,
+    url: data.item.external_urls?.spotify,
   };
 }

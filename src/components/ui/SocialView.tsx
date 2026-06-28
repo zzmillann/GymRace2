@@ -22,7 +22,15 @@ import {
 import { useAppStore, Friend } from '@/store/useHabitStore';
 
 export function SocialView() {
-    const { userCode, friends, pendingRequests, outgoingRequests, habitInvitations, searchUsers, addFriendById, acceptFriendRequest, declineFriendRequest, acceptHabitInvitation, declineHabitInvitation, getGlobalLeaderboard, refreshFriendsNowPlaying, getUserDetails } = useAppStore();
+    const { userCode, friends, pendingRequests, outgoingRequests, habitInvitations, searchUsers, addFriendById, acceptFriendRequest, declineFriendRequest, acceptHabitInvitation, declineHabitInvitation, getGlobalLeaderboard, refreshFriendsNowPlaying, getUserDetails, nowPlaying } = useAppStore();
+
+    // ¿Escucho lo mismo que este amigo? ('song' | 'artist' | null)
+    const sameAs = (track?: string, artist?: string): 'song' | 'artist' | null => {
+        if (!nowPlaying?.track) return null;
+        if (track && nowPlaying.track.toLowerCase() === track.toLowerCase()) return 'song';
+        if (artist && nowPlaying.artist && nowPlaying.artist.toLowerCase() === artist.toLowerCase()) return 'artist';
+        return null;
+    };
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<{ id: string, name: string, avatar: string }[]>([]);
     const [feedback, setFeedback] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
@@ -386,12 +394,17 @@ export function SocialView() {
                                                 <span className="text-[10px] font-black">{friend.friendCount || 0} amigos</span>
                                             </div>
                                             {friend.spotifyTrack && (
-                                                <div className="flex items-center gap-1.5 mt-1.5 text-[#1DB954]">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); openSpotify(friend.spotifyUrl); }}
+                                                    className="flex items-center gap-1.5 mt-1.5 text-[#1DB954] max-w-full active:scale-[0.97] transition-transform"
+                                                >
                                                     {friend.spotifyAlbumArt
                                                         ? <img src={friend.spotifyAlbumArt} className="w-4 h-4 rounded object-cover flex-shrink-0 shadow" alt="" />
                                                         : <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954] animate-pulse flex-shrink-0" />}
-                                                    <span className="text-[10px] font-bold truncate max-w-[150px]">{friend.spotifyTrack} · {friend.spotifyArtist}</span>
-                                                </div>
+                                                    {friend.spotifyPlaying && <Equalizer className="flex-shrink-0" />}
+                                                    <span className="text-[10px] font-bold truncate max-w-[120px]">{friend.spotifyTrack} · {friend.spotifyArtist}</span>
+                                                    {sameAs(friend.spotifyTrack, friend.spotifyArtist) && <span className="text-[10px] flex-shrink-0">🎶</span>}
+                                                </button>
                                             )}
                                         </div>
                                     </div>
@@ -565,20 +578,34 @@ export function SocialView() {
                                 </div>
                             </div>
 
-                            {selectedFriend.spotifyTrack && (
-                                <div className="bg-[#1DB954]/10 border border-[#1DB954]/20 rounded-2xl p-4 flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-[#1DB954]/20 flex items-center justify-center text-lg flex-shrink-0 overflow-hidden shadow-lg">
-                                        {selectedFriend.spotifyAlbumArt
-                                            ? <img src={selectedFriend.spotifyAlbumArt} className="w-full h-full object-cover" alt="" />
-                                            : '🎧'}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-[8px] font-black text-[#1DB954] uppercase tracking-widest mb-0.5">{selectedFriend.spotifyPlaying ? '● Ahora suena' : 'Última escucha'}</p>
-                                        <p className="text-content font-black text-sm truncate">{selectedFriend.spotifyTrack}</p>
-                                        <p className="text-muted text-[11px] font-bold truncate">{selectedFriend.spotifyArtist}</p>
-                                    </div>
-                                </div>
-                            )}
+                            {selectedFriend.spotifyTrack && (() => {
+                                const same = sameAs(selectedFriend.spotifyTrack, selectedFriend.spotifyArtist);
+                                return (
+                                    <button
+                                        onClick={() => openSpotify(selectedFriend.spotifyUrl)}
+                                        className="w-full bg-[#1DB954]/10 border border-[#1DB954]/20 rounded-2xl p-4 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-[#1DB954]/20 flex items-center justify-center text-lg flex-shrink-0 overflow-hidden shadow-lg">
+                                            {selectedFriend.spotifyAlbumArt
+                                                ? <img src={selectedFriend.spotifyAlbumArt} className="w-full h-full object-cover" alt="" />
+                                                : '🎧'}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <p className="text-[8px] font-black text-[#1DB954] uppercase tracking-widest">{selectedFriend.spotifyPlaying ? 'Ahora suena' : 'Última escucha'}</p>
+                                                {selectedFriend.spotifyPlaying && <Equalizer />}
+                                            </div>
+                                            <p className="text-content font-black text-sm truncate">{selectedFriend.spotifyTrack}</p>
+                                            <p className="text-muted text-[11px] font-bold truncate">{selectedFriend.spotifyArtist}</p>
+                                            {same && (
+                                                <p className="text-[#1DB954] text-[9px] font-black uppercase tracking-widest mt-1">
+                                                    🎶 {same === 'song' ? '¡Estáis en sintonía!' : 'Mismo artista'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })()}
                         </motion.div>
                     </motion.div>
                 )}
@@ -649,6 +676,37 @@ export function SocialView() {
                     </motion.div>
                 )}
             </AnimatePresence>
+        </div>
+    );
+}
+
+// Abre la canción en la app de Spotify (spotify:track:ID); si no está, cae a la web
+function openSpotify(url?: string) {
+    if (typeof window === 'undefined' || !url) return;
+    const id = url.match(/track\/([A-Za-z0-9]+)/)?.[1];
+    if (!id) { window.location.href = url; return; }
+    let opened = false;
+    const onBlur = () => { opened = true; };
+    window.addEventListener('blur', onBlur, { once: true });
+    window.location.href = `spotify:track:${id}`;
+    setTimeout(() => {
+        window.removeEventListener('blur', onBlur);
+        if (!opened) window.location.href = url;
+    }, 1500);
+}
+
+// Ecualizador animado (barritas) para "está sonando"
+function Equalizer({ className = '' }: { className?: string }) {
+    return (
+        <div className={`flex items-end gap-[2px] h-3.5 ${className}`} aria-hidden>
+            {[0, 1, 2, 3].map((i) => (
+                <motion.span
+                    key={i}
+                    className="w-[3px] rounded-full bg-[#1DB954]"
+                    animate={{ height: ['25%', '100%', '45%', '85%', '30%'] }}
+                    transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.13, ease: 'easeInOut' }}
+                />
+            ))}
         </div>
     );
 }
