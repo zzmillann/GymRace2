@@ -3,6 +3,7 @@ alter table profiles add column if not exists spotify_track text;
 alter table profiles add column if not exists spotify_artist text;
 alter table profiles add column if not exists spotify_is_playing boolean default false;
 alter table profiles add column if not exists spotify_updated timestamptz;
+alter table profiles add column if not exists spotify_album_art text;
 
 -- 2) Tabla privada de refresh tokens (cada usuario solo ve el suyo).
 --    El sondeo del servidor (service_role) la lee saltándose la RLS.

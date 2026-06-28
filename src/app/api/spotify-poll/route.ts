@@ -49,13 +49,14 @@ export async function GET(req: NextRequest) {
       const npRes = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
         headers: { Authorization: `Bearer ${tok.access_token}` },
       });
-      let track: string | null = null, artist: string | null = null, isPlaying = false;
+      let track: string | null = null, artist: string | null = null, isPlaying = false, albumArt: string | null = null;
       if (npRes.status === 200) {
         const d = await npRes.json().catch(() => null);
         if (d && d.item) {
           track = d.item.name;
           artist = (d.item.artists || []).map((a: any) => a.name).join(', ');
           isPlaying = !!d.is_playing;
+          albumArt = d.item.album?.images?.[0]?.url || null;
         }
       }
 
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
         spotify_track: track,
         spotify_artist: artist,
         spotify_is_playing: isPlaying,
+        spotify_album_art: albumArt,
         spotify_updated: new Date().toISOString(),
       }).eq('id', t.user_id);
       return 1;

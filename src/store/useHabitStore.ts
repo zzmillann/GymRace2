@@ -30,6 +30,7 @@ export interface Friend {
   spotifyTrack?: string;
   spotifyArtist?: string;
   spotifyPlaying?: boolean;
+  spotifyAlbumArt?: string;
 }
 
 export interface SpotifyState {
@@ -259,6 +260,7 @@ export const useAppStore = create<AppState>()(
           spotify_track: np?.track || null,
           spotify_artist: np?.artist || null,
           spotify_is_playing: np?.isPlaying || false,
+          spotify_album_art: np?.albumArt || null,
           spotify_updated: new Date().toISOString(),
         }).eq('id', uid);
       },
@@ -291,7 +293,7 @@ export const useAppStore = create<AppState>()(
         const ids = friends.map((f) => f.id);
         const { data } = await supabase
           .from('profiles')
-          .select('id, spotify_track, spotify_artist, spotify_is_playing, spotify_updated')
+          .select('id, spotify_track, spotify_artist, spotify_is_playing, spotify_album_art, spotify_updated')
           .in('id', ids);
         if (!data) return;
         const byId = new Map<string, any>(data.map((p: any) => [p.id, p]));
@@ -304,6 +306,7 @@ export const useAppStore = create<AppState>()(
               spotifyTrack: fresh ? p.spotify_track : undefined,
               spotifyArtist: fresh ? p.spotify_artist : undefined,
               spotifyPlaying: fresh ? p.spotify_is_playing : false,
+              spotifyAlbumArt: fresh ? p.spotify_album_art : undefined,
             };
           }),
         });
@@ -370,7 +373,7 @@ export const useAppStore = create<AppState>()(
           // Step 3: Get Friend Profiles (Basic fetch for reliability)
           const { data: fProfiles } = friendIds.length > 0 ? await supabase
             .from('profiles')
-            .select('id, user_name, user_code, avatar_url, total_completions, friends_list, spotify_track, spotify_artist, spotify_is_playing, spotify_updated')
+            .select('id, user_name, user_code, avatar_url, total_completions, friends_list, spotify_track, spotify_artist, spotify_is_playing, spotify_album_art, spotify_updated')
             .in('id', friendIds) : { data: [] };
 
           // Step 4: Get Friends' Habits (Owned & Participated)
@@ -461,6 +464,7 @@ export const useAppStore = create<AppState>()(
                     spotifyTrack: spotifyFresh ? p.spotify_track : undefined,
                     spotifyArtist: spotifyFresh ? p.spotify_artist : undefined,
                     spotifyPlaying: spotifyFresh ? p.spotify_is_playing : false,
+                    spotifyAlbumArt: spotifyFresh ? p.spotify_album_art : undefined,
                 };
             })
           });
