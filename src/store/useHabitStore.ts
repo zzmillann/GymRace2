@@ -100,6 +100,8 @@ interface AppState {
   signUp: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  resetPassword: (identifier: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   updateProfile: (name: string, avatar: string) => Promise<{ success: boolean; error?: string }>;
   uploadAvatar: (file: File) => Promise<{ success: boolean; url?: string; error?: string }>;
 
@@ -434,6 +436,37 @@ export const useAppStore = create<AppState>()(
       signOut: async () => {
         await supabase.auth.signOut();
         set({ userId: null, userCode: '', userName: '', habits: [] });
+      },
+
+      resetPassword: async (identifier) => {
+        const id = identifier.trim();
+        if (!id) return { success: false, error: 'Introduce tu usuario o email' };
+
+        // El login es por nombre de usuario; Supabase necesita el email real.
+        let email = id;
+        if (!id.includes('@')) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email_internal')
+            .eq('user_name', id)
+            .single();
+          if (!profile?.email_internal) {
+            return { success: false, error: 'No encontramos ninguna cuenta con ese usuario' };
+          }
+          email = profile.email_internal;
+        }
+
+        const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined;
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+      },
+
+      updatePassword: async (newPassword) => {
+        if (newPassword.length < 6) return { success: false, error: 'Mínimo 6 caracteres' };
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) return { success: false, error: error.message };
+        return { success: true };
       },
 
       habits: [],
