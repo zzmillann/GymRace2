@@ -107,7 +107,7 @@ const DICT: Record<string, { es: string; en: string }> = {
   'set.whoInvites': { es: 'Quién puede invitarme', en: 'Who can invite me' },
   'set.cloudSync': { es: 'Sincronización en la nube', en: 'Cloud sync' },
   'set.autoBackup': { es: 'Copia de seguridad automática', en: 'Automatic backup' },
-  'set.export': { es: 'Exportar mis datos', en: 'Export my data' },
+  'set.export': { es: 'Exportar a PDF', en: 'Export to PDF' },
   'set.clearCache': { es: 'Limpiar caché local', en: 'Clear local cache' },
   'set.help': { es: 'Centro de ayuda', en: 'Help center' },
   'set.terms': { es: 'Términos de servicio', en: 'Terms of service' },

@@ -10,6 +10,10 @@ import { ProfileView } from '@/components/ui/ProfileView';
 
 const APP_VERSION = '1.0.0';
 
+const ACCENT_HEX: Record<string, string> = {
+  emerald: '#10b981', indigo: '#6366f1', rose: '#f43f5e', amber: '#f59e0b', sky: '#0ea5e9',
+};
+
 export default function SettingsPage() {
   const router = useRouter();
   const t = useT();
@@ -71,19 +75,76 @@ export default function SettingsPage() {
     updateSettings({ [key]: !settings[key] } as any);
   };
 
-  const exportData = () => {
+  const exportPDF = () => {
     if (!isPro) { openPaywall('La exportación de datos es una función Pro.'); return; }
-    const blob = new Blob([JSON.stringify({ habits, exercises, books, settings }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'gymrace-export.json'; a.click();
-    URL.revokeObjectURL(url);
-    showToast('Datos exportados');
-  };
+    const w = window.open('', '_blank', 'width=900,height=1200');
+    if (!w) { showToast('Permite las ventanas emergentes para exportar'); return; }
+    const accent = ACCENT_HEX[settings.accentColor] || '#10b981';
+    const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    const totalCompletions = habits.reduce((a, h) => a + Object.values(h.history).filter(Boolean).length, 0);
+    const bestStreak = habits.reduce((a, h) => Math.max(a, h.maxStreak || 0, h.streak || 0), 0);
 
-  const clearCache = () => {
-    try { localStorage.removeItem('gymrace-last-reminder'); } catch {}
-    showToast('Caché local limpiada');
+    const stat = (n: number | string, l: string) =>
+      `<div class="stat"><div class="num">${n}</div><div class="lbl">${l}</div></div>`;
+
+    const habitRows = habits.length ? habits.map(h => {
+      const done = Object.values(h.history).filter(Boolean).length;
+      return `<div class="row"><div><div class="rt">${h.title}</div><div class="rs">${done} días completados</div></div>
+        <div class="pill">🔥 ${h.streak} racha</div></div>`;
+    }).join('') : '<div class="empty">Sin hábitos todavía</div>';
+
+    const exRows = exercises.length ? exercises.map(e => {
+      const pr = e.weightHistory[e.weightHistory.length - 1];
+      const disp = settings.weightUnit === 'lb' ? Math.round(pr * 2.20462) : Math.round(pr);
+      return `<div class="row"><div><div class="rt">${e.name}</div><div class="rs">${e.muscle}</div></div>
+        <div class="pill">${disp} ${settings.weightUnit.toUpperCase()}</div></div>`;
+    }).join('') : '<div class="empty">Sin ejercicios todavía</div>';
+
+    const bookRows = books.length ? books.map(b => {
+      const pct = b.pages ? Math.round((b.readPages / b.pages) * 100) : 0;
+      return `<div class="row"><div><div class="rt">${b.title}</div><div class="rs">${b.author}</div></div>
+        <div class="pill">${pct}%</div></div>`;
+    }).join('') : '<div class="empty">Sin libros todavía</div>';
+
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>GymRace · ${userName}</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      body { font-family:-apple-system,'Segoe UI',Arial,sans-serif; color:#0a0a0a; background:#fff; padding:48px 56px; }
+      .head { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:3px solid ${accent}; padding-bottom:20px; margin-bottom:32px; }
+      .brand { font-size:42px; font-weight:900; font-style:italic; letter-spacing:-2px; }
+      .brand span { color:${accent}; }
+      .meta { text-align:right; font-size:12px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:1px; line-height:1.6; }
+      .stats { display:flex; gap:16px; margin-bottom:36px; }
+      .stat { flex:1; background:#f5f5f5; border-radius:20px; padding:22px; text-align:center; }
+      .stat .num { font-size:40px; font-weight:900; color:${accent}; letter-spacing:-1px; }
+      .stat .lbl { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:#888; margin-top:4px; }
+      h2 { font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#aaa; margin:28px 0 12px; }
+      .row { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:#fafafa; border:1px solid #eee; border-radius:16px; margin-bottom:8px; }
+      .rt { font-weight:800; font-size:15px; }
+      .rs { font-size:12px; color:#999; font-weight:600; margin-top:2px; }
+      .pill { background:${accent}1a; color:${accent}; font-weight:900; font-size:12px; padding:6px 14px; border-radius:999px; white-space:nowrap; }
+      .empty { color:#bbb; font-weight:700; font-size:13px; padding:10px 18px; }
+      .foot { margin-top:40px; text-align:center; font-size:9px; color:#ccc; text-transform:uppercase; letter-spacing:3px; font-style:italic; }
+    </style></head><body>
+      <div class="head">
+        <div class="brand">GYM<span>RACE</span></div>
+        <div class="meta">${userName}<br>Código ${userCode}<br>${fecha}</div>
+      </div>
+      <div class="stats">
+        ${stat(habits.length, 'Hábitos')}
+        ${stat(totalCompletions, 'Completados')}
+        ${stat(bestStreak, 'Mejor racha')}
+        ${stat(exercises.length, 'Ejercicios')}
+      </div>
+      <h2>Hábitos</h2>${habitRows}
+      <h2>Gimnasio · Récords</h2>${exRows}
+      <h2>Biblioteca</h2>${bookRows}
+      <div class="foot">Informe generado por GymRace · Developed by Alejandro Millán</div>
+    </body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); }, 500);
+    showToast('Generando PDF…');
   };
 
   // Evita mismatch de hidratación con el estado persistido de Zustand
@@ -226,8 +287,7 @@ export default function SettingsPage() {
       <Section title={t('set.sec.data')}>
         <ToggleRow icon="☁️" label={t('set.cloudSync')} pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
         <ToggleRow icon="💾" label={t('set.autoBackup')} pro={!isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
-        <NavRow icon="⬇️" label={t('set.export')} pro={!isPro} onClick={exportData} />
-        <NavRow icon="🗑️" label={t('set.clearCache')} onClick={clearCache} />
+        <NavRow icon="📄" label={t('set.export')} pro={!isPro} onClick={exportPDF} />
       </Section>
 
       {/* ───────── SOPORTE ───────── */}
