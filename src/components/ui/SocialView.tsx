@@ -12,6 +12,7 @@ import {
     People24Regular,
     Warning24Regular,
     Copy24Regular,
+    Share24Regular,
     Sparkle24Regular,
     PersonCheckmark24Regular,
     ArrowClockwise24Regular,
@@ -21,7 +22,7 @@ import {
 import { useAppStore, Friend } from '@/store/useHabitStore';
 
 export function SocialView() {
-    const { userCode, friends, pendingRequests, outgoingRequests, habitInvitations, searchUsers, addFriendById, acceptFriendRequest, declineFriendRequest, acceptHabitInvitation, declineHabitInvitation, getGlobalLeaderboard } = useAppStore();
+    const { userCode, friends, pendingRequests, outgoingRequests, habitInvitations, searchUsers, addFriendById, acceptFriendRequest, declineFriendRequest, acceptHabitInvitation, declineHabitInvitation, getGlobalLeaderboard, refreshFriendsNowPlaying, getUserDetails } = useAppStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<{ id: string, name: string, avatar: string }[]>([]);
     const [feedback, setFeedback] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
@@ -30,12 +31,29 @@ export function SocialView() {
     const [leaderboard, setLeaderboard] = useState<{ id: string, name: string, avatar: string, totalCompletions: number }[]>([]);
     const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [userDetails, setUserDetails] = useState<any | null>(null);
+    const [detailsLoading, setDetailsLoading] = useState(false);
 
     useEffect(() => {
         if (isLeaderboardOpen) {
             getGlobalLeaderboard().then(setLeaderboard);
         }
     }, [isLeaderboardOpen, getGlobalLeaderboard]);
+
+    // Música de los amigos en vivo (aunque tú no tengas Spotify vinculado)
+    useEffect(() => {
+        refreshFriendsNowPlaying();
+        const id = setInterval(() => refreshFriendsNowPlaying(), 20000);
+        return () => clearInterval(id);
+    }, [refreshFriendsNowPlaying]);
+
+    const openUserDetails = async (id: string) => {
+        setDetailsLoading(true);
+        setUserDetails({ id, loading: true });
+        const d = await getUserDetails(id);
+        setDetailsLoading(false);
+        if (d) setUserDetails(d); else setUserDetails(null);
+    };
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
@@ -56,6 +74,23 @@ export function SocialView() {
         const res = await addFriendById(id);
         setFeedback({ msg: res.success ? `Solicitud enviada a ${name}!` : res.message, type: res.success ? 'success' : 'error' });
         setTimeout(() => setFeedback(null), 3000);
+    };
+
+    const inviteLink = typeof window !== 'undefined' ? `${window.location.origin}/?add=${userCode}` : '';
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=12&data=${encodeURIComponent(inviteLink)}`;
+
+    const copyInvite = () => {
+        navigator.clipboard?.writeText(inviteLink);
+        setFeedback({ msg: '¡Enlace de invitación copiado!', type: 'success' });
+        setTimeout(() => setFeedback(null), 2500);
+    };
+
+    const shareInvite = async () => {
+        if (typeof navigator !== 'undefined' && (navigator as any).share) {
+            try { await (navigator as any).share({ title: 'GymRace', text: '¡Únete y añádeme en GymRace! 💪', url: inviteLink }); } catch {}
+        } else {
+            copyInvite();
+        }
     };
 
     return (
@@ -241,6 +276,26 @@ export function SocialView() {
                             key="search-view" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                             className="space-y-4"
                         >
+                            {/* INVITE: enlace + QR */}
+                            <div className="bg-surface border border-line/5 p-6 rounded-[32px] flex flex-col items-center gap-4">
+                                <div className="text-center">
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Invita a un guerrero</p>
+                                    <p className="text-[9px] font-bold text-muted/70 mt-1">Comparte tu enlace o que escaneen tu QR</p>
+                                </div>
+                                <div className="bg-white p-3 rounded-3xl shadow-xl">
+                                    <img src={qrUrl} alt="QR de invitación" width={160} height={160} className="w-40 h-40 rounded-xl" />
+                                </div>
+                                <div className="w-full grid grid-cols-2 gap-2">
+                                    <button onClick={copyInvite} className="bg-surface-2 text-content py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
+                                        <Copy24Regular style={{ fontSize: 16 }} /> Copiar
+                                    </button>
+                                    <button onClick={shareInvite} className="bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
+                                        <Share24Regular style={{ fontSize: 16 }} /> Compartir
+                                    </button>
+                                </div>
+                                <p className="text-[9px] font-bold text-muted">o tu código: <span className="text-content font-black tracking-widest italic">{userCode}</span></p>
+                            </div>
+
                             {/* SEARCH SECTION - COMPACT FOR MOBILE */}
                             <div className="bg-surface border border-line/5 p-5 rounded-[32px] space-y-6 relative min-h-[300px]">
                                 <div className="space-y-4">
@@ -267,15 +322,15 @@ export function SocialView() {
                                                     key={u.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                                                     className="bg-black/40 border border-line/5 p-3 rounded-2xl flex items-center justify-between group"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-surface-2 flex items-center justify-center border border-line/5 overflow-hidden">
+                                                    <button onClick={() => openUserDetails(u.id)} className="flex items-center gap-3 flex-1 min-w-0 text-left active:scale-[0.98] transition-transform">
+                                                        <div className="w-10 h-10 rounded-xl bg-surface-2 flex items-center justify-center border border-line/5 overflow-hidden flex-shrink-0">
                                                             {u.avatar.startsWith('http') ? <img src={u.avatar} className="w-full h-full object-cover" /> : <Person24Regular className="text-muted" />}
                                                         </div>
-                                                        <span className="font-black text-xs text-content italic uppercase">{u.name}</span>
-                                                    </div>
+                                                        <span className="font-black text-xs text-content italic uppercase truncate">{u.name}</span>
+                                                    </button>
                                                     <button
                                                         onClick={() => handleAddFriend(u.id, u.name)}
-                                                        className="p-3 bg-white text-black rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg"
+                                                        className="p-3 bg-white text-black rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg flex-shrink-0 ml-2"
                                                     >
                                                         <PersonAdd24Regular />
                                                     </button>
@@ -510,6 +565,66 @@ export function SocialView() {
                                         <p className="text-muted text-[11px] font-bold truncate">{selectedFriend.spotifyArtist}</p>
                                     </div>
                                 </div>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Detalles de un perfil buscado */}
+            <AnimatePresence>
+                {userDetails && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[450] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative shadow-2xl">
+                            <button onClick={() => setUserDetails(null)} className="absolute top-6 right-6 text-muted p-2"><Dismiss24Regular /></button>
+
+                            {(userDetails.loading || detailsLoading) ? (
+                                <div className="flex justify-center py-16">
+                                    <div className="w-8 h-8 border-2 border-line/10 border-t-white rounded-full animate-spin" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex flex-col items-center mb-8">
+                                        <div className="w-20 h-20 rounded-3xl bg-surface-2 flex items-center justify-center text-4xl font-black mb-4 border border-line/5 overflow-hidden shadow-2xl">
+                                            {userDetails.avatar?.startsWith('http') ? <img src={userDetails.avatar} className="w-full h-full object-cover" /> : <Person24Regular style={{ fontSize: 32 }} className="text-muted" />}
+                                        </div>
+                                        <h2 className="text-2xl font-black text-content italic uppercase tracking-tighter">{userDetails.name}</h2>
+                                        <p className="text-[9px] font-black text-muted uppercase tracking-widest italic mt-1">{userDetails.code}</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-3 mb-6">
+                                        <div className="bg-black/40 p-4 rounded-2xl border border-line/5 flex flex-col items-center">
+                                            <People24Regular className="text-accent mb-1" />
+                                            <span className="text-xl font-black text-content">{userDetails.friendCount}</span>
+                                            <span className="text-[7px] font-black text-muted uppercase tracking-widest text-center">Amigos</span>
+                                        </div>
+                                        <div className="bg-black/40 p-4 rounded-2xl border border-line/5 flex flex-col items-center">
+                                            <Fire24Filled className="text-orange-500 mb-1" />
+                                            <span className="text-xl font-black text-content">{userDetails.maxStreak}</span>
+                                            <span className="text-[7px] font-black text-muted uppercase tracking-widest text-center">Racha Récord</span>
+                                        </div>
+                                        <div className="bg-black/40 p-4 rounded-2xl border border-line/5 flex flex-col items-center">
+                                            <Star24Regular className="text-amber-500 mb-1" />
+                                            <span className="text-xl font-black text-content">{userDetails.totalCompletions}</span>
+                                            <span className="text-[7px] font-black text-muted uppercase tracking-widest text-center">Éxitos</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gradient-to-r from-amber-500/15 to-transparent border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3 mb-6">
+                                        <Trophy24Regular className="text-amber-500" style={{ fontSize: 28 }} />
+                                        <div>
+                                            <p className="text-[8px] font-black text-amber-500/80 uppercase tracking-widest">Top mundial</p>
+                                            <p className="text-2xl font-black text-content italic">#{userDetails.rank}</p>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => { handleAddFriend(userDetails.id, userDetails.name); setUserDetails(null); }}
+                                        className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl"
+                                    >
+                                        <PersonAdd24Regular /> Añadir amigo
+                                    </button>
+                                </>
                             )}
                         </motion.div>
                     </motion.div>

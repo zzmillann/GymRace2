@@ -31,7 +31,11 @@ export function LibraryView() {
   const handleUpdatePages = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingBookId || !updatePagesVal) return;
-    updateReadPages(editingBookId, Number(updatePagesVal));
+    const book = books.find(b => b.id === editingBookId);
+    const max = book?.pages ?? Number(updatePagesVal);
+    // Si introduce más páginas que el total, lo ajustamos al máximo del libro
+    const val = Math.max(0, Math.min(Number(updatePagesVal), max));
+    updateReadPages(editingBookId, val);
     setUpdatePagesVal('');
     setEditingBookId(null);
   };
@@ -159,8 +163,8 @@ export function LibraryView() {
       {/* Modal Añadir Libro */}
       <AnimatePresence>
         {isAddModalOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 pb-12 sm:pb-8 relative shadow-2xl">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 bg-black/90 backdrop-blur-md">
+            <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -30, opacity: 0 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative shadow-2xl">
               <h2 className="text-2xl font-black text-content mb-8 uppercase tracking-tighter">Añadir Libro</h2>
               <form onSubmit={handleAdd} className="flex flex-col gap-4 text-content">
                 <input autoFocus placeholder="Título" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none focus:border-line/20" />
@@ -176,8 +180,8 @@ export function LibraryView() {
       {/* Modal Actualizar Páginas */}
       <AnimatePresence>
         {editingBookId && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 pb-12 sm:pb-8 relative">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 bg-black/90 backdrop-blur-md">
+            <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -30, opacity: 0 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative">
               <h2 className="text-2xl font-black text-content mb-2 uppercase tracking-tighter text-center">Progreso</h2>
               <p className="text-center text-muted text-xs font-bold mb-8 uppercase tracking-widest">¿Por qué página vas?</p>
               <form onSubmit={handleUpdatePages} className="flex flex-col gap-4 text-center">

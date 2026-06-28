@@ -149,6 +149,8 @@ interface AppState {
   pendingRequests: { id: string; sender_name: string; sender_code: string; sender_id: string }[];
   outgoingRequests: { id: string; receiver_name: string; receiver_id: string }[];
   searchUsers: (query: string) => Promise<{ id: string; name: string; avatar: string }[]>;
+  getProfileByCode: (code: string) => Promise<{ id: string; name: string; avatar: string; code: string } | null>;
+  getUserDetails: (id: string) => Promise<{ id: string; name: string; code: string; avatar: string; friendCount: number; totalCompletions: number; maxStreak: number; rank: number } | null>;
   addFriendByCode: (code: string) => Promise<{ success: boolean; message: string }>;
   addFriendById: (id: string) => Promise<{ success: boolean; message: string }>;
   acceptFriendRequest: (requestId: string) => Promise<void>;
@@ -182,6 +184,7 @@ interface AppState {
   setNowPlaying: (np: NowPlayingState | null) => void;
   pushNowPlaying: (np: NowPlayingState | null) => Promise<void>;
   refreshSocial: () => Promise<void>;
+  refreshFriendsNowPlaying: () => Promise<void>;
 }
 
 const generateUserCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -269,6 +272,29 @@ export const useAppStore = create<AppState>()(
             sender_id: i.sender_id, sender_name: i.profiles?.user_name || 'Alguien',
             sender_avatar: i.profiles?.avatar_url || '👤',
           })),
+        });
+      },
+      refreshFriendsNowPlaying: async () => {
+        const friends = get().friends;
+        if (!friends.length) return;
+        const ids = friends.map((f) => f.id);
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, spotify_track, spotify_artist, spotify_is_playing, spotify_updated')
+          .in('id', ids);
+        if (!data) return;
+        const byId = new Map<string, any>(data.map((p: any) => [p.id, p]));
+        set({
+          friends: get().friends.map((f) => {
+            const p = byId.get(f.id);
+            const fresh = p?.spotify_updated && (Date.now() - new Date(p.spotify_updated).getTime() < 5 * 60 * 1000);
+            return {
+              ...f,
+              spotifyTrack: fresh ? p.spotify_track : undefined,
+              spotifyArtist: fresh ? p.spotify_artist : undefined,
+              spotifyPlaying: fresh ? p.spotify_is_playing : false,
+            };
+          }),
         });
       },
 
@@ -732,6 +758,49 @@ export const useAppStore = create<AppState>()(
           .limit(10);
 
         return data?.map(d => ({ id: d.id, name: d.user_name, avatar: d.avatar_url || '👤' })) || [];
+      },
+
+      getProfileByCode: async (code) => {
+        const normalized = code.trim().toUpperCase();
+        if (!normalized) return null;
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, user_name, avatar_url, user_code')
+          .eq('user_code', normalized)
+          .single();
+        if (!data) return null;
+        return { id: data.id, name: data.user_name, avatar: data.avatar_url || '👤', code: data.user_code };
+      },
+
+      getUserDetails: async (id) => {
+        const { data: p } = await supabase
+          .from('profiles')
+          .select('id, user_name, user_code, avatar_url, total_completions, friends_list')
+          .eq('id', id).single();
+        if (!p) return null;
+
+        const { data: owned } = await supabase.from('habits').select('max_streak, streak').eq('user_id', id);
+        const { data: part } = await supabase.from('habit_participants').select('streak').eq('user_id', id);
+        const streaks = [
+          ...(owned || []).map((h: any) => h.max_streak),
+          ...(owned || []).map((h: any) => h.streak),
+          ...(part || []).map((h: any) => h.streak),
+        ].filter((n) => typeof n === 'number');
+        const maxStreak = streaks.length ? Math.max(...streaks) : 0;
+
+        // Ranking mundial: nº de perfiles con más completados + 1
+        const { count } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .gt('total_completions', p.total_completions || 0);
+        const rank = (count || 0) + 1;
+
+        return {
+          id: p.id, name: p.user_name, code: p.user_code, avatar: p.avatar_url || '👤',
+          friendCount: (p.friends_list || []).length,
+          totalCompletions: p.total_completions || 0,
+          maxStreak, rank,
+        };
       },
 
       addFriendById: async (targetId) => {

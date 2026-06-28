@@ -45,6 +45,11 @@ export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newTheme, setNewTheme] = useState('emerald');
+
+  // Invitación entrante (enlace / QR): ?add=CODIGO
+  const [inviteFriend, setInviteFriend] = useState<{ id: string; name: string; avatar: string; code: string } | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState('');
   
   const today = new Date();
   const dateFormatted = today.toLocaleDateString(settings.language === 'en' ? 'en-US' : 'es-ES', {
@@ -58,10 +63,35 @@ export default function Home() {
     initialize();
   }, [initialize]);
 
-  // Precargamos las rutas de detalle para que abrir un hábito sea instantáneo
+  // Precargamos rutas para que abrir hábito / ajustes sea instantáneo
+  useEffect(() => {
+    router.prefetch('/settings');
+  }, [router]);
+
   useEffect(() => {
     habits.forEach(h => router.prefetch(`/habit/${h.id}`));
   }, [habits, router]);
+
+  // Invitación entrante por enlace/QR (?add=CODIGO)
+  useEffect(() => {
+    if (!userId) return;
+    const code = new URLSearchParams(window.location.search).get('add');
+    if (!code) return;
+    window.history.replaceState({}, '', '/');
+    (async () => {
+      const prof = await useAppStore.getState().getProfileByCode(code);
+      if (prof && prof.id !== userId) setInviteFriend(prof);
+    })();
+  }, [userId]);
+
+  const acceptInvite = async () => {
+    if (!inviteFriend) return;
+    setInviteBusy(true);
+    const res = await useAppStore.getState().addFriendByCode(inviteFriend.code);
+    setInviteBusy(false);
+    setInviteMsg(res.message);
+    setTimeout(() => { setInviteFriend(null); setInviteMsg(''); }, 1900);
+  };
 
   // Retorno desde Stripe Checkout: esperamos a que el webhook marque Pro y limpiamos la URL.
   useEffect(() => {
@@ -211,6 +241,49 @@ export default function Home() {
       />
 
       <ProfileView isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+
+      {/* Modal: invitación entrante (enlace / QR) */}
+      <AnimatePresence>
+        {inviteFriend && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative shadow-2xl flex flex-col items-center text-center"
+            >
+              <div className="w-24 h-24 rounded-[32px] bg-surface-2 border border-line/5 flex items-center justify-center text-5xl overflow-hidden mb-5 shadow-xl">
+                {inviteFriend.avatar?.startsWith('http')
+                  ? <img src={inviteFriend.avatar} className="w-full h-full object-cover" alt={inviteFriend.name} />
+                  : <span>{inviteFriend.avatar}</span>}
+              </div>
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Invitación de amistad</p>
+              <h2 className="text-2xl font-black text-content tracking-tighter italic uppercase mb-1">{inviteFriend.name}</h2>
+              <p className="text-muted text-sm font-bold mb-6">¿Quieres añadir a <span className="text-content">{inviteFriend.name}</span> como amigo?</p>
+
+              {inviteMsg ? (
+                <p className="text-accent font-black uppercase text-xs tracking-widest py-3">{inviteMsg}</p>
+              ) : (
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setInviteFriend(null)} disabled={inviteBusy}
+                    className="flex-1 bg-surface-2 text-content py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    Ahora no
+                  </button>
+                  <motion.button
+                    whileTap={{ scale: 0.96 }} onClick={acceptInvite} disabled={inviteBusy}
+                    className="flex-1 bg-accent text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] touch-manipulation disabled:opacity-50"
+                  >
+                    {inviteBusy ? '...' : 'Añadir'}
+                  </motion.button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal Habits */}
       <AnimatePresence>
