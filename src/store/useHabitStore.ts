@@ -180,6 +180,7 @@ interface AppState {
   spotify: SpotifyState;
   nowPlaying: NowPlayingState | null;
   setSpotifyTokens: (accessToken: string, refreshToken: string | null, expiresIn: number) => void;
+  saveSpotifyRefresh: (refresh: string | null) => Promise<void>;
   disconnectSpotify: () => void;
   setNowPlaying: (np: NowPlayingState | null) => void;
   pushNowPlaying: (np: NowPlayingState | null) => Promise<void>;
@@ -231,6 +232,15 @@ export const useAppStore = create<AppState>()(
           expiresAt: Date.now() + expiresIn * 1000,
         },
       })),
+      saveSpotifyRefresh: async (refresh) => {
+        const uid = get().userId;
+        if (!uid || !refresh) return;
+        // Tabla privada (RLS): el servidor la usa para sondear aunque la app esté cerrada.
+        await supabase.from('spotify_tokens').upsert(
+          { user_id: uid, refresh_token: refresh, updated: new Date().toISOString() },
+          { onConflict: 'user_id' }
+        );
+      },
       disconnectSpotify: async () => {
         set({ spotify: { connected: false, accessToken: null, refreshToken: null, expiresAt: 0 }, nowPlaying: null });
         const uid = get().userId;
@@ -238,6 +248,7 @@ export const useAppStore = create<AppState>()(
           await supabase.from('profiles').update({
             spotify_track: null, spotify_artist: null, spotify_is_playing: false,
           }).eq('id', uid);
+          await supabase.from('spotify_tokens').delete().eq('user_id', uid);
         }
       },
       setNowPlaying: (np) => set({ nowPlaying: np }),

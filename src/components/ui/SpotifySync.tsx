@@ -30,6 +30,7 @@ export function SpotifySync() {
           const tok = await refreshAccessToken(refreshToken);
           if (tok.access_token) {
             store.setSpotifyTokens(tok.access_token, tok.refresh_token || null, tok.expires_in || 3600);
+            if (tok.refresh_token) store.saveSpotifyRefresh(tok.refresh_token);
             accessToken = tok.access_token;
           } else {
             busy.current = false;

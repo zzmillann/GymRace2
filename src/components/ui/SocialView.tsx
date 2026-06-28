@@ -33,6 +33,7 @@ export function SocialView() {
     const [loading, setLoading] = useState(false);
     const [userDetails, setUserDetails] = useState<any | null>(null);
     const [detailsLoading, setDetailsLoading] = useState(false);
+    const [requestedIds, setRequestedIds] = useState<string[]>([]);
 
     useEffect(() => {
         if (isLeaderboardOpen) {
@@ -72,6 +73,7 @@ export function SocialView() {
 
     const handleAddFriend = async (id: string, name: string) => {
         const res = await addFriendById(id);
+        if (res.success) setRequestedIds(prev => prev.includes(id) ? prev : [...prev, id]);
         setFeedback({ msg: res.success ? `Solicitud enviada a ${name}!` : res.message, type: res.success ? 'success' : 'error' });
         setTimeout(() => setFeedback(null), 3000);
     };
@@ -276,26 +278,6 @@ export function SocialView() {
                             key="search-view" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                             className="space-y-4"
                         >
-                            {/* INVITE: enlace + QR */}
-                            <div className="bg-surface border border-line/5 p-6 rounded-[32px] flex flex-col items-center gap-4">
-                                <div className="text-center">
-                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Invita a un guerrero</p>
-                                    <p className="text-[9px] font-bold text-muted/70 mt-1">Comparte tu enlace o que escaneen tu QR</p>
-                                </div>
-                                <div className="bg-white p-3 rounded-3xl shadow-xl">
-                                    <img src={qrUrl} alt="QR de invitación" width={160} height={160} className="w-40 h-40 rounded-xl" />
-                                </div>
-                                <div className="w-full grid grid-cols-2 gap-2">
-                                    <button onClick={copyInvite} className="bg-surface-2 text-content py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
-                                        <Copy24Regular style={{ fontSize: 16 }} /> Copiar
-                                    </button>
-                                    <button onClick={shareInvite} className="bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
-                                        <Share24Regular style={{ fontSize: 16 }} /> Compartir
-                                    </button>
-                                </div>
-                                <p className="text-[9px] font-bold text-muted">o tu código: <span className="text-content font-black tracking-widest italic">{userCode}</span></p>
-                            </div>
-
                             {/* SEARCH SECTION - COMPACT FOR MOBILE */}
                             <div className="bg-surface border border-line/5 p-5 rounded-[32px] space-y-6 relative min-h-[300px]">
                                 <div className="space-y-4">
@@ -328,12 +310,18 @@ export function SocialView() {
                                                         </div>
                                                         <span className="font-black text-xs text-content italic uppercase truncate">{u.name}</span>
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleAddFriend(u.id, u.name)}
-                                                        className="p-3 bg-white text-black rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg flex-shrink-0 ml-2"
-                                                    >
-                                                        <PersonAdd24Regular />
-                                                    </button>
+                                                    {requestedIds.includes(u.id) ? (
+                                                        <div className="p-3 bg-accent text-black rounded-xl shadow-lg flex-shrink-0 ml-2">
+                                                            <Checkmark24Regular />
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleAddFriend(u.id, u.name)}
+                                                            className="p-3 bg-white text-black rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg flex-shrink-0 ml-2"
+                                                        >
+                                                            <PersonAdd24Regular />
+                                                        </button>
+                                                    )}
                                                 </motion.div>
                                             ))}
                                             {!loading && searchQuery.length >= 2 && searchResults.length === 0 && (
@@ -342,6 +330,25 @@ export function SocialView() {
                                         </AnimatePresence>
                                     </div>
                                 </div>
+                            </div>
+                            {/* INVITE: enlace + QR (debajo del buscador) */}
+                            <div className="bg-surface border border-line/5 p-6 rounded-[32px] flex flex-col items-center gap-4">
+                                <div className="text-center">
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Invita a un guerrero</p>
+                                    <p className="text-[9px] font-bold text-muted/70 mt-1">Comparte tu enlace o que escaneen tu QR</p>
+                                </div>
+                                <div className="bg-white p-3 rounded-3xl shadow-xl">
+                                    <img src={qrUrl} alt="QR de invitación" width={160} height={160} className="w-40 h-40 rounded-xl" />
+                                </div>
+                                <div className="w-full grid grid-cols-2 gap-2">
+                                    <button onClick={copyInvite} className="bg-surface-2 text-content py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
+                                        <Copy24Regular style={{ fontSize: 16 }} /> Copiar
+                                    </button>
+                                    <button onClick={shareInvite} className="bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
+                                        <Share24Regular style={{ fontSize: 16 }} /> Compartir
+                                    </button>
+                                </div>
+                                <p className="text-[9px] font-bold text-muted">o tu código: <span className="text-content font-black tracking-widest italic">{userCode}</span></p>
                             </div>
                         </motion.div>
                     )}
@@ -618,12 +625,18 @@ export function SocialView() {
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => { handleAddFriend(userDetails.id, userDetails.name); setUserDetails(null); }}
-                                        className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl"
-                                    >
-                                        <PersonAdd24Regular /> Añadir amigo
-                                    </button>
+                                    {requestedIds.includes(userDetails.id) ? (
+                                        <div className="w-full bg-accent/15 text-accent border border-accent/30 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2">
+                                            <Checkmark24Regular /> Solicitud enviada
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleAddFriend(userDetails.id, userDetails.name)}
+                                            className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl"
+                                        >
+                                            <PersonAdd24Regular /> Añadir amigo
+                                        </button>
+                                    )}
                                 </>
                             )}
                         </motion.div>

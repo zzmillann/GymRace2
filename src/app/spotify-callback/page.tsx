@@ -21,6 +21,8 @@ export default function SpotifyCallback() {
         const tok = await exchangeCode(code);
         if (tok.access_token) {
           setSpotifyTokens(tok.access_token, tok.refresh_token || null, tok.expires_in || 3600);
+          // Guardamos el refresh token (tabla privada) para el sondeo del servidor
+          if (tok.refresh_token) await useAppStore.getState().saveSpotifyRefresh(tok.refresh_token);
           setMsg('¡Spotify conectado! 🎵');
         } else {
           setMsg('No se pudo conectar con Spotify');

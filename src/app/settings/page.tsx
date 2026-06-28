@@ -21,7 +21,7 @@ export default function SettingsPage() {
   const {
     settings, updateSettings, isPro, subscriptionPlan, getActivityCount, openPaywall,
     cancelPro, signOut, updatePassword, userName, userAvatar, userCode,
-    habits, exercises, books, spotify, disconnectSpotify,
+    habits, exercises, books, spotify, disconnectSpotify, nowPlaying,
   } = useAppStore();
 
   const handleSpotify = () => {
@@ -295,9 +295,13 @@ export default function SettingsPage() {
         <button onClick={handleSpotify} className="w-full flex items-center justify-between px-5 py-4 active:bg-white/5 transition-colors text-left">
           <div className="flex items-center gap-3">
             <SpotifyLogo />
-            <div>
+            <div className="min-w-0">
               <p className="text-content font-bold text-sm">{spotify.connected ? t('set.spotifyConnected') : t('set.spotifyConnect')}</p>
-              {spotify.connected && <p className="text-muted text-[11px] font-medium">{t('set.spotifyDisconnect')}</p>}
+              {spotify.connected && (
+                nowPlaying?.track
+                  ? <p className="text-[#1DB954] text-[11px] font-bold truncate">🎧 {nowPlaying.track} · {nowPlaying.artist}</p>
+                  : <p className="text-muted text-[11px] font-medium">Reproduce algo en Spotify · {t('set.spotifyDisconnect')}</p>
+              )}
             </div>
           </div>
           <span className={`w-2.5 h-2.5 rounded-full ${spotify.connected ? 'bg-[#1DB954]' : 'bg-surface-2'}`} />

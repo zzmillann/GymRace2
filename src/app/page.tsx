@@ -24,11 +24,14 @@ const THEMES = [
   { id: 'sky', bg: 'bg-sky-500' },
 ];
 
+// Solo mostramos el preloader en el primer arranque, no al volver de otra página
+let bootedOnce = false;
+
 export default function Home() {
   const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName, activeGymMuscle, settings } = useAppStore();
   const router = useRouter();
   const t = useT();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(() => bootedOnce);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGymAddOpen, setIsGymAddOpen] = useState(false);
   const [isLibraryAddOpen, setIsLibraryAddOpen] = useState(false);
@@ -59,6 +62,7 @@ export default function Home() {
   });
 
   useEffect(() => {
+    bootedOnce = true;
     setMounted(true);
     initialize();
   }, [initialize]);
@@ -146,8 +150,8 @@ export default function Home() {
     <div className="p-6 pt-12 relative min-h-screen bg-app overflow-x-hidden">
       <AnimatePresence mode="wait">
         {activeTab === 'habits' && (
-          <motion.div 
-            key="habits" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+          <motion.div
+            key="habits" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}
           >
             <header className="flex justify-between items-start mb-10">
               <div className="flex items-center gap-4">
@@ -187,8 +191,8 @@ export default function Home() {
                 )}
                 {habits.map((habit, idx) => (
                   <motion.div
-                    layout key={habit.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }} transition={{ delay: idx * 0.05 }}
+                    layout key={habit.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.14, delay: Math.min(idx * 0.02, 0.08) }}
                   >
                     <HabitCard
                       id={habit.id} title={habit.title} streak={habit.streak} colorTheme={habit.colorTheme}
@@ -204,7 +208,7 @@ export default function Home() {
 
         {activeTab === 'gym' && (
           <motion.div 
-             key="gym" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+             key="gym" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}
           >
             <GymView />
           </motion.div>
@@ -212,7 +216,7 @@ export default function Home() {
 
         {activeTab === 'library' && (
           <motion.div 
-             key="library" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+             key="library" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}
           >
              <LibraryView />
           </motion.div>
@@ -220,7 +224,7 @@ export default function Home() {
 
         {activeTab === 'social' && (
           <motion.div 
-             key="social" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+             key="social" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}
           >
              <SocialView />
           </motion.div>
