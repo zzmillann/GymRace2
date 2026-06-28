@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Book as BookIcon, User, Trash2, CheckCircle2 } from 'lucide-react';
 import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
+import { StudyZone } from '@/components/ui/StudyZone';
 
 export function LibraryView() {
   const { books, addBook, updateReadPages, deleteBook } = useAppStore();
@@ -46,7 +47,7 @@ export function LibraryView() {
         <div className="flex justify-between items-center mb-6">
           <div className="flex flex-col gap-1">
             <p className="text-muted text-[10px] font-black uppercase tracking-[0.2em]">Conocimiento</p>
-            <h1 className="text-4xl font-black tracking-tighter text-content">Biblioteca</h1>
+            <h1 className="text-4xl font-black tracking-tighter text-content">Estudio</h1>
           </div>
           <button
             onClick={() => router.push('/settings')}
@@ -57,11 +58,18 @@ export function LibraryView() {
         </div>
       </header>
 
+      {/* Pomodoro + stats + ranking */}
+      <StudyZone />
+
+      <div className="flex items-center gap-2 mb-4 ml-1">
+        <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">📚 Mis lecturas</span>
+      </div>
+
       <div className="grid gap-6">
         <AnimatePresence mode="popLayout">
           {books.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted font-bold uppercase text-[10px] tracking-widest">
-                Tu biblioteca está vacía
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 text-muted font-bold uppercase text-[10px] tracking-widest">
+                Aún no has añadido lecturas
             </motion.div>
           )}
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfWeek, startOfMonth, startOfDay } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 
 // --- TYPES ---
@@ -157,6 +157,9 @@ interface AppState {
   getUserDetails: (id: string) => Promise<{ id: string; name: string; code: string; avatar: string; friendCount: number; totalCompletions: number; maxStreak: number; rank: number } | null>;
   logProfileView: (profileId: string) => Promise<void>;
   getProfileViewers: () => Promise<{ id: string; name: string; avatar: string; when: string }[]>;
+  logStudy: (minutes: number) => Promise<void>;
+  getStudyStats: () => Promise<{ today: number; week: number; month: number }>;
+  getStudyRanking: () => Promise<{ id: string; name: string; avatar: string; minutes: number }[]>;
   addFriendByCode: (code: string) => Promise<{ success: boolean; message: string }>;
   addFriendById: (id: string) => Promise<{ success: boolean; message: string }>;
   acceptFriendRequest: (requestId: string) => Promise<void>;
@@ -826,6 +829,50 @@ export const useAppStore = create<AppState>()(
           out.push({ id: v.viewer_id, name: v.profiles?.user_name || 'Alguien', avatar: v.profiles?.avatar_url || '👤', when: v.created_at });
         }
         return out;
+      },
+
+      logStudy: async (minutes) => {
+        const uid = get().userId;
+        if (!uid || minutes <= 0) return;
+        try { await supabase.from('study_sessions').insert({ user_id: uid, minutes: Math.round(minutes) }); } catch { /* tabla aún sin crear */ }
+      },
+      getStudyStats: async () => {
+        const uid = get().userId;
+        if (!uid) return { today: 0, week: 0, month: 0 };
+        const monthStart = startOfMonth(new Date()).toISOString();
+        const { data } = await supabase
+          .from('study_sessions')
+          .select('minutes, created_at')
+          .eq('user_id', uid)
+          .gte('created_at', monthStart);
+        const ws = startOfWeek(new Date(), { weekStartsOn: 1 });
+        const ds = startOfDay(new Date());
+        let today = 0, week = 0, month = 0;
+        (data || []).forEach((s: any) => {
+          const d = new Date(s.created_at);
+          month += s.minutes;
+          if (d >= ws) week += s.minutes;
+          if (d >= ds) today += s.minutes;
+        });
+        return { today, week, month };
+      },
+      getStudyRanking: async () => {
+        const uid = get().userId;
+        if (!uid) return [];
+        const ids = [uid, ...get().friends.map((f) => f.id)];
+        const ws = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
+        const { data } = await supabase
+          .from('study_sessions')
+          .select('user_id, minutes')
+          .in('user_id', ids)
+          .gte('created_at', ws);
+        const sums = new Map<string, number>();
+        (data || []).forEach((s: any) => sums.set(s.user_id, (sums.get(s.user_id) || 0) + s.minutes));
+        const people = [
+          { id: uid, name: get().userName, avatar: get().userAvatar },
+          ...get().friends.map((f) => ({ id: f.id, name: f.name, avatar: f.avatar || '👤' })),
+        ];
+        return people.map((p) => ({ ...p, minutes: sums.get(p.id) || 0 })).sort((a, b) => b.minutes - a.minutes);
       },
 
       getUserDetails: async (id) => {

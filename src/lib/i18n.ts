@@ -9,7 +9,7 @@ const DICT: Record<string, { es: string; en: string }> = {
   // Navegación
   'nav.habits': { es: 'Hábitos', en: 'Habits' },
   'nav.gym': { es: 'Gimnasio', en: 'Gym' },
-  'nav.library': { es: 'Librería', en: 'Library' },
+  'nav.library': { es: 'Estudio', en: 'Study' },
   'nav.social': { es: 'Social', en: 'Social' },
 
   // Home
