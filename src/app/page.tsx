@@ -14,6 +14,7 @@ import { LibraryView } from '@/components/ui/LibraryView';
 import { SocialView } from '@/components/ui/SocialView';
 import { AuthView } from '@/components/ui/AuthView';
 import { ProfileView } from '@/components/ui/ProfileView';
+import { useT } from '@/lib/i18n';
 
 const THEMES = [
   { id: 'emerald', bg: 'bg-accent' },
@@ -24,8 +25,9 @@ const THEMES = [
 ];
 
 export default function Home() {
-  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName, activeGymMuscle } = useAppStore();
+  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName, activeGymMuscle, settings } = useAppStore();
   const router = useRouter();
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGymAddOpen, setIsGymAddOpen] = useState(false);
@@ -45,10 +47,10 @@ export default function Home() {
   const [newTheme, setNewTheme] = useState('emerald');
   
   const today = new Date();
-  const dateFormatted = today.toLocaleDateString('es-ES', { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long' 
+  const dateFormatted = today.toLocaleDateString(settings.language === 'en' ? 'en-US' : 'es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
   });
 
   useEffect(() => {
@@ -126,7 +128,7 @@ export default function Home() {
                 </button>
                 <div className="flex flex-col gap-0.5">
                   <p className="text-muted text-[9px] font-black uppercase tracking-[0.2em]">{dateFormatted}</p>
-                  <h1 className="text-3xl font-black tracking-tighter text-content leading-none">Hola, {userName.split(' ')[0]}</h1>
+                  <h1 className="text-3xl font-black tracking-tighter text-content leading-none">{t('home.hi')}, {userName.split(' ')[0]}</h1>
                 </div>
               </div>
               <button
@@ -145,7 +147,7 @@ export default function Home() {
               <AnimatePresence>
                 {habits.length === 0 && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-muted py-10 font-bold uppercase text-xs tracking-widest">
-                    No tienes hábitos todavía
+                    {t('home.noHabits')}
                   </motion.div>
                 )}
                 {habits.map((habit, idx) => (

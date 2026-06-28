@@ -5,18 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft24Regular } from '@fluentui/react-icons';
 import { useAppStore, FREE_ACTIVITY_LIMIT } from '@/store/useHabitStore';
+import { useT } from '@/lib/i18n';
 
 const APP_VERSION = '1.0.0';
 
-const PLAN_LABEL: Record<string, string> = {
-  free: 'Gratis',
-  weekly: 'Pro · Semanal',
-  monthly: 'Pro · Mensual',
-  quarterly: 'Pro · Trimestral',
-};
-
 export default function SettingsPage() {
   const router = useRouter();
+  const t = useT();
   const {
     settings, updateSettings, isPro, subscriptionPlan, getActivityCount, openPaywall,
     cancelPro, signOut, userName, userAvatar, userCode,
@@ -26,10 +21,11 @@ export default function SettingsPage() {
   const [toast, setToast] = useState('');
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const showToast = (t: string) => { setToast(t); setTimeout(() => setToast(''), 2200); };
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200); };
 
   const usage = getActivityCount();
   const usagePct = Math.min(100, (usage / FREE_ACTIVITY_LIMIT) * 100);
+  const planLabel = (p: string) => t(`plan.${p}`);
 
   // --- Acciones ---
   const toggleDailyReminder = async () => {
@@ -82,7 +78,7 @@ export default function SettingsPage() {
         >
           <ArrowLeft24Regular />
         </button>
-        <h1 className="text-3xl font-black tracking-tighter text-content uppercase italic">Ajustes</h1>
+        <h1 className="text-3xl font-black tracking-tighter text-content uppercase italic">{t('set.title')}</h1>
       </header>
 
       {/* ───────── SUSCRIPCIÓN ───────── */}
@@ -93,10 +89,10 @@ export default function SettingsPage() {
             <span className="text-xl">👑</span>
             <p className="text-content font-black uppercase tracking-tighter text-lg italic">GymRace Pro</p>
           </div>
-          <p className="text-content/80 text-xs font-bold mb-5">{PLAN_LABEL[subscriptionPlan]} · Actividades ilimitadas</p>
+          <p className="text-content/80 text-xs font-bold mb-5">{planLabel(subscriptionPlan)} · {t('set.unlimited')}</p>
           <div className="flex gap-3">
-            <button onClick={() => showToast('Gestiona tu plan desde la App Store')} className="flex-1 bg-white/20 backdrop-blur text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Gestionar</button>
-            <button onClick={() => { cancelPro(); showToast('Suscripción cancelada'); }} className="px-5 bg-black/20 text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+            <button onClick={() => showToast('Gestiona tu plan desde la App Store')} className="flex-1 bg-white/20 backdrop-blur text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">{t('set.manage')}</button>
+            <button onClick={() => { cancelPro(); showToast('Suscripción cancelada'); }} className="px-5 bg-black/20 text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">{t('common.cancel')}</button>
           </div>
         </div>
       ) : (
@@ -107,15 +103,15 @@ export default function SettingsPage() {
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/20 blur-3xl rounded-full" />
           <div className="flex items-center gap-2 mb-1">
             <span className="text-lg">✨</span>
-            <p className="text-content font-black uppercase tracking-tighter text-lg italic">Hazte <span className="text-accent">Pro</span></p>
+            <p className="text-content font-black uppercase tracking-tighter text-lg italic">{t('set.goPro')} <span className="text-accent">Pro</span></p>
           </div>
-          <p className="text-muted text-xs font-bold mb-4">Desbloquea actividades ilimitadas y mucho más</p>
+          <p className="text-muted text-xs font-bold mb-4">{t('set.proPitch')}</p>
 
           {/* Barra de uso del plan gratis */}
           <div className="bg-black/40 rounded-2xl p-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] font-black text-muted uppercase tracking-widest">Plan Gratis</span>
-              <span className="text-[10px] font-black text-content">{usage} / {FREE_ACTIVITY_LIMIT} actividades</span>
+              <span className="text-[10px] font-black text-muted uppercase tracking-widest">{t('set.freePlan')}</span>
+              <span className="text-[10px] font-black text-content">{usage} / {FREE_ACTIVITY_LIMIT} {t('set.activities')}</span>
             </div>
             <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
               <motion.div
@@ -124,35 +120,35 @@ export default function SettingsPage() {
               />
             </div>
             {usage >= FREE_ACTIVITY_LIMIT && (
-              <p className="text-rose-400 text-[10px] font-bold mt-2">Has alcanzado el límite gratuito.</p>
+              <p className="text-rose-400 text-[10px] font-bold mt-2">{t('set.limitReached')}</p>
             )}
           </div>
           <div className="flex items-center justify-center gap-1 mt-4 text-accent font-black uppercase tracking-widest text-[11px]">
-            Ver planes Pro →
+            {t('set.seePlans')} →
           </div>
         </button>
       )}
 
       {/* ───────── CUENTA ───────── */}
-      <Section title="Cuenta">
-        <NavRow icon="🧑" label="Editar perfil" sub={userName} onClick={() => router.push('/')}>
+      <Section title={t('set.sec.account')}>
+        <NavRow icon="🧑" label={t('set.editProfile')} sub={userName} onClick={() => router.push('/')}>
           <div className="w-8 h-8 rounded-lg bg-surface-2 overflow-hidden flex items-center justify-center text-sm">
             {userAvatar?.startsWith('http') ? <img src={userAvatar} className="w-full h-full object-cover" /> : userAvatar}
           </div>
         </NavRow>
-        <NavRow icon="🔑" label="Cambiar contraseña" onClick={() => showToast('Disponible próximamente')} />
-        <NavRow icon="🎟️" label="Código de invitación" sub={userCode} onClick={() => { navigator.clipboard?.writeText(userCode); showToast('Código copiado'); }} />
+        <NavRow icon="🔑" label={t('set.changePass')} onClick={() => showToast(t('common.soon'))} />
+        <NavRow icon="🎟️" label={t('set.inviteCode')} sub={userCode} onClick={() => { navigator.clipboard?.writeText(userCode); showToast('Código copiado'); }} />
       </Section>
 
       {/* ───────── NOTIFICACIONES ───────── */}
-      <Section title="Notificaciones">
-        <ToggleRow icon="🔔" label="Notificaciones push" checked={settings.pushEnabled} onChange={() => updateSettings({ pushEnabled: !settings.pushEnabled })} />
-        <ToggleRow icon="⏰" label="Recordatorio diario" sub="Te avisa si te quedan actividades sin marcar" checked={settings.dailyReminder} onChange={toggleDailyReminder} />
+      <Section title={t('set.sec.notifs')}>
+        <ToggleRow icon="🔔" label={t('set.pushNotifs')} checked={settings.pushEnabled} onChange={() => updateSettings({ pushEnabled: !settings.pushEnabled })} />
+        <ToggleRow icon="⏰" label={t('set.dailyReminder')} sub={t('set.dailyReminderSub')} checked={settings.dailyReminder} onChange={toggleDailyReminder} />
         {settings.dailyReminder && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-line/5">
             <div className="flex items-center gap-3">
               <span className="text-lg">🕐</span>
-              <span className="text-content font-bold text-sm">Hora del aviso</span>
+              <span className="text-content font-bold text-sm">{t('set.reminderTime')}</span>
             </div>
             <input
               type="time" value={settings.reminderTime}
@@ -161,76 +157,76 @@ export default function SettingsPage() {
             />
           </div>
         )}
-        <ToggleRow icon="🔥" label="Alertas de racha en peligro" checked={settings.streakAlerts} onChange={() => updateSettings({ streakAlerts: !settings.streakAlerts })} />
-        <ToggleRow icon="🗓️" label="Resumen semanal" checked={settings.weeklySummary} onChange={() => updateSettings({ weeklySummary: !settings.weeklySummary })} />
-        <ToggleRow icon="👥" label="Actividad social" sub="Solicitudes e invitaciones" checked={settings.socialNotifs} onChange={() => updateSettings({ socialNotifs: !settings.socialNotifs })} />
+        <ToggleRow icon="🔥" label={t('set.streakAlerts')} checked={settings.streakAlerts} onChange={() => updateSettings({ streakAlerts: !settings.streakAlerts })} />
+        <ToggleRow icon="🗓️" label={t('set.weeklySummary')} checked={settings.weeklySummary} onChange={() => updateSettings({ weeklySummary: !settings.weeklySummary })} />
+        <ToggleRow icon="👥" label={t('set.socialNotifs')} sub={t('set.socialNotifsSub')} checked={settings.socialNotifs} onChange={() => updateSettings({ socialNotifs: !settings.socialNotifs })} />
       </Section>
 
       {/* ───────── APARIENCIA ───────── */}
-      <Section title="Apariencia">
-        <SelectRow icon="🌙" label="Tema" value={settings.theme} pro={!isPro}
-          options={[{ v: 'dark', l: 'Oscuro' }, { v: 'light', l: 'Claro' }, { v: 'system', l: 'Sistema' }]}
+      <Section title={t('set.sec.appearance')}>
+        <SelectRow icon="🌙" label={t('set.theme')} value={settings.theme} pro={!isPro}
+          options={[{ v: 'dark', l: t('opt.dark') }, { v: 'light', l: t('opt.light') }, { v: 'system', l: t('opt.system') }]}
           onChange={(v) => updateSettings({ theme: v as any })} onLocked={() => openPaywall('Los temas son una función Pro.')} />
-        <SelectRow icon="🎨" label="Color de acento" value={settings.accentColor} pro={!isPro}
-          options={[{ v: 'emerald', l: 'Esmeralda' }, { v: 'indigo', l: 'Índigo' }, { v: 'rose', l: 'Rosa' }, { v: 'amber', l: 'Ámbar' }, { v: 'sky', l: 'Azul' }]}
+        <SelectRow icon="🎨" label={t('set.accent')} value={settings.accentColor} pro={!isPro}
+          options={[{ v: 'emerald', l: t('opt.emerald') }, { v: 'indigo', l: t('opt.indigo') }, { v: 'rose', l: t('opt.rose') }, { v: 'amber', l: t('opt.amber') }, { v: 'sky', l: t('opt.sky') }]}
           onChange={(v) => updateSettings({ accentColor: v })} onLocked={() => openPaywall('La personalización de color es Pro.')} />
-        <SelectRow icon="🌐" label="Idioma" value={settings.language}
-          options={[{ v: 'es', l: 'Español' }, { v: 'en', l: 'English' }]}
+        <SelectRow icon="🌐" label={t('set.language')} value={settings.language}
+          options={[{ v: 'es', l: t('opt.es') }, { v: 'en', l: t('opt.en') }]}
           onChange={(v) => updateSettings({ language: v as any })} />
       </Section>
 
       {/* ───────── UNIDADES Y PREFERENCIAS ───────── */}
-      <Section title="Unidades y preferencias">
-        <SelectRow icon="⚖️" label="Unidad de peso" value={settings.weightUnit}
-          options={[{ v: 'kg', l: 'Kilogramos' }, { v: 'lb', l: 'Libras' }]}
+      <Section title={t('set.sec.units')}>
+        <SelectRow icon="⚖️" label={t('set.weightUnit')} value={settings.weightUnit}
+          options={[{ v: 'kg', l: t('opt.kg') }, { v: 'lb', l: t('opt.lb') }]}
           onChange={(v) => updateSettings({ weightUnit: v as any })} />
-        <SelectRow icon="📅" label="Inicio de semana" value={settings.weekStart}
-          options={[{ v: 'monday', l: 'Lunes' }, { v: 'sunday', l: 'Domingo' }]}
+        <SelectRow icon="📅" label={t('set.weekStart')} value={settings.weekStart}
+          options={[{ v: 'monday', l: t('opt.monday') }, { v: 'sunday', l: t('opt.sunday') }]}
           onChange={(v) => updateSettings({ weekStart: v as any })} />
-        <SelectRow icon="🗓️" label="Formato de fecha" value={settings.dateFormat}
+        <SelectRow icon="🗓️" label={t('set.dateFormat')} value={settings.dateFormat}
           options={[{ v: 'dmy', l: 'DD/MM/AAAA' }, { v: 'mdy', l: 'MM/DD/AAAA' }]}
           onChange={(v) => updateSettings({ dateFormat: v as any })} />
-        <ToggleRow icon="📳" label="Vibración háptica" checked={settings.hapticFeedback} onChange={() => updateSettings({ hapticFeedback: !settings.hapticFeedback })} />
-        <ToggleRow icon="🔊" label="Efectos de sonido" checked={settings.soundEffects} onChange={() => updateSettings({ soundEffects: !settings.soundEffects })} />
+        <ToggleRow icon="📳" label={t('set.haptics')} checked={settings.hapticFeedback} onChange={() => updateSettings({ hapticFeedback: !settings.hapticFeedback })} />
+        <ToggleRow icon="🔊" label={t('set.sound')} checked={settings.soundEffects} onChange={() => updateSettings({ soundEffects: !settings.soundEffects })} />
       </Section>
 
       {/* ───────── PRIVACIDAD ───────── */}
-      <Section title="Privacidad">
-        <ToggleRow icon="👁️" label="Perfil público" checked={settings.publicProfile} onChange={() => updateSettings({ publicProfile: !settings.publicProfile })} />
-        <ToggleRow icon="🏆" label="Aparecer en el ranking" checked={settings.showInLeaderboard} onChange={() => updateSettings({ showInLeaderboard: !settings.showInLeaderboard })} />
-        <ToggleRow icon="📤" label="Compartir progreso con amigos" checked={settings.shareProgress} onChange={() => updateSettings({ shareProgress: !settings.shareProgress })} />
-        <SelectRow icon="➕" label="Quién puede invitarme" value={settings.allowInvites}
-          options={[{ v: 'everyone', l: 'Todos' }, { v: 'friends', l: 'Solo amigos' }, { v: 'none', l: 'Nadie' }]}
+      <Section title={t('set.sec.privacy')}>
+        <ToggleRow icon="👁️" label={t('set.publicProfile')} checked={settings.publicProfile} onChange={() => updateSettings({ publicProfile: !settings.publicProfile })} />
+        <ToggleRow icon="🏆" label={t('set.leaderboard')} checked={settings.showInLeaderboard} onChange={() => updateSettings({ showInLeaderboard: !settings.showInLeaderboard })} />
+        <ToggleRow icon="📤" label={t('set.shareProgress')} checked={settings.shareProgress} onChange={() => updateSettings({ shareProgress: !settings.shareProgress })} />
+        <SelectRow icon="➕" label={t('set.whoInvites')} value={settings.allowInvites}
+          options={[{ v: 'everyone', l: t('opt.everyone') }, { v: 'friends', l: t('opt.friends') }, { v: 'none', l: t('opt.none') }]}
           onChange={(v) => updateSettings({ allowInvites: v as any })} />
       </Section>
 
       {/* ───────── DATOS ───────── */}
-      <Section title="Datos y copias">
-        <ToggleRow icon="☁️" label="Sincronización en la nube" pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
-        <ToggleRow icon="💾" label="Copia de seguridad automática" pro={!isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
-        <NavRow icon="⬇️" label="Exportar mis datos" pro={!isPro} onClick={exportData} />
-        <NavRow icon="🗑️" label="Limpiar caché local" onClick={clearCache} />
+      <Section title={t('set.sec.data')}>
+        <ToggleRow icon="☁️" label={t('set.cloudSync')} pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
+        <ToggleRow icon="💾" label={t('set.autoBackup')} pro={!isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
+        <NavRow icon="⬇️" label={t('set.export')} pro={!isPro} onClick={exportData} />
+        <NavRow icon="🗑️" label={t('set.clearCache')} onClick={clearCache} />
       </Section>
 
       {/* ───────── SOPORTE ───────── */}
-      <Section title="Soporte y acerca de">
-        <NavRow icon="❓" label="Centro de ayuda" onClick={() => showToast('Abriendo ayuda…')} />
-        <NavRow icon="📄" label="Términos de servicio" onClick={() => showToast('Abriendo términos…')} />
-        <NavRow icon="🛡️" label="Política de privacidad" onClick={() => showToast('Abriendo privacidad…')} />
-        <NavRow icon="⭐" label="Valora GymRace" onClick={() => showToast('¡Gracias por tu apoyo! ⭐')} />
+      <Section title={t('set.sec.support')}>
+        <NavRow icon="❓" label={t('set.help')} onClick={() => showToast('Abriendo ayuda…')} />
+        <NavRow icon="📄" label={t('set.terms')} onClick={() => showToast('Abriendo términos…')} />
+        <NavRow icon="🛡️" label={t('set.privacy')} onClick={() => showToast('Abriendo privacidad…')} />
+        <NavRow icon="⭐" label={t('set.rate')} onClick={() => showToast('¡Gracias por tu apoyo! ⭐')} />
         <div className="flex items-center justify-between px-5 py-4 border-t border-line/5">
-          <span className="text-muted font-bold text-sm">Versión</span>
+          <span className="text-muted font-bold text-sm">{t('set.version')}</span>
           <span className="text-muted font-black text-sm">{APP_VERSION}</span>
         </div>
       </Section>
 
       {/* ───────── ZONA PELIGROSA ───────── */}
-      <Section title="Zona peligrosa">
+      <Section title={t('set.sec.danger')}>
         <button onClick={async () => { await signOut(); router.push('/'); }} className="w-full flex items-center gap-3 px-5 py-4 text-rose-400 font-black active:bg-white/5 transition-colors">
-          <span className="text-lg">🚪</span> Cerrar sesión
+          <span className="text-lg">🚪</span> {t('set.logout')}
         </button>
         <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-black border-t border-line/5 active:bg-white/5 transition-colors">
-          <span className="text-lg">⚠️</span> Eliminar cuenta
+          <span className="text-lg">⚠️</span> {t('set.deleteAccount')}
         </button>
       </Section>
 

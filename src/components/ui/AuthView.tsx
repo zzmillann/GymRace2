@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAppStore } from '@/store/useHabitStore';
+import { useT } from '@/lib/i18n';
 
 export function AuthView() {
   const { signUp, signIn, resetPassword } = useAppStore();
+  const t = useT();
   const [isLogin, setIsLogin] = useState(true);
   const [forgot, setForgot] = useState(false);
   const [email, setEmail] = useState('');
@@ -115,7 +117,7 @@ export function AuthView() {
       >
         <header className="text-center mb-10">
           <h1 className="text-5xl font-black tracking-tighter text-content mb-2 italic">GYMRACE</h1>
-          <p className="text-muted font-bold uppercase text-[9px] tracking-[0.4em]">Elite Productivity &amp; Strength</p>
+          <p className="text-muted font-bold uppercase text-[9px] tracking-[0.4em]">{t('auth.subtitle')}</p>
         </header>
 
         <div className="bg-surface/50 backdrop-blur-xl border border-line/5 p-8 rounded-[40px] shadow-2xl">
@@ -123,16 +125,16 @@ export function AuthView() {
             /* ───────── RESTABLECER CONTRASEÑA ───────── */
             <>
               <div className="mb-6 text-center">
-                <h2 className="text-xl font-black text-content uppercase tracking-tighter italic">Restablecer contraseña</h2>
+                <h2 className="text-xl font-black text-content uppercase tracking-tighter italic">{t('auth.resetTitle')}</h2>
                 <p className="text-muted text-[11px] font-bold mt-2 leading-relaxed">
-                  Escribe tu usuario o email y te enviaremos un enlace para crear una nueva contraseña.
+                  {t('auth.resetHelp')}
                 </p>
               </div>
               <form onSubmit={handleReset} className="flex flex-col gap-4">
                 <div className="relative">
                   <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                   <input
-                    type="text" placeholder="Usuario o email" value={resetId} onChange={e => setResetId(e.target.value)}
+                    type="text" placeholder={t('auth.resetField')} value={resetId} onChange={e => setResetId(e.target.value)}
                     className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                   />
                 </div>
@@ -143,7 +145,7 @@ export function AuthView() {
                   type="submit" disabled={loading}
                   className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-2 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-white/5"
                 >
-                  {loading ? 'Enviando...' : 'Enviar enlace'}
+                  {loading ? t('auth.resetSending') : t('auth.resetSend')}
                   <ArrowRight size={20} strokeWidth={3} />
                 </button>
               </form>
@@ -153,7 +155,7 @@ export function AuthView() {
                   onClick={() => { setForgot(false); clearMsgs(); }}
                   className="text-muted text-xs font-bold hover:text-content transition-all uppercase tracking-widest"
                 >
-                  ← Volver a iniciar sesión
+                  {t('auth.resetBack')}
                 </button>
               </footer>
             </>
@@ -166,7 +168,7 @@ export function AuthView() {
                     <>
                       <User className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                       <input
-                        type="text" placeholder="Nombre de usuario" value={name} onChange={e => setName(e.target.value)}
+                        type="text" placeholder={t('auth.username')} value={name} onChange={e => setName(e.target.value)}
                         className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                       />
                     </>
@@ -174,7 +176,7 @@ export function AuthView() {
                     <>
                       <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                       <input
-                        type="email" placeholder="Email (ej. alex@gym.com)" value={email} onChange={e => setEmail(e.target.value)}
+                        type="email" placeholder={t('auth.email')} value={email} onChange={e => setEmail(e.target.value)}
                         className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                       />
                     </>
@@ -191,7 +193,7 @@ export function AuthView() {
                     >
                       <User className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                       <input
-                        type="text" placeholder="¿Cómo te llamas?" value={name} onChange={e => setName(e.target.value)}
+                        type="text" placeholder={t('auth.name')} value={name} onChange={e => setName(e.target.value)}
                         className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                       />
                     </motion.div>
@@ -201,7 +203,7 @@ export function AuthView() {
                 <div className="relative">
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                   <input
-                    type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={e => setPassword(e.target.value)}
+                    type="password" placeholder={t('auth.password')} value={password} onChange={e => setPassword(e.target.value)}
                     className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                   />
                 </div>
@@ -213,7 +215,7 @@ export function AuthView() {
                       onClick={() => { setForgot(true); clearMsgs(); setResetId(name); }}
                       className="text-muted text-[11px] font-bold hover:text-content transition-all"
                     >
-                      ¿Olvidaste tu contraseña?
+                      {t('auth.forgot')}
                     </button>
                   </div>
                 )}
@@ -224,7 +226,7 @@ export function AuthView() {
                   type="submit" disabled={loading}
                   className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-4 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-white/5"
                 >
-                  {loading ? 'Entrenando...' : (isLogin ? 'Entrar' : 'Empezar Carrera')}
+                  {loading ? t('auth.loading') : (isLogin ? t('auth.login') : t('auth.signup'))}
                   <ArrowRight size={20} strokeWidth={3} />
                 </button>
               </form>
@@ -234,7 +236,7 @@ export function AuthView() {
                   onClick={() => { setIsLogin(!isLogin); clearMsgs(); }}
                   className="text-muted text-xs font-bold hover:text-content transition-all uppercase tracking-widest"
                 >
-                  {isLogin ? '¿Nuevo aquí? Regístrate' : 'Ya tengo cuenta'}
+                  {isLogin ? t('auth.toSignup') : t('auth.toLogin')}
                 </button>
               </footer>
             </>

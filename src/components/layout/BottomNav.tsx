@@ -14,9 +14,11 @@ import {
   People24Filled
 } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
+import { useT } from '@/lib/i18n';
 
 export function BottomNav({ onPlusClick }: { onPlusClick?: () => void }) {
   const { activeTab, setActiveTab } = useAppStore();
+  const t = useT();
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -79,7 +81,7 @@ export function BottomNav({ onPlusClick }: { onPlusClick?: () => void }) {
                   {isActive ? <tab.activeIcon style={{ fontSize: 24 }} /> : <tab.icon style={{ fontSize: 24 }} />}
                 </div>
                 <span className={`text-[10px] font-black uppercase tracking-tighter transition-all ${isActive ? 'text-content opacity-100' : 'text-muted opacity-0'}`}>
-                  {tab.label}
+                  {t(`nav.${tab.id}`)}
                 </span>
                 {isActive && (
                   <motion.div 

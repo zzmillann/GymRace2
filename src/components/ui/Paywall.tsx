@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore, type SubscriptionPlan } from '@/store/useHabitStore';
+import { useT } from '@/lib/i18n';
 
 const PRO_FEATURES = [
-  { emoji: '♾️', label: 'Actividades ilimitadas', desc: 'Hábitos, ejercicios y libros sin tope' },
-  { emoji: '📊', label: 'Estadísticas avanzadas', desc: 'Tendencias, heatmaps y récords' },
-  { emoji: '☁️', label: 'Copia en la nube', desc: 'Sincroniza entre todos tus dispositivos' },
-  { emoji: '🎨', label: 'Temas y personalización', desc: 'Colores de acento y modo claro' },
-  { emoji: '🛡️', label: 'Sin anuncios, para siempre', desc: 'Experiencia 100% limpia' },
+  { emoji: '♾️', key: 'unlimited' },
+  { emoji: '📊', key: 'stats' },
+  { emoji: '☁️', key: 'cloud' },
+  { emoji: '🎨', key: 'themes' },
+  { emoji: '🛡️', key: 'noads' },
 ];
 
 const PLANS: { id: Exclude<SubscriptionPlan, 'free'>; name: string; price: string; sub: string; badge?: string }[] = [
@@ -37,6 +38,7 @@ function CheckIcon({ size = 24, className = '' }: { size?: number; className?: s
 
 export function Paywall() {
   const { paywall, closePaywall, activatePro } = useAppStore();
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<'plans' | 'card' | 'success'>('plans');
   const [plan, setPlan] = useState<Exclude<SubscriptionPlan, 'free'>>('monthly');
@@ -143,20 +145,19 @@ export function Paywall() {
                     {paywall.reason ? (
                       <p className="text-amber-400/90 text-xs font-bold mt-2 leading-snug">{paywall.reason}</p>
                     ) : (
-                      <p className="text-muted text-xs font-bold mt-2">Desbloquea todo tu potencial</p>
+                      <p className="text-muted text-xs font-bold mt-2">{t('pw.unlock')}</p>
                     )}
                   </div>
 
                   {/* Features */}
                   <div className="space-y-3 mb-7">
                     {PRO_FEATURES.map((f) => (
-                      <div key={f.label} className="flex items-center gap-3">
+                      <div key={f.key} className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 text-base">
                           {f.emoji}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-content font-black text-sm leading-tight">{f.label}</p>
-                          <p className="text-muted text-[11px] font-medium leading-tight">{f.desc}</p>
+                          <p className="text-content font-black text-sm leading-tight">{t(`pw.feat.${f.key}`)}</p>
                         </div>
                       </div>
                     ))}
@@ -201,7 +202,7 @@ export function Paywall() {
                     className="w-full bg-white text-black py-4 rounded-2xl font-bold flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
                     {processing ? (
-                      <span className="font-black uppercase tracking-widest text-sm">Procesando…</span>
+                      <span className="font-black uppercase tracking-widest text-sm">{t('pw.processing')}</span>
                     ) : (
                       <>
                         <AppleLogo className="w-5 h-5 -mt-0.5" />
@@ -218,10 +219,10 @@ export function Paywall() {
                     style={{ background: 'linear-gradient(135deg, #00B6CB 0%, #0A7FC2 100%)' }}
                   >
                     {processing ? (
-                      <span className="font-black uppercase tracking-widest text-sm">Procesando…</span>
+                      <span className="font-black uppercase tracking-widest text-sm">{t('pw.processing')}</span>
                     ) : (
                       <>
-                        <span className="text-base font-black lowercase tracking-tight">Pagar con</span>
+                        <span className="text-base font-black lowercase tracking-tight">{t('pw.bizum')}</span>
                         <span className="text-lg font-black lowercase tracking-tighter italic">bizum</span>
                       </>
                     )}
@@ -233,12 +234,11 @@ export function Paywall() {
                     disabled={processing}
                     className="w-full bg-surface border border-line/10 text-content py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
-                    💳 Pagar con tarjeta
+                    💳 {t('pw.card')}
                   </button>
 
                   <p className="text-center text-[10px] text-muted font-medium mt-4 leading-relaxed">
-                    Pago seguro. Cancela cuando quieras.<br />
-                    Renovación automática salvo cancelación 24 h antes.
+                    {t('pw.legal')}
                   </p>
                 </motion.div>
               )}
@@ -328,10 +328,10 @@ export function Paywall() {
                   >
                     <CheckIcon size={50} />
                   </motion.div>
-                  <h2 className="text-3xl font-black tracking-tighter text-content uppercase italic mb-2">¡Ya eres Pro!</h2>
+                  <h2 className="text-3xl font-black tracking-tighter text-content uppercase italic mb-2">{t('pw.successTitle')}</h2>
                   <p className="text-muted text-sm font-bold leading-relaxed">
-                    Actividades ilimitadas desbloqueadas.<br />
-                    <span className="text-accent">Ahora a darlo todo. 💪</span>
+                    {t('pw.successBody')}<br />
+                    <span className="text-accent">💪</span>
                   </p>
                 </motion.div>
               )}
