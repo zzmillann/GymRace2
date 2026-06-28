@@ -4,6 +4,7 @@ import './globals.css';
 import { Paywall } from '@/components/ui/Paywall';
 import { ReminderScheduler } from '@/components/ui/ReminderScheduler';
 import { ThemeApplier } from '@/components/ui/ThemeApplier';
+import { SpotifySync } from '@/components/ui/SpotifySync';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -43,6 +44,7 @@ export default function RootLayout({
         <ThemeApplier />
         <Paywall />
         <ReminderScheduler />
+        <SpotifySync />
       </body>
     </html>
   );

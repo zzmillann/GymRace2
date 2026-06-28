@@ -26,7 +26,20 @@ export interface Friend {
   maxStreak: number;
   currentStreak: number;
   friendCount: number;
+  // Spotify "ahora suena"
+  spotifyTrack?: string;
+  spotifyArtist?: string;
+  spotifyPlaying?: boolean;
 }
+
+export interface SpotifyState {
+  connected: boolean;
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresAt: number; // epoch ms
+}
+
+export interface NowPlayingState { track: string; artist: string; isPlaying: boolean; albumArt?: string; }
 
 // --- FREEMIUM / SUBSCRIPTION ---
 // Límite del plan gratuito. Cuenta hábitos + ejercicios + libros.
@@ -160,6 +173,15 @@ interface AppState {
   updateSettings: (patch: Partial<AppSettings>) => void;
   getActivityCount: () => number;
   canCreateActivity: () => boolean;
+
+  // --- Spotify ---
+  spotify: SpotifyState;
+  nowPlaying: NowPlayingState | null;
+  setSpotifyTokens: (accessToken: string, refreshToken: string | null, expiresIn: number) => void;
+  disconnectSpotify: () => void;
+  setNowPlaying: (np: NowPlayingState | null) => void;
+  pushNowPlaying: (np: NowPlayingState | null) => Promise<void>;
+  refreshSocial: () => Promise<void>;
 }
 
 const generateUserCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -192,6 +214,62 @@ export const useAppStore = create<AppState>()(
       canCreateActivity: () => {
         const s = get();
         return s.isPro || s.getActivityCount() < FREE_ACTIVITY_LIMIT;
+      },
+
+      // --- Spotify ---
+      spotify: { connected: false, accessToken: null, refreshToken: null, expiresAt: 0 },
+      nowPlaying: null,
+      setSpotifyTokens: (accessToken, refreshToken, expiresIn) => set((state) => ({
+        spotify: {
+          connected: true,
+          accessToken,
+          // Spotify no siempre devuelve refresh_token al refrescar: conservamos el anterior.
+          refreshToken: refreshToken || state.spotify.refreshToken,
+          expiresAt: Date.now() + expiresIn * 1000,
+        },
+      })),
+      disconnectSpotify: async () => {
+        set({ spotify: { connected: false, accessToken: null, refreshToken: null, expiresAt: 0 }, nowPlaying: null });
+        const uid = get().userId;
+        if (uid) {
+          await supabase.from('profiles').update({
+            spotify_track: null, spotify_artist: null, spotify_is_playing: false,
+          }).eq('id', uid);
+        }
+      },
+      setNowPlaying: (np) => set({ nowPlaying: np }),
+      pushNowPlaying: async (np) => {
+        const uid = get().userId;
+        if (!uid) return;
+        await supabase.from('profiles').update({
+          spotify_track: np?.track || null,
+          spotify_artist: np?.artist || null,
+          spotify_is_playing: np?.isPlaying || false,
+          spotify_updated: new Date().toISOString(),
+        }).eq('id', uid);
+      },
+      refreshSocial: async () => {
+        const uid = get().userId;
+        if (!uid) return;
+        const { data: socialPending } = await supabase
+          .from('friendships')
+          .select('id, user_id, profiles!friendships_user_id_fkey(user_name, user_code)')
+          .eq('friend_id', uid).eq('status', 'pending');
+        const { data: hInvites } = await supabase
+          .from('habit_invitations')
+          .select('*, habits(title), profiles!habit_invitations_sender_id_fkey(user_name, avatar_url)')
+          .eq('receiver_id', uid).eq('status', 'pending');
+        set({
+          pendingRequests: (socialPending || []).map((p: any) => ({
+            id: p.id, sender_name: p.profiles?.user_name || 'Alguien',
+            sender_code: p.profiles?.user_code || '---', sender_id: p.user_id,
+          })),
+          habitInvitations: (hInvites || []).map((i: any) => ({
+            id: i.id, habit_id: i.habit_id, habit_title: i.habits?.title || 'Hábito',
+            sender_id: i.sender_id, sender_name: i.profiles?.user_name || 'Alguien',
+            sender_avatar: i.profiles?.avatar_url || '👤',
+          })),
+        });
       },
 
       initialize: async () => {
@@ -255,7 +333,7 @@ export const useAppStore = create<AppState>()(
           // Step 3: Get Friend Profiles (Basic fetch for reliability)
           const { data: fProfiles } = friendIds.length > 0 ? await supabase
             .from('profiles')
-            .select('id, user_name, user_code, avatar_url, total_completions, friends_list')
+            .select('id, user_name, user_code, avatar_url, total_completions, friends_list, spotify_track, spotify_artist, spotify_is_playing, spotify_updated')
             .in('id', friendIds) : { data: [] };
 
           // Step 4: Get Friends' Habits (Owned & Participated)
@@ -333,13 +411,19 @@ export const useAppStore = create<AppState>()(
                     ...participated.map(h => (h as any).habits?.max_streak)
                 ];
                 
+                // "Ahora suena" solo si la actualización es reciente (< 5 min)
+                const spotifyFresh = p.spotify_updated && (Date.now() - new Date(p.spotify_updated).getTime() < 5 * 60 * 1000);
+
                 return {
                     id: p.id, name: p.user_name, code: p.user_code,
                     avatar: p.avatar_url, totalCompletions: p.total_completions || 0,
                     habits: [], // Simplified per user request
                     maxStreak: allMaxStreaks.length > 0 ? Math.max(...allMaxStreaks.filter(Boolean)) : 0,
                     currentStreak: allStreaks.length > 0 ? Math.max(...allStreaks) : 0,
-                    friendCount: (p.friends_list || []).length
+                    friendCount: (p.friends_list || []).length,
+                    spotifyTrack: spotifyFresh ? p.spotify_track : undefined,
+                    spotifyArtist: spotifyFresh ? p.spotify_artist : undefined,
+                    spotifyPlaying: spotifyFresh ? p.spotify_is_playing : false,
                 };
             })
           });

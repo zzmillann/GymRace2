@@ -7,6 +7,7 @@ import { ArrowLeft24Regular } from '@fluentui/react-icons';
 import { useAppStore, FREE_ACTIVITY_LIMIT } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
 import { ProfileView } from '@/components/ui/ProfileView';
+import { beginSpotifyAuth, spotifyEnabled } from '@/lib/spotify';
 
 const APP_VERSION = '1.0.0';
 
@@ -20,8 +21,14 @@ export default function SettingsPage() {
   const {
     settings, updateSettings, isPro, subscriptionPlan, getActivityCount, openPaywall,
     cancelPro, signOut, updatePassword, userName, userAvatar, userCode,
-    habits, exercises, books,
+    habits, exercises, books, spotify, disconnectSpotify,
   } = useAppStore();
+
+  const handleSpotify = () => {
+    if (spotify.connected) { disconnectSpotify(); showToast('Spotify desvinculado'); return; }
+    if (!spotifyEnabled()) { showToast('Configura NEXT_PUBLIC_SPOTIFY_CLIENT_ID'); return; }
+    beginSpotifyAuth();
+  };
 
   const [toast, setToast] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -283,6 +290,20 @@ export default function SettingsPage() {
           onChange={(v) => updateSettings({ allowInvites: v as any })} />
       </Section>
 
+      {/* ───────── INTEGRACIONES ───────── */}
+      <Section title={t('set.sec.integrations')}>
+        <button onClick={handleSpotify} className="w-full flex items-center justify-between px-5 py-4 active:bg-white/5 transition-colors text-left">
+          <div className="flex items-center gap-3">
+            <SpotifyLogo />
+            <div>
+              <p className="text-content font-bold text-sm">{spotify.connected ? t('set.spotifyConnected') : t('set.spotifyConnect')}</p>
+              {spotify.connected && <p className="text-muted text-[11px] font-medium">{t('set.spotifyDisconnect')}</p>}
+            </div>
+          </div>
+          <span className={`w-2.5 h-2.5 rounded-full ${spotify.connected ? 'bg-[#1DB954]' : 'bg-surface-2'}`} />
+        </button>
+      </Section>
+
       {/* ───────── DATOS ───────── */}
       <Section title={t('set.sec.data')}>
         <ToggleRow icon="☁️" label={t('set.cloudSync')} pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
@@ -382,6 +403,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-[10px] font-black text-muted uppercase tracking-[0.25em] mb-3 ml-2">{title}</h2>
       <div className="bg-surface border border-line/5 rounded-[28px] overflow-hidden">{children}</div>
     </div>
+  );
+}
+
+function SpotifyLogo() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="#1DB954" aria-hidden>
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.36-.66.48-1 .28-2.76-1.68-6.24-2.06-10.34-1.12-.42.1-.82-.16-.9-.56-.1-.42.16-.82.56-.92 4.48-1.02 8.34-.58 11.42 1.3.38.22.48.66.26 1.02zm1.46-3.26c-.28.44-.86.6-1.3.32-3.16-1.94-7.98-2.5-11.72-1.38-.5.16-1.04-.12-1.2-.62-.14-.5.14-1.04.64-1.2 4.28-1.3 9.6-.66 13.24 1.56.44.28.6.86.34 1.32zm.12-3.4C15.24 8.4 8.82 8.2 5.1 9.32c-.6.18-1.24-.16-1.42-.76-.18-.6.16-1.24.76-1.42 4.28-1.3 11.36-1.04 15.84 1.62.54.32.72 1.02.4 1.56-.32.52-1.02.7-1.56.38z"/>
+    </svg>
   );
 }
 

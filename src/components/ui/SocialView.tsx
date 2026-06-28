@@ -323,6 +323,12 @@ export function SocialView() {
                                                 <People24Regular style={{ fontSize: 16 }} />
                                                 <span className="text-[10px] font-black">{friend.friendCount || 0} amigos</span>
                                             </div>
+                                            {friend.spotifyTrack && (
+                                                <div className="flex items-center gap-1.5 mt-1.5 text-[#1DB954]">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954] animate-pulse flex-shrink-0" />
+                                                    <span className="text-[10px] font-bold truncate max-w-[150px]">{friend.spotifyTrack} · {friend.spotifyArtist}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex items-baseline gap-1 bg-black/40 px-3 py-1.5 rounded-xl border border-line/5">
@@ -495,7 +501,16 @@ export function SocialView() {
                                 </div>
                             </div>
 
-                            {/* REMOVED HABIT LIST PER USER REQUEST */}
+                            {selectedFriend.spotifyTrack && (
+                                <div className="bg-[#1DB954]/10 border border-[#1DB954]/20 rounded-2xl p-4 flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-[#1DB954]/20 flex items-center justify-center text-lg flex-shrink-0">🎧</div>
+                                    <div className="min-w-0">
+                                        <p className="text-[8px] font-black text-[#1DB954] uppercase tracking-widest mb-0.5">{selectedFriend.spotifyPlaying ? '● Ahora suena' : 'Última escucha'}</p>
+                                        <p className="text-content font-black text-sm truncate">{selectedFriend.spotifyTrack}</p>
+                                        <p className="text-muted text-[11px] font-bold truncate">{selectedFriend.spotifyArtist}</p>
+                                    </div>
+                                </div>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}
