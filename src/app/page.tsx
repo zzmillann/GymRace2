@@ -173,12 +173,18 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-      <BottomNav 
+      <BottomNav
         onPlusClick={() => {
+          // Gating freemium: si se supera el límite, mostramos el paywall en vez del formulario.
+          const store = useAppStore.getState();
+          if (!store.canCreateActivity()) {
+            store.openPaywall('Has alcanzado el límite de actividades del plan gratuito.');
+            return;
+          }
           if (activeTab === 'habits') setIsModalOpen(true);
           else if (activeTab === 'gym') setIsGymAddOpen(true);
           else if (activeTab === 'library') setIsLibraryAddOpen(true);
-        }} 
+        }}
       />
 
       <ProfileView isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />

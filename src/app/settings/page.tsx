@@ -1,29 +1,81 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft24Regular } from '@fluentui/react-icons';
+import { useAppStore, FREE_ACTIVITY_LIMIT } from '@/store/useHabitStore';
+
+const APP_VERSION = '1.0.0';
+
+const PLAN_LABEL: Record<string, string> = {
+  free: 'Gratis',
+  monthly: 'Pro · Mensual',
+  yearly: 'Pro · Anual',
+  lifetime: 'Pro · De por vida',
+};
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [cardNumber, setCardNumber] = useState('');
-  const [cvc, setCvc] = useState('');
-  const [pin, setPin] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const {
+    settings, updateSettings, isPro, subscriptionPlan, getActivityCount, openPaywall,
+    cancelPro, signOut, userName, userAvatar, userCode,
+    habits, exercises, books,
+  } = useAppStore();
 
-  const formatCard = (val: string) => {
-    return val.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+  const [toast, setToast] = useState('');
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const showToast = (t: string) => { setToast(t); setTimeout(() => setToast(''), 2200); };
+
+  const usage = getActivityCount();
+  const usagePct = Math.min(100, (usage / FREE_ACTIVITY_LIMIT) * 100);
+
+  // --- Acciones ---
+  const toggleDailyReminder = async () => {
+    if (settings.dailyReminder) { updateSettings({ dailyReminder: false }); return; }
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      showToast('Tu navegador no soporta notificaciones'); return;
+    }
+    let perm = Notification.permission;
+    if (perm === 'default') perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      updateSettings({ dailyReminder: true, pushEnabled: true });
+      showToast('Recordatorio diario activado ✅');
+      try { new Notification('GymRace', { body: 'Te avisaremos cada día si te quedan actividades 💪' }); } catch {}
+    } else {
+      showToast('Permiso de notificaciones denegado');
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
+  const proToggle = (key: keyof typeof settings) => {
+    if (!isPro) { openPaywall('Esta función es exclusiva de GymRace Pro.'); return; }
+    updateSettings({ [key]: !settings[key] } as any);
   };
+
+  const exportData = () => {
+    if (!isPro) { openPaywall('La exportación de datos es una función Pro.'); return; }
+    const blob = new Blob([JSON.stringify({ habits, exercises, books, settings }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'gymrace-export.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('Datos exportados');
+  };
+
+  const clearCache = () => {
+    try { localStorage.removeItem('gymrace-last-reminder'); } catch {}
+    showToast('Caché local limpiada');
+  };
+
+  // Evita mismatch de hidratación con el estado persistido de Zustand
+  if (!mounted) {
+    return <div className="min-h-screen bg-neutral-950" />;
+  }
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-6 pt-12">
-      <header className="flex items-center gap-4 mb-10">
+    <div className="min-h-screen bg-neutral-950 p-6 pt-12 pb-24">
+      <header className="flex items-center gap-4 mb-8">
         <button
           onClick={() => router.back()}
           className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center text-white active:scale-95 transition-all"
@@ -33,129 +85,262 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-black tracking-tighter text-white uppercase italic">Ajustes</h1>
       </header>
 
-      <AnimatePresence mode="wait">
-        {!submitted ? (
+      {/* ───────── SUSCRIPCIÓN ───────── */}
+      {isPro ? (
+        <div className="relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-[0_10px_40px_rgba(16,185,129,0.3)]">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">👑</span>
+            <p className="text-white font-black uppercase tracking-tighter text-lg italic">GymRace Pro</p>
+          </div>
+          <p className="text-white/80 text-xs font-bold mb-5">{PLAN_LABEL[subscriptionPlan]} · Actividades ilimitadas</p>
+          <div className="flex gap-3">
+            <button onClick={() => showToast('Gestiona tu plan desde la App Store')} className="flex-1 bg-white/20 backdrop-blur text-white py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Gestionar</button>
+            <button onClick={() => { cancelPro(); showToast('Suscripción cancelada'); }} className="px-5 bg-black/20 text-white py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => openPaywall()}
+          className="w-full text-left relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 active:scale-[0.99] transition-transform"
+        >
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full" />
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">✨</span>
+            <p className="text-white font-black uppercase tracking-tighter text-lg italic">Hazte <span className="text-emerald-400">Pro</span></p>
+          </div>
+          <p className="text-neutral-400 text-xs font-bold mb-4">Desbloquea actividades ilimitadas y mucho más</p>
+
+          {/* Barra de uso del plan gratis */}
+          <div className="bg-black/40 rounded-2xl p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Plan Gratis</span>
+              <span className="text-[10px] font-black text-white">{usage} / {FREE_ACTIVITY_LIMIT} actividades</span>
+            </div>
+            <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }} animate={{ width: `${usagePct}%` }}
+                className={`h-full rounded-full ${usage >= FREE_ACTIVITY_LIMIT ? 'bg-rose-500' : 'bg-emerald-500'}`}
+              />
+            </div>
+            {usage >= FREE_ACTIVITY_LIMIT && (
+              <p className="text-rose-400 text-[10px] font-bold mt-2">Has alcanzado el límite gratuito.</p>
+            )}
+          </div>
+          <div className="flex items-center justify-center gap-1 mt-4 text-emerald-400 font-black uppercase tracking-widest text-[11px]">
+            Ver planes Pro →
+          </div>
+        </button>
+      )}
+
+      {/* ───────── CUENTA ───────── */}
+      <Section title="Cuenta">
+        <NavRow icon="🧑" label="Editar perfil" sub={userName} onClick={() => router.push('/')}>
+          <div className="w-8 h-8 rounded-lg bg-neutral-800 overflow-hidden flex items-center justify-center text-sm">
+            {userAvatar?.startsWith('http') ? <img src={userAvatar} className="w-full h-full object-cover" /> : userAvatar}
+          </div>
+        </NavRow>
+        <NavRow icon="🔑" label="Cambiar contraseña" onClick={() => showToast('Disponible próximamente')} />
+        <NavRow icon="🎟️" label="Código de invitación" sub={userCode} onClick={() => { navigator.clipboard?.writeText(userCode); showToast('Código copiado'); }} />
+      </Section>
+
+      {/* ───────── NOTIFICACIONES ───────── */}
+      <Section title="Notificaciones">
+        <ToggleRow icon="🔔" label="Notificaciones push" checked={settings.pushEnabled} onChange={() => updateSettings({ pushEnabled: !settings.pushEnabled })} />
+        <ToggleRow icon="⏰" label="Recordatorio diario" sub="Te avisa si te quedan actividades sin marcar" checked={settings.dailyReminder} onChange={toggleDailyReminder} />
+        {settings.dailyReminder && (
+          <div className="flex items-center justify-between px-5 py-4 border-t border-white/5">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">🕐</span>
+              <span className="text-white font-bold text-sm">Hora del aviso</span>
+            </div>
+            <input
+              type="time" value={settings.reminderTime}
+              onChange={(e) => updateSettings({ reminderTime: e.target.value })}
+              className="bg-neutral-800 border border-white/5 rounded-xl px-3 py-2 text-white font-black outline-none"
+            />
+          </div>
+        )}
+        <ToggleRow icon="🔥" label="Alertas de racha en peligro" checked={settings.streakAlerts} onChange={() => updateSettings({ streakAlerts: !settings.streakAlerts })} />
+        <ToggleRow icon="🗓️" label="Resumen semanal" checked={settings.weeklySummary} onChange={() => updateSettings({ weeklySummary: !settings.weeklySummary })} />
+        <ToggleRow icon="👥" label="Actividad social" sub="Solicitudes e invitaciones" checked={settings.socialNotifs} onChange={() => updateSettings({ socialNotifs: !settings.socialNotifs })} />
+      </Section>
+
+      {/* ───────── APARIENCIA ───────── */}
+      <Section title="Apariencia">
+        <SelectRow icon="🌙" label="Tema" value={settings.theme} pro={!isPro}
+          options={[{ v: 'dark', l: 'Oscuro' }, { v: 'light', l: 'Claro' }, { v: 'system', l: 'Sistema' }]}
+          onChange={(v) => updateSettings({ theme: v as any })} onLocked={() => openPaywall('Los temas son una función Pro.')} />
+        <SelectRow icon="🎨" label="Color de acento" value={settings.accentColor} pro={!isPro}
+          options={[{ v: 'emerald', l: 'Esmeralda' }, { v: 'indigo', l: 'Índigo' }, { v: 'rose', l: 'Rosa' }, { v: 'amber', l: 'Ámbar' }, { v: 'sky', l: 'Azul' }]}
+          onChange={(v) => updateSettings({ accentColor: v })} onLocked={() => openPaywall('La personalización de color es Pro.')} />
+        <SelectRow icon="🌐" label="Idioma" value={settings.language}
+          options={[{ v: 'es', l: 'Español' }, { v: 'en', l: 'English' }]}
+          onChange={(v) => updateSettings({ language: v as any })} />
+      </Section>
+
+      {/* ───────── UNIDADES Y PREFERENCIAS ───────── */}
+      <Section title="Unidades y preferencias">
+        <SelectRow icon="⚖️" label="Unidad de peso" value={settings.weightUnit}
+          options={[{ v: 'kg', l: 'Kilogramos' }, { v: 'lb', l: 'Libras' }]}
+          onChange={(v) => updateSettings({ weightUnit: v as any })} />
+        <SelectRow icon="📅" label="Inicio de semana" value={settings.weekStart}
+          options={[{ v: 'monday', l: 'Lunes' }, { v: 'sunday', l: 'Domingo' }]}
+          onChange={(v) => updateSettings({ weekStart: v as any })} />
+        <SelectRow icon="🗓️" label="Formato de fecha" value={settings.dateFormat}
+          options={[{ v: 'dmy', l: 'DD/MM/AAAA' }, { v: 'mdy', l: 'MM/DD/AAAA' }]}
+          onChange={(v) => updateSettings({ dateFormat: v as any })} />
+        <ToggleRow icon="📳" label="Vibración háptica" checked={settings.hapticFeedback} onChange={() => updateSettings({ hapticFeedback: !settings.hapticFeedback })} />
+        <ToggleRow icon="🔊" label="Efectos de sonido" checked={settings.soundEffects} onChange={() => updateSettings({ soundEffects: !settings.soundEffects })} />
+      </Section>
+
+      {/* ───────── PRIVACIDAD ───────── */}
+      <Section title="Privacidad">
+        <ToggleRow icon="👁️" label="Perfil público" checked={settings.publicProfile} onChange={() => updateSettings({ publicProfile: !settings.publicProfile })} />
+        <ToggleRow icon="🏆" label="Aparecer en el ranking" checked={settings.showInLeaderboard} onChange={() => updateSettings({ showInLeaderboard: !settings.showInLeaderboard })} />
+        <ToggleRow icon="📤" label="Compartir progreso con amigos" checked={settings.shareProgress} onChange={() => updateSettings({ shareProgress: !settings.shareProgress })} />
+        <SelectRow icon="➕" label="Quién puede invitarme" value={settings.allowInvites}
+          options={[{ v: 'everyone', l: 'Todos' }, { v: 'friends', l: 'Solo amigos' }, { v: 'none', l: 'Nadie' }]}
+          onChange={(v) => updateSettings({ allowInvites: v as any })} />
+      </Section>
+
+      {/* ───────── DATOS ───────── */}
+      <Section title="Datos y copias">
+        <ToggleRow icon="☁️" label="Sincronización en la nube" pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
+        <ToggleRow icon="💾" label="Copia de seguridad automática" pro={!isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
+        <NavRow icon="⬇️" label="Exportar mis datos" pro={!isPro} onClick={exportData} />
+        <NavRow icon="🗑️" label="Limpiar caché local" onClick={clearCache} />
+      </Section>
+
+      {/* ───────── SOPORTE ───────── */}
+      <Section title="Soporte y acerca de">
+        <NavRow icon="❓" label="Centro de ayuda" onClick={() => showToast('Abriendo ayuda…')} />
+        <NavRow icon="📄" label="Términos de servicio" onClick={() => showToast('Abriendo términos…')} />
+        <NavRow icon="🛡️" label="Política de privacidad" onClick={() => showToast('Abriendo privacidad…')} />
+        <NavRow icon="⭐" label="Valora GymRace" onClick={() => showToast('¡Gracias por tu apoyo! ⭐')} />
+        <div className="flex items-center justify-between px-5 py-4 border-t border-white/5">
+          <span className="text-neutral-500 font-bold text-sm">Versión</span>
+          <span className="text-neutral-500 font-black text-sm">{APP_VERSION}</span>
+        </div>
+      </Section>
+
+      {/* ───────── ZONA PELIGROSA ───────── */}
+      <Section title="Zona peligrosa">
+        <button onClick={async () => { await signOut(); router.push('/'); }} className="w-full flex items-center gap-3 px-5 py-4 text-rose-400 font-black active:bg-white/5 transition-colors">
+          <span className="text-lg">🚪</span> Cerrar sesión
+        </button>
+        <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-black border-t border-white/5 active:bg-white/5 transition-colors">
+          <span className="text-lg">⚠️</span> Eliminar cuenta
+        </button>
+      </Section>
+
+      <p className="text-center text-[9px] text-neutral-700 font-extralight uppercase tracking-[0.4em] italic mt-8">
+        Developed by Alejandro Millán
+      </p>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
           <motion.div
-            key="form"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-neutral-900 border border-white/5 rounded-[40px] p-8 space-y-6"
+            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl z-[200] text-center"
           >
-            {/* Fake card preview */}
-            <motion.div
-              animate={{ rotateY: [0, 2, -2, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 rounded-[28px] p-6 relative overflow-hidden h-44 flex flex-col justify-between shadow-2xl"
-            >
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-purple-500/10" />
-              <div className="flex justify-between items-start">
-                <p className="text-white font-black text-lg tracking-widest italic">GYMRACE</p>
-                <div className="w-10 h-10 rounded-full bg-amber-400/80 -mr-2 relative">
-                  <div className="w-10 h-10 rounded-full bg-amber-600/80 absolute -right-3 top-0" />
-                </div>
-              </div>
-              <div>
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Número de tarjeta</p>
-                <p className="text-white font-black text-lg tracking-[0.2em]">
-                  {cardNumber}
-                </p>
-              </div>
-            </motion.div>
-
-            <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest text-center italic">
-              "Te lo juro que no se queda en la base de datos<br/>
-              y me voy a comprar un viaje a las islas mauricio<br/>
-              para montar en avestruz"
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest block mb-2">
-                  Nº de Tarjeta
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder=""
-                  value={formatCard(cardNumber)}
-                  onChange={e => setCardNumber(e.target.value.replace(/\s/g, ''))}
-                  className="w-full bg-neutral-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-black tracking-widest outline-none focus:border-white/20 transition-all text-center"
-                  maxLength={19}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest block mb-2">
-                    CVC
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder=""
-                    value={cvc}
-                    onChange={e => setCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                    className="w-full bg-neutral-950 border border-white/5 rounded-2xl px-4 py-4 text-white font-black tracking-widest outline-none focus:border-white/20 transition-all text-center"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest block mb-2">
-                    PIN
-                  </label>
-                  <input
-                    type="password"
-                    inputMode="numeric"
-                    placeholder=""
-                    value={pin}
-                    onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                    className="w-full bg-neutral-950 border border-white/5 rounded-2xl px-4 py-4 text-white font-black tracking-widest outline-none focus:border-white/20 transition-all text-center"
-                  />
-                </div>
-              </div>
-
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                type="submit"
-                className="w-full bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl mt-2"
-              >
-                Financiar el Avestruz
-              </motion.button>
-            </form>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="result"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-neutral-900 border border-white/5 rounded-[40px] p-10 flex flex-col items-center gap-6 text-center"
-          >
-            <motion.div
-              animate={{ rotate: [0, -10, 10, -10, 10, 0], scale: [1, 1.3, 1] }}
-              transition={{ duration: 0.8 }}
-              className="text-7xl"
-            >
-              😈
-            </motion.div>
-            <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">
-              Avestruz Conseguido
-            </h2>
-            <p className="text-neutral-500 text-sm font-bold leading-relaxed">
-              Nah, es broma.<br />
-              <span className="text-white font-black">No se guarda absolutamente nada.</span><br />
-              Aunque si de verdad quieres financiar el viaje...<br />
-              <span className="text-emerald-500 font-black">completa tus hábitos.</span>
-            </p>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => router.back()}
-              className="bg-white text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest"
-            >
-              Volver
-            </motion.button>
+            {toast}
           </motion.div>
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/* ───────────────────────── COMPONENTES ───────────────────────── */
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-7">
+      <h2 className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.25em] mb-3 ml-2">{title}</h2>
+      <div className="bg-neutral-900 border border-white/5 rounded-[28px] overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+function ProBadge() {
+  return (
+    <span className="flex items-center gap-0.5 text-[8px] font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+      🔒 Pro
+    </span>
+  );
+}
+
+function ToggleRow({
+  icon, label, sub, checked, onChange, pro,
+}: { icon: string; label: string; sub?: string; checked: boolean; onChange: () => void; pro?: boolean }) {
+  return (
+    <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-b-0">
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="text-lg flex-shrink-0">{icon}</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-white font-bold text-sm">{label}</span>
+            {pro && <ProBadge />}
+          </div>
+          {sub && <p className="text-neutral-500 text-[11px] font-medium leading-tight">{sub}</p>}
+        </div>
+      </div>
+      <button
+        onClick={onChange}
+        className={`relative w-12 h-7 rounded-full flex-shrink-0 transition-colors ${checked ? 'bg-emerald-500' : 'bg-neutral-700'}`}
+      >
+        <motion.span layout className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow ${checked ? 'left-[22px]' : 'left-0.5'}`} />
+      </button>
+    </div>
+  );
+}
+
+function NavRow({
+  icon, label, sub, onClick, pro, children,
+}: { icon: string; label: string; sub?: string; onClick: () => void; pro?: boolean; children?: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className="w-full flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="text-lg flex-shrink-0">{icon}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-white font-bold text-sm">{label}</span>
+          {pro && <ProBadge />}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {children}
+        {sub && <span className="text-neutral-500 font-bold text-xs">{sub}</span>}
+        <span className="text-neutral-600">›</span>
+      </div>
+    </button>
+  );
+}
+
+function SelectRow({
+  icon, label, value, options, onChange, pro, onLocked,
+}: {
+  icon: string; label: string; value: string; options: { v: string; l: string }[];
+  onChange: (v: string) => void; pro?: boolean; onLocked?: () => void;
+}) {
+  const cycle = () => {
+    if (pro) { onLocked?.(); return; }
+    const idx = options.findIndex((o) => o.v === value);
+    onChange(options[(idx + 1) % options.length].v);
+  };
+  const current = options.find((o) => o.v === value);
+  return (
+    <button onClick={cycle} className="w-full flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
+      <div className="flex items-center gap-3">
+        <span className="text-lg">{icon}</span>
+        <span className="text-white font-bold text-sm">{label}</span>
+        {pro && <ProBadge />}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-emerald-400 font-black text-xs uppercase tracking-wider">{current?.l}</span>
+        <span className="text-neutral-600">›</span>
+      </div>
+    </button>
   );
 }

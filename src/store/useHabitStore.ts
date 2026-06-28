@@ -28,6 +28,65 @@ export interface Friend {
   friendCount: number;
 }
 
+// --- FREEMIUM / SUBSCRIPTION ---
+// Límite del plan gratuito. Cuenta hábitos + ejercicios + libros.
+// Al intentar crear el item nº (FREE_ACTIVITY_LIMIT + 1) salta el paywall.
+// 👉 Cambia este único número para ajustar cuántas actividades son gratis.
+export const FREE_ACTIVITY_LIMIT = 3;
+
+export type SubscriptionPlan = 'free' | 'monthly' | 'yearly' | 'lifetime';
+
+export interface AppSettings {
+  // Notificaciones
+  pushEnabled: boolean;
+  dailyReminder: boolean;
+  reminderTime: string; // 'HH:mm'
+  streakAlerts: boolean;
+  weeklySummary: boolean;
+  socialNotifs: boolean;
+  // Apariencia
+  theme: 'dark' | 'light' | 'system';
+  accentColor: string;
+  language: 'es' | 'en';
+  // Unidades y preferencias
+  weightUnit: 'kg' | 'lb';
+  weekStart: 'monday' | 'sunday';
+  dateFormat: 'dmy' | 'mdy';
+  hapticFeedback: boolean;
+  soundEffects: boolean;
+  // Privacidad
+  publicProfile: boolean;
+  showInLeaderboard: boolean;
+  shareProgress: boolean;
+  allowInvites: 'everyone' | 'friends' | 'none';
+  // Datos (Pro)
+  cloudSync: boolean;
+  autoBackup: boolean;
+}
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  pushEnabled: false,
+  dailyReminder: false,
+  reminderTime: '20:00',
+  streakAlerts: true,
+  weeklySummary: true,
+  socialNotifs: true,
+  theme: 'dark',
+  accentColor: 'emerald',
+  language: 'es',
+  weightUnit: 'kg',
+  weekStart: 'monday',
+  dateFormat: 'dmy',
+  hapticFeedback: true,
+  soundEffects: false,
+  publicProfile: true,
+  showInLeaderboard: true,
+  shareProgress: true,
+  allowInvites: 'everyone',
+  cloudSync: false,
+  autoBackup: false,
+};
+
 interface AppState {
   // User Info
   userId: string | null;
@@ -85,6 +144,20 @@ interface AppState {
   // Navigation
   activeTab: 'habits' | 'gym' | 'library' | 'social';
   setActiveTab: (tab: 'habits' | 'gym' | 'library' | 'social') => void;
+
+  // --- Freemium / Subscription ---
+  isPro: boolean;
+  subscriptionPlan: SubscriptionPlan;
+  paywall: { open: boolean; reason: string };
+  settings: AppSettings;
+  openPaywall: (reason?: string) => void;
+  closePaywall: () => void;
+  activatePro: (plan: SubscriptionPlan) => void;
+  cancelPro: () => void;
+  restorePro: () => Promise<boolean>;
+  updateSettings: (patch: Partial<AppSettings>) => void;
+  getActivityCount: () => number;
+  canCreateActivity: () => boolean;
 }
 
 const generateUserCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -95,6 +168,29 @@ export const useAppStore = create<AppState>()(
       userId: null, userCode: '', userName: '', userAvatar: '👤', pendingRequests: [], outgoingRequests: [], habitInvitations: [], initialized: false,
       activeTab: 'habits', setActiveTab: (activeTab) => set({ activeTab }),
       activeGymMuscle: 'Pecho', setActiveGymMuscle: (activeGymMuscle) => set({ activeGymMuscle }),
+
+      // --- Freemium / Subscription ---
+      isPro: false,
+      subscriptionPlan: 'free',
+      paywall: { open: false, reason: '' },
+      settings: DEFAULT_SETTINGS,
+      openPaywall: (reason = '') => set({ paywall: { open: true, reason } }),
+      closePaywall: () => set({ paywall: { open: false, reason: '' } }),
+      activatePro: (plan) => set({ isPro: true, subscriptionPlan: plan, paywall: { open: false, reason: '' } }),
+      cancelPro: () => set({ isPro: false, subscriptionPlan: 'free' }),
+      restorePro: async () => {
+        // En producción aquí se validaría el recibo con la App Store / Stripe.
+        return get().isPro;
+      },
+      updateSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
+      getActivityCount: () => {
+        const s = get();
+        return s.habits.length + s.exercises.length + s.books.length;
+      },
+      canCreateActivity: () => {
+        const s = get();
+        return s.isPro || s.getActivityCount() < FREE_ACTIVITY_LIMIT;
+      },
 
       initialize: async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -343,6 +439,10 @@ export const useAppStore = create<AppState>()(
       habits: [],
       addHabit: async (habit) => {
         if (!get().userId) return;
+        if (!get().canCreateActivity()) {
+          get().openPaywall('Has alcanzado el límite de actividades del plan gratuito.');
+          return;
+        }
         const hId = crypto.randomUUID();
         const newHabit: Habit = {
           id: hId,
@@ -476,16 +576,28 @@ export const useAppStore = create<AppState>()(
       },
 
       exercises: [],
-      addExercise: (name, muscle, initialWeight) => set((state) => ({
-        exercises: [...state.exercises, { id: Date.now().toString(), name, muscle, weightHistory: [initialWeight] }]
-      })),
+      addExercise: (name, muscle, initialWeight) => {
+        if (!get().canCreateActivity()) {
+          get().openPaywall('Has alcanzado el límite de actividades del plan gratuito.');
+          return;
+        }
+        set((state) => ({
+          exercises: [...state.exercises, { id: Date.now().toString(), name, muscle, weightHistory: [initialWeight] }]
+        }));
+      },
       updateWeight: (id, newWeight) => set((state) => ({
         exercises: state.exercises.map(ex => ex.id === id ? { ...ex, weightHistory: [...ex.weightHistory, newWeight] } : ex)
       })),
       deleteExercise: (id) => set((state) => ({ exercises: state.exercises.filter(ex => ex.id !== id) })),
 
       books: [],
-      addBook: (title, author, pages) => set((state) => ({ books: [...state.books, { id: Date.now().toString(), title, author, pages, readPages: 0 }] })),
+      addBook: (title, author, pages) => {
+        if (!get().canCreateActivity()) {
+          get().openPaywall('Has alcanzado el límite de actividades del plan gratuito.');
+          return;
+        }
+        set((state) => ({ books: [...state.books, { id: Date.now().toString(), title, author, pages, readPages: 0 }] }));
+      },
       updateReadPages: (id, readPages) => set((state) => ({ books: state.books.map(b => b.id === id ? { ...b, readPages } : b) })),
       deleteBook: (id) => set((state) => ({ books: state.books.filter(b => b.id !== id) })),
 

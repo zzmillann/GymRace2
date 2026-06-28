@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { Paywall } from '@/components/ui/Paywall';
+import { ReminderScheduler } from '@/components/ui/ReminderScheduler';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -37,6 +39,8 @@ export default function RootLayout({
         <main className="min-h-screen safe-area-ios pb-20">
           {children}
         </main>
+        <Paywall />
+        <ReminderScheduler />
       </body>
     </html>
   );
