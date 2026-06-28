@@ -58,6 +58,11 @@ export default function Home() {
     initialize();
   }, [initialize]);
 
+  // Precargamos las rutas de detalle para que abrir un hábito sea instantáneo
+  useEffect(() => {
+    habits.forEach(h => router.prefetch(`/habit/${h.id}`));
+  }, [habits, router]);
+
   // Retorno desde Stripe Checkout: esperamos a que el webhook marque Pro y limpiamos la URL.
   useEffect(() => {
     if (typeof window === 'undefined') return;

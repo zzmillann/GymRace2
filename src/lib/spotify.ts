@@ -2,7 +2,9 @@
 // Requiere NEXT_PUBLIC_SPOTIFY_CLIENT_ID y registrar el redirect URI
 // `<origin>/spotify-callback` en el Dashboard de Spotify.
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID || '';
+// El Client ID de Spotify es público (PKCE no usa secreto), así que se puede
+// dejar aquí como valor por defecto. Una variable de entorno lo sobreescribe.
+const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID || '4c62a512afca47048b952baa48e5bdac';
 const SCOPES = 'user-read-currently-playing user-read-playback-state';
 
 export const spotifyEnabled = () => !!CLIENT_ID;

@@ -63,13 +63,22 @@ export function LibraryView() {
 
           {books.map((book) => {
             const progress = Math.min(100, Math.round((book.readPages / book.pages) * 100));
+            // Color que evoluciona con el progreso de lectura
+            const grad = progress >= 100 ? 'from-emerald-400 to-teal-500'
+              : progress >= 66 ? 'from-violet-500 to-fuchsia-500'
+              : progress >= 33 ? 'from-sky-500 to-indigo-500'
+              : 'from-amber-400 to-orange-500';
+            const glow = progress >= 100 ? 'shadow-[0_0_18px_rgba(16,185,129,0.55)]'
+              : progress >= 66 ? 'shadow-[0_0_18px_rgba(168,85,247,0.5)]'
+              : progress >= 33 ? 'shadow-[0_0_18px_rgba(14,165,233,0.5)]'
+              : 'shadow-[0_0_18px_rgba(245,158,11,0.5)]';
             return (
               <motion.div
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 key={book.id}
-                className="bg-surface border border-line/5 rounded-[40px] p-8 relative overflow-hidden shadow-2xl"
+                className={`bg-surface border rounded-[40px] p-8 relative overflow-hidden shadow-2xl transition-colors ${progress >= 100 ? 'border-emerald-500/30' : 'border-line/5'}`}
               >
                 <button 
                   onClick={() => { if(confirm('¿Eliminar libro?')) deleteBook(book.id) }} 
@@ -81,11 +90,11 @@ export function LibraryView() {
                 <div className="flex gap-6 mb-8">
                   <div className="w-20 h-28 bg-surface-2 rounded-xl flex items-end justify-center border border-line/5 shadow-inner relative overflow-hidden flex-shrink-0">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      <BookIcon size={32} className="text-muted mb-6" />
-                      <motion.div 
+                      <BookIcon size={32} className="text-muted mb-6 relative z-10" />
+                      <motion.div
                         initial={{ height: 0 }}
                         animate={{ height: `${progress}%` }}
-                        className="absolute bottom-0 left-0 right-0 bg-white/20 backdrop-blur-sm pointer-events-none"
+                        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${grad} opacity-80 pointer-events-none`}
                       />
                   </div>
                   <div>
@@ -107,14 +116,22 @@ export function LibraryView() {
                 <div className="mb-8">
                     <div className="flex justify-between items-end mb-3">
                         <span className="text-[10px] font-black text-muted uppercase tracking-widest">Progreso de lectura</span>
-                        <span className="text-2xl font-black text-content tabular-nums">{progress}%</span>
+                        <span className={`text-2xl font-black tabular-nums bg-gradient-to-r ${grad} bg-clip-text text-transparent`}>{progress}%</span>
                     </div>
                     <div className="h-4 bg-black/40 rounded-full relative overflow-hidden border border-line/5">
-                        <motion.div 
+                        <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
-                            className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                        />
+                            className={`h-full bg-gradient-to-r ${grad} ${glow} relative overflow-hidden`}
+                        >
+                            {progress > 0 && progress < 100 && (
+                                <motion.div
+                                    initial={{ x: '-120%' }} animate={{ x: '320%' }}
+                                    transition={{ duration: 1.6, repeat: Infinity, ease: 'linear' }}
+                                    className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                                />
+                            )}
+                        </motion.div>
                     </div>
                 </div>
 

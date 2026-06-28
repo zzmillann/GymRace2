@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { useAppStore } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
 
@@ -15,6 +15,7 @@ export function AuthView() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [resetId, setResetId] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -141,13 +142,14 @@ export function AuthView() {
 
                 {Messages}
 
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.96 }} transition={{ duration: 0.06 }}
                   type="submit" disabled={loading}
-                  className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-2 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-white/5"
+                  className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-2 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
                 >
                   {loading ? t('auth.resetSending') : t('auth.resetSend')}
                   <ArrowRight size={20} strokeWidth={3} />
-                </button>
+                </motion.button>
               </form>
 
               <footer className="mt-8 text-center">
@@ -203,9 +205,16 @@ export function AuthView() {
                 <div className="relative">
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                   <input
-                    type="password" placeholder={t('auth.password')} value={password} onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
+                    type={showPassword ? 'text' : 'password'} placeholder={t('auth.password')} value={password} onChange={e => setPassword(e.target.value)}
+                    className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-14 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                   />
+                  <button
+                    type="button" onClick={() => setShowPassword(s => !s)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-muted hover:text-content transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
 
                 {isLogin && (
@@ -222,13 +231,14 @@ export function AuthView() {
 
                 {Messages}
 
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.96 }} transition={{ duration: 0.06 }}
                   type="submit" disabled={loading}
-                  className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-4 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-white/5"
+                  className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-4 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
                 >
                   {loading ? t('auth.loading') : (isLogin ? t('auth.login') : t('auth.signup'))}
                   <ArrowRight size={20} strokeWidth={3} />
-                </button>
+                </motion.button>
               </form>
 
               <footer className="mt-8 text-center">
