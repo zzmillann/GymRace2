@@ -13,6 +13,7 @@ import {
 } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 import { Wrapped } from './Wrapped';
+import { FramedAvatar, FRAMES, type FrameId } from './FramedAvatar';
 
 const AVATAR_SEEDS = [
   'Felix', 'Aneka', 'Abigail', 'Aiden', 'George', 'Jack', 'Jasper', 'Jordan', 'Kingston', 'Lulu', 
@@ -20,7 +21,8 @@ const AVATAR_SEEDS = [
 ];
 
 export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const { userCode, userName, userAvatar, updateProfile, signOut, habits, getProfileViewers } = useAppStore();
+  const { userCode, userName, userAvatar, userFrame, setProfileFrame, updateProfile, signOut, habits, getProfileViewers } = useAppStore();
+  const [selectedFrame, setSelectedFrame] = useState<FrameId>((userFrame as FrameId) || 'none');
   const [newName, setNewName] = useState(userName);
   const [selectedAvatar, setSelectedAvatar] = useState(userAvatar);
   const [copied, setCopied] = useState(false);
@@ -78,12 +80,25 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             </button>
 
             <header className="flex flex-col items-center mb-6">
-                <div className="w-24 h-24 rounded-[32px] bg-surface-2 border-2 border-line/10 flex items-center justify-center text-5xl shadow-2xl overflow-hidden mb-4">
-                    {selectedAvatar && selectedAvatar.startsWith('http') ? (
-                        <img src={selectedAvatar} className="w-full h-full object-cover" alt="Profile" />
-                    ) : (
-                        <Person24Regular style={{ fontSize: 40 }} className="text-muted" />
-                    )}
+                <div className="mb-4">
+                    <FramedAvatar src={selectedAvatar} frame={selectedFrame} size={96} rounded="rounded-[32px]" />
+                </div>
+
+                {/* Selector de marco */}
+                <div className="w-full mb-4">
+                  <p className="text-[8px] font-black text-muted uppercase tracking-widest text-center mb-3">Marco / Aura</p>
+                  <div className="flex gap-2 overflow-x-auto pb-3 hide-scrollbar -mx-2 px-2">
+                    {FRAMES.map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => { setSelectedFrame(f.id); setProfileFrame(f.id); }}
+                        className={`flex-shrink-0 px-3 py-2 rounded-xl border-2 transition-all flex items-center gap-1.5 ${selectedFrame === f.id ? 'border-accent bg-accent/10' : 'border-line/5 opacity-50 hover:opacity-100'}`}
+                      >
+                        <span className="text-sm">{f.emoji}</span>
+                        <span className="text-[9px] font-black text-content uppercase tracking-tighter">{f.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="w-full">

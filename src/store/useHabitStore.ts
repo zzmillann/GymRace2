@@ -26,6 +26,7 @@ export interface Friend {
   maxStreak: number;
   currentStreak: number;
   friendCount: number;
+  frame?: string;
   // Spotify "ahora suena"
   spotifyTrack?: string;
   spotifyArtist?: string;
@@ -108,6 +109,7 @@ interface AppState {
   userCode: string;
   userName: string;
   userAvatar: string; // Emoji or asset path
+  userFrame: string;  // cosmético del avatar
   initialized: boolean;
 
   // Auth Actions
@@ -118,6 +120,7 @@ interface AppState {
   resetPassword: (identifier: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   updateProfile: (name: string, avatar: string) => Promise<{ success: boolean; error?: string }>;
+  setProfileFrame: (frame: string) => Promise<void>;
   uploadAvatar: (file: File) => Promise<{ success: boolean; url?: string; error?: string }>;
 
   // Habits
@@ -202,7 +205,12 @@ const generateUserCode = () => Math.random().toString(36).substring(2, 8).toUppe
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      userId: null, userCode: '', userName: '', userAvatar: '👤', pendingRequests: [], outgoingRequests: [], habitInvitations: [], initialized: false,
+      userId: null, userCode: '', userName: '', userAvatar: '👤', userFrame: 'none', pendingRequests: [], outgoingRequests: [], habitInvitations: [], initialized: false,
+      setProfileFrame: async (frame) => {
+        set({ userFrame: frame });
+        const uid = get().userId;
+        if (uid) { try { await supabase.from('profiles').update({ profile_frame: frame }).eq('id', uid); } catch { /* columna aún sin crear */ } }
+      },
       activeTab: 'habits', setActiveTab: (activeTab) => set({ activeTab }),
       activeGymMuscle: 'Pecho', setActiveGymMuscle: (activeGymMuscle) => set({ activeGymMuscle }),
 
@@ -383,7 +391,7 @@ export const useAppStore = create<AppState>()(
           // Step 3: Get Friend Profiles (Basic fetch for reliability)
           const { data: fProfiles } = friendIds.length > 0 ? await supabase
             .from('profiles')
-            .select('id, user_name, user_code, avatar_url, total_completions, friends_list, spotify_track, spotify_artist, spotify_is_playing, spotify_album_art, spotify_track_url, spotify_updated')
+            .select('id, user_name, user_code, avatar_url, total_completions, friends_list, profile_frame, spotify_track, spotify_artist, spotify_is_playing, spotify_album_art, spotify_track_url, spotify_updated')
             .in('id', friendIds) : { data: [] };
 
           // Step 4: Get Friends' Habits (Owned & Participated)
@@ -402,6 +410,7 @@ export const useAppStore = create<AppState>()(
             userCode: profile.user_code,
             userName: profile.user_name,
             userAvatar: profile.avatar_url || '👤',
+            userFrame: profile.profile_frame || 'none',
             initialized: true,
             // Estado Pro real desde Supabase (lo marca el webhook de Stripe)
             isPro: profile.is_pro || false,
@@ -471,6 +480,7 @@ export const useAppStore = create<AppState>()(
                     maxStreak: allMaxStreaks.length > 0 ? Math.max(...allMaxStreaks.filter(Boolean)) : 0,
                     currentStreak: allStreaks.length > 0 ? Math.max(...allStreaks) : 0,
                     friendCount: (p.friends_list || []).length,
+                    frame: p.profile_frame || 'none',
                     spotifyTrack: spotifyFresh ? p.spotify_track : undefined,
                     spotifyArtist: spotifyFresh ? p.spotify_artist : undefined,
                     spotifyPlaying: spotifyFresh ? p.spotify_is_playing : false,

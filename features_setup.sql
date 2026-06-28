@@ -42,3 +42,7 @@ create policy "insert own study" on study_sessions
 drop policy if exists "read study" on study_sessions;
 create policy "read study" on study_sessions
   for select using (true);
+
+
+-- Cosmético: marco/aura del avatar
+alter table profiles add column if not exists profile_frame text default 'none';

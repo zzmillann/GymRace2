@@ -15,6 +15,7 @@ import { SocialView } from '@/components/ui/SocialView';
 import { AuthView } from '@/components/ui/AuthView';
 import { ProfileView } from '@/components/ui/ProfileView';
 import { useT } from '@/lib/i18n';
+import { FramedAvatar } from '@/components/ui/FramedAvatar';
 
 const THEMES = [
   { id: 'emerald', bg: 'bg-accent' },
@@ -28,7 +29,7 @@ const THEMES = [
 let bootedOnce = false;
 
 export default function Home() {
-  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName, activeGymMuscle, settings, setHabitReminder } = useAppStore();
+  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userFrame, userName, activeGymMuscle, settings, setHabitReminder } = useAppStore();
   const router = useRouter();
   const t = useT();
   const [mounted, setMounted] = useState(() => bootedOnce);
@@ -163,15 +164,11 @@ export default function Home() {
           >
             <header className="flex justify-between items-start mb-10">
               <div className="flex items-center gap-4">
-                <button 
+                <button
                     onClick={() => setIsProfileOpen(true)}
-                    className="w-14 h-14 bg-surface border border-line/5 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all overflow-hidden"
+                    className="active:scale-95 transition-all"
                 >
-                    {userAvatar && userAvatar.startsWith('http') ? (
-                        <img src={userAvatar} className="w-full h-full object-cover" />
-                    ) : (
-                        <span className="text-2xl">{userAvatar}</span>
-                    )}
+                    <FramedAvatar src={userAvatar} frame={userFrame as any} size={56} />
                 </button>
                 <div className="flex flex-col gap-0.5">
                   <p className="text-muted text-[9px] font-black uppercase tracking-[0.2em]">{dateFormatted}</p>

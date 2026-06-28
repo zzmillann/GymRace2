@@ -20,6 +20,7 @@ import {
     Trophy24Regular
 } from '@fluentui/react-icons';
 import { useAppStore, Friend } from '@/store/useHabitStore';
+import { FramedAvatar } from '@/components/ui/FramedAvatar';
 
 export function SocialView() {
     const { userCode, friends, pendingRequests, outgoingRequests, habitInvitations, searchUsers, addFriendById, acceptFriendRequest, declineFriendRequest, acceptHabitInvitation, declineHabitInvitation, getGlobalLeaderboard, refreshFriendsNowPlaying, getUserDetails, nowPlaying } = useAppStore();
@@ -378,13 +379,7 @@ export function SocialView() {
                                     className="bg-surface border border-line/5 rounded-[32px] p-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-surface-2 flex items-center justify-center border border-line/5 text-xl overflow-hidden shadow-xl">
-                                            {friend.avatar && friend.avatar.startsWith('http') ? (
-                                                <img src={friend.avatar} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Person24Regular className="text-muted" />
-                                            )}
-                                        </div>
+                                        <FramedAvatar src={friend.avatar} frame={friend.frame as any} size={48} />
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h3 className="font-black text-content tracking-tight leading-none">{friend.name}</h3>
@@ -553,12 +548,8 @@ export function SocialView() {
                             <button onClick={() => setSelectedFriend(null)} className="absolute top-6 right-6 text-muted group p-2 mb-2"><Dismiss24Regular /></button>
 
                             <div className="flex flex-col items-center mb-8">
-                                <div className="w-20 h-20 rounded-3xl bg-surface-2 flex items-center justify-center text-4xl font-black mb-4 border border-line/5 overflow-hidden shadow-2xl">
-                                    {selectedFriend.avatar && selectedFriend.avatar.startsWith('http') ? (
-                                        <img src={selectedFriend.avatar} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Person24Regular style={{ fontSize: 32 }} className="text-muted" />
-                                    )}
+                                <div className="mb-4">
+                                    <FramedAvatar src={selectedFriend.avatar} frame={selectedFriend.frame as any} size={80} rounded="rounded-3xl" />
                                 </div>
                                 <div className="flex items-center gap-3 mb-1">
                                     <h2 className="text-2xl font-black text-content italic uppercase tracking-tighter">{selectedFriend.name}</h2>
