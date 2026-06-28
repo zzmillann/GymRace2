@@ -13,9 +13,9 @@ const PRO_FEATURES = [
 ];
 
 const PLANS: { id: Exclude<SubscriptionPlan, 'free'>; name: string; price: string; sub: string; badge?: string }[] = [
-  { id: 'monthly', name: 'Mensual', price: '4,99 €', sub: 'al mes' },
-  { id: 'yearly', name: 'Anual', price: '39,99 €', sub: 'al año · 3,33 €/mes', badge: 'AHORRA 33%' },
-  { id: 'lifetime', name: 'De por vida', price: '89,99 €', sub: 'pago único' },
+  { id: 'weekly', name: 'Semanal', price: '0,99 €', sub: 'a la semana' },
+  { id: 'monthly', name: 'Mensual', price: '2,99 €', sub: 'al mes', badge: 'POPULAR' },
+  { id: 'quarterly', name: 'Trimestral', price: '4,99 €', sub: 'cada 3 meses · 1,66 €/mes', badge: 'AHORRA 44%' },
 ];
 
 // Logo de Apple para el botón de Apple Pay (SVG inline, sin dependencias)
@@ -39,7 +39,7 @@ export function Paywall() {
   const { paywall, closePaywall, activatePro } = useAppStore();
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<'plans' | 'card' | 'success'>('plans');
-  const [plan, setPlan] = useState<Exclude<SubscriptionPlan, 'free'>>('yearly');
+  const [plan, setPlan] = useState<Exclude<SubscriptionPlan, 'free'>>('monthly');
   const [processing, setProcessing] = useState(false);
 
   // Card fields
@@ -70,14 +70,14 @@ export function Paywall() {
     return v.length >= 3 ? `${v.slice(0, 2)}/${v.slice(2)}` : v;
   };
 
-  const pay = (method: 'apple' | 'card') => {
+  const pay = (method: 'apple' | 'bizum' | 'card') => {
     setProcessing(true);
-    // Simulación de cobro (en producción: Apple Pay / Stripe / RevenueCat).
+    // Simulación de cobro (en producción: Apple Pay / Bizum vía Redsys / Stripe).
     setTimeout(() => {
       setProcessing(false);
       setStep('success');
       setTimeout(() => activatePro(plan), 1400);
-    }, method === 'apple' ? 900 : 1300);
+    }, method === 'card' ? 1300 : 900);
   };
 
   const cardValid = cardNumber.replace(/\s/g, '').length === 16 && exp.length === 5 && cvc.length >= 3;
@@ -186,6 +186,23 @@ export function Paywall() {
                       <>
                         <AppleLogo className="w-5 h-5 -mt-0.5" />
                         <span className="text-lg font-medium">Pay</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Bizum */}
+                  <button
+                    onClick={() => pay('bizum')}
+                    disabled={processing}
+                    className="w-full py-4 rounded-2xl font-black flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60 text-white"
+                    style={{ background: 'linear-gradient(135deg, #00B6CB 0%, #0A7FC2 100%)' }}
+                  >
+                    {processing ? (
+                      <span className="font-black uppercase tracking-widest text-sm">Procesando…</span>
+                    ) : (
+                      <>
+                        <span className="text-base font-black lowercase tracking-tight">Pagar con</span>
+                        <span className="text-lg font-black lowercase tracking-tighter italic">bizum</span>
                       </>
                     )}
                   </button>

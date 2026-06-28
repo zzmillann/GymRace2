@@ -10,9 +10,9 @@ const APP_VERSION = '1.0.0';
 
 const PLAN_LABEL: Record<string, string> = {
   free: 'Gratis',
+  weekly: 'Pro · Semanal',
   monthly: 'Pro · Mensual',
-  yearly: 'Pro · Anual',
-  lifetime: 'Pro · De por vida',
+  quarterly: 'Pro · Trimestral',
 };
 
 export default function SettingsPage() {

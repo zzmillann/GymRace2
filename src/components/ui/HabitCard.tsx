@@ -10,6 +10,7 @@ import { format, subDays } from 'date-fns';
 import { useMemo } from 'react';
 import { Badge } from './Badge';
 import { useAppStore } from '@/store/useHabitStore';
+import { haptic, playDing } from '@/lib/feedback';
 
 interface HabitCardProps {
   id: string;
@@ -50,7 +51,7 @@ const colors: Record<string, { bg: string; text: string; gridActive: string }> =
 };
 
 export function HabitCard({ id, title, streak, colorTheme, history, onClick, onToggleToday }: HabitCardProps) {
-  const { habits } = useAppStore();
+  const { habits, settings } = useAppStore();
   const habit = habits.find(h => h.id === id);
   const theme = colors[colorTheme] || colors.emerald;
   const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -135,6 +136,9 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
         whileTap={{ scale: 1.4 }}
         onClick={(e) => {
           e.stopPropagation();
+          // Feedback controlado desde Ajustes
+          if (settings.hapticFeedback) haptic(30);
+          if (settings.soundEffects && !isCompletedToday) playDing();
           onToggleToday?.();
         }}
         className="absolute top-5 right-5 z-20 focus:outline-none"

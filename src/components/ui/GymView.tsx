@@ -6,6 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, ArrowUpRight, History, Trash2, ChevronRight } from 'lucide-react';
 import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
+import { haptic, playDing } from '@/lib/feedback';
+
+// Conversión kg <-> unidad mostrada (los pesos se guardan SIEMPRE en kg)
+const KG_TO_LB = 2.20462;
 
 const MUSCLES = ['Pecho', 'Espalda', 'Pierna', 'Hombro', 'Biceps', 'Triceps'];
 
@@ -20,8 +24,14 @@ const getInsultRole = (weight: number) => {
 };
 
 export function GymView() {
-  const { exercises, addExercise, updateWeight, deleteExercise, activeGymMuscle, setActiveGymMuscle } = useAppStore();
+  const { exercises, addExercise, updateWeight, deleteExercise, activeGymMuscle, setActiveGymMuscle, settings } = useAppStore();
   const router = useRouter();
+
+  // Unidad de peso (Ajustes). Almacenamos en kg y mostramos según preferencia.
+  const unit = settings.weightUnit; // 'kg' | 'lb'
+  const unitLabel = unit === 'lb' ? 'LB' : 'KG';
+  const toDisplay = (kg: number) => unit === 'lb' ? Math.round(kg * KG_TO_LB) : Math.round(kg);
+  const toKg = (val: number) => unit === 'lb' ? val / KG_TO_LB : val;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingExId, setEditingExId] = useState<string | null>(null);
   
@@ -34,7 +44,7 @@ export function GymView() {
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newExName || !newExWeight) return;
-    addExercise(newExName, activeGymMuscle, Number(newExWeight));
+    addExercise(newExName, activeGymMuscle, toKg(Number(newExWeight)));
     setNewExName('');
     setNewExWeight('');
     setIsAddModalOpen(false);
@@ -43,7 +53,9 @@ export function GymView() {
   const handleUpdateWeight = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingExId || !updateWeightVal) return;
-    updateWeight(editingExId, Number(updateWeightVal));
+    updateWeight(editingExId, toKg(Number(updateWeightVal)));
+    if (settings.hapticFeedback) haptic([20, 40, 20]);
+    if (settings.soundEffects) playDing(660);
     setUpdateWeightVal('');
     setEditingExId(null);
   };
@@ -112,8 +124,8 @@ export function GymView() {
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-1">Peso Récord</span>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-black text-white tabular-nums">{currentWeight}</span>
-                        <span className="text-sm font-black text-neutral-600">KG</span>
+                        <span className="text-5xl font-black text-white tabular-nums">{toDisplay(currentWeight)}</span>
+                        <span className="text-sm font-black text-neutral-600">{unitLabel}</span>
                     </div>
                   </div>
                   
@@ -130,7 +142,7 @@ export function GymView() {
                   <History size={14} className="text-neutral-700 mr-2" />
                   {ex.weightHistory.map((w, i) => (
                     <span key={i} className={`text-xs font-black tracking-tighter ${i === ex.weightHistory.length - 1 ? 'text-emerald-500' : 'text-neutral-700 line-through opacity-40'}`}>
-                        {w}kg
+                        {toDisplay(w)}{unit}
                     </span>
                   ))}
                 </div>
@@ -149,7 +161,7 @@ export function GymView() {
               <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tighter">Nuevo Ejercicio</h2>
               <form onSubmit={handleAdd} className="flex flex-col gap-4 text-white">
                 <input autoFocus placeholder="Nombre (ej. Press Banca)" value={newExName} onChange={e => setNewExName(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none focus:border-white/20" />
-                <input type="number" placeholder="Peso inicial (kg)" value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none focus:border-white/20" />
+                <input type="number" placeholder={`Peso inicial (${unit})`} value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none focus:border-white/20" />
                 <button type="submit" className="bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest mt-4">Guardar</button>
               </form>
             </motion.div>
@@ -163,7 +175,7 @@ export function GymView() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-t-[40px] sm:rounded-[40px] p-8 pb-12 sm:pb-8 relative">
               <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter text-center">Nuevo Récord</h2>
-              <p className="text-center text-neutral-500 text-xs font-bold mb-8 uppercase tracking-widest">¿Cuánto has levantado hoy?</p>
+              <p className="text-center text-neutral-500 text-xs font-bold mb-8 uppercase tracking-widest">¿Cuánto has levantado hoy? ({unitLabel})</p>
               <form onSubmit={handleUpdateWeight} className="flex flex-col gap-4 text-center">
                 <input type="number" autoFocus placeholder="00" value={updateWeightVal} onChange={e => setUpdateWeightVal(e.target.value)} className="bg-transparent text-white text-7xl font-black text-center outline-none mb-4" />
                 <div className="flex gap-4">

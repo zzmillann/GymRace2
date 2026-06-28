@@ -34,7 +34,7 @@ export interface Friend {
 // 👉 Cambia este único número para ajustar cuántas actividades son gratis.
 export const FREE_ACTIVITY_LIMIT = 3;
 
-export type SubscriptionPlan = 'free' | 'monthly' | 'yearly' | 'lifetime';
+export type SubscriptionPlan = 'free' | 'weekly' | 'monthly' | 'quarterly';
 
 export interface AppSettings {
   // Notificaciones
