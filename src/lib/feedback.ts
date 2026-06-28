@@ -1,4 +1,31 @@
-// Utilidades de feedback (háptico + sonido) controladas desde Ajustes.
+// Utilidades de feedback (háptico + sonido + confeti).
+import confetti from 'canvas-confetti';
+
+// Pequeño estallido de confeti (al completar un hábito)
+export function confettiBurst() {
+  if (typeof window === 'undefined') return;
+  try {
+    confetti({
+      particleCount: 70, spread: 75, startVelocity: 38,
+      origin: { y: 0.75 }, scalar: 0.9, disableForReducedMotion: true,
+      colors: ['#10b981', '#34d399', '#ffffff', '#a7f3d0'],
+    });
+  } catch { /* noop */ }
+}
+
+// Celebración grande (récord nuevo): cañones laterales durante ~1s
+export function confettiBig() {
+  if (typeof window === 'undefined') return;
+  try {
+    const end = Date.now() + 1000;
+    const colors = ['#f59e0b', '#10b981', '#ffffff', '#fbbf24'];
+    (function frame() {
+      confetti({ particleCount: 5, angle: 60, spread: 60, startVelocity: 55, origin: { x: 0, y: 0.7 }, colors });
+      confetti({ particleCount: 5, angle: 120, spread: 60, startVelocity: 55, origin: { x: 1, y: 0.7 }, colors });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+  } catch { /* noop */ }
+}
 
 export function haptic(pattern: number | number[] = 30) {
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {

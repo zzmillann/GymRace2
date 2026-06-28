@@ -123,7 +123,9 @@ interface AppState {
   // Habits
   habits: Habit[];
   habitInvitations: HabitInvitation[];
-  addHabit: (habit: Partial<Habit>) => Promise<void>;
+  addHabit: (habit: Partial<Habit>) => Promise<string | undefined>;
+  habitReminders: Record<string, string>; // habitId -> 'HH:mm'
+  setHabitReminder: (habitId: string, time: string | null) => void;
   toggleHabitToday: (id: string, userIdOverride?: string) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
 
@@ -629,7 +631,15 @@ export const useAppStore = create<AppState>()(
         }]);
 
         await supabase.from('habit_participants').insert([{ habit_id: hId, user_id: get().userId }]);
+        return hId;
       },
+
+      habitReminders: {},
+      setHabitReminder: (habitId, time) => set((state) => {
+        const next = { ...state.habitReminders };
+        if (time) next[habitId] = time; else delete next[habitId];
+        return { habitReminders: next };
+      }),
 
       inviteToHabit: async (habitId, friendId) => {
         if (!get().userId) return { success: false, message: 'No logueado' };

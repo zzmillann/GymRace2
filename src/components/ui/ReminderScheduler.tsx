@@ -4,75 +4,79 @@ import { useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { useAppStore } from '@/store/useHabitStore';
 
-const LS_KEY = 'gymrace-last-reminder'; // guarda la fecha del último aviso para no repetir
+const LS_KEY = 'gymrace-last-reminder';          // aviso global (por día)
+const LS_HABIT_KEY = 'gymrace-habit-reminders';  // avisos por hábito (por día)
 
 /**
- * Lanza una notificación local diaria a la hora elegida (settings.reminderTime)
- * si quedan hábitos sin marcar ese día. Funciona mientras la app esté abierta
- * (o en segundo plano en una PWA instalada). Para push real con la app cerrada
- * haría falta un service worker + servidor de push.
+ * Notificaciones locales:
+ *  - Recordatorio global diario (settings.reminderTime) si quedan hábitos sin marcar.
+ *  - Recordatorio por hábito a su hora (habitReminders[habitId]) si no está hecho.
+ * Funciona con la app abierta o instalada como PWA.
  */
 export function ReminderScheduler() {
-  const { settings, habits, userId } = useAppStore();
+  const { settings, habits, userId, habitReminders } = useAppStore();
   const lastCheck = useRef<string>('');
 
   useEffect(() => {
     if (!userId) return;
-    if (!settings.dailyReminder) return;
     if (typeof window === 'undefined' || !('Notification' in window)) return;
 
-    const fireIfNeeded = (allowCatchUp: boolean) => {
-      if (Notification.permission !== 'granted') return;
+    const notify = (title: string, body: string, tag: string) => {
+      try { new Notification(title, { body, icon: '/icon.svg', badge: '/icon.svg', tag }); } catch { /* noop */ }
+    };
 
+    const check = (allowCatchUp: boolean) => {
+      if (Notification.permission !== 'granted') return;
       const now = new Date();
       const today = format(now, 'yyyy-MM-dd');
       const nowHM = format(now, 'HH:mm');
 
-      // ¿Ya hemos avisado hoy?
-      if (localStorage.getItem(LS_KEY) === today) return;
-
-      // Solo en la franja correcta: a la hora exacta, o "catch-up" si la app
-      // se abre más tarde de la hora fijada y aún no se ha avisado.
-      const target = settings.reminderTime;
-      const onTime = nowHM === target;
-      const late = allowCatchUp && nowHM > target;
-      if (!onTime && !late) return;
-
-      // ¿Quedan actividades sin marcar hoy?
-      const pending = habits.filter((h) => !h.history[today]);
-      if (pending.length === 0) return;
-
-      localStorage.setItem(LS_KEY, today);
-
-      const title = '🔥 GymRace — ¡No rompas tu racha!';
-      const body =
-        pending.length === 1
-          ? `Te queda "${pending[0].title}" por marcar hoy.`
-          : `Tienes ${pending.length} actividades sin marcar hoy. ¡Vamos!`;
-
-      try {
-        new Notification(title, {
-          body,
-          icon: '/icons/apple-touch-icon.png',
-          badge: '/icons/apple-touch-icon.png',
-          tag: 'gymrace-daily-reminder',
-        });
-      } catch {
-        /* algunos navegadores requieren service worker; lo ignoramos en silencio */
+      // ---- Recordatorio global ----
+      if (settings.dailyReminder && localStorage.getItem(LS_KEY) !== today) {
+        const target = settings.reminderTime;
+        if (nowHM === target || (allowCatchUp && nowHM > target)) {
+          const pending = habits.filter((h) => !h.history[today]);
+          if (pending.length > 0) {
+            localStorage.setItem(LS_KEY, today);
+            notify(
+              '🔥 GymRace — ¡No rompas tu racha!',
+              pending.length === 1
+                ? `Te queda "${pending[0].title}" por marcar hoy.`
+                : `Tienes ${pending.length} actividades sin marcar hoy. ¡Vamos!`,
+              'gymrace-daily-reminder',
+            );
+          }
+        }
       }
+
+      // ---- Recordatorios por hábito ----
+      let seen: Record<string, string> = {};
+      try { seen = JSON.parse(localStorage.getItem(LS_HABIT_KEY) || '{}'); } catch { seen = {}; }
+      let changed = false;
+      for (const h of habits) {
+        const time = habitReminders[h.id];
+        if (!time) continue;
+        if (h.history[today]) continue;       // ya completado hoy
+        if (seen[h.id] === today) continue;   // ya avisado hoy
+        if (nowHM === time || (allowCatchUp && nowHM > time)) {
+          notify('⏰ Recordatorio', `Es hora de "${h.title}". ¡No lo dejes!`, 'gymrace-habit-' + h.id);
+          seen[h.id] = today;
+          changed = true;
+        }
+      }
+      if (changed) localStorage.setItem(LS_HABIT_KEY, JSON.stringify(seen));
     };
 
-    // Comprobación al abrir (catch-up) y luego cada 30 s.
-    fireIfNeeded(true);
+    check(true);
     const id = setInterval(() => {
       const stamp = format(new Date(), 'HH:mm');
       if (stamp === lastCheck.current) return;
       lastCheck.current = stamp;
-      fireIfNeeded(false);
+      check(false);
     }, 30_000);
 
     return () => clearInterval(id);
-  }, [settings.dailyReminder, settings.reminderTime, habits, userId]);
+  }, [settings.dailyReminder, settings.reminderTime, habits, userId, habitReminders]);
 
   return null;
 }

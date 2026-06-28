@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, ArrowUpRight, History, Trash2, ChevronRight } from 'lucide-react';
 import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
-import { haptic, playDing } from '@/lib/feedback';
+import { haptic, playDing, confettiBig } from '@/lib/feedback';
+import { RestTimer } from '@/components/ui/RestTimer';
 
 // Conversión kg <-> unidad mostrada (los pesos se guardan SIEMPRE en kg)
 const KG_TO_LB = 2.20462;
@@ -38,6 +39,7 @@ export function GymView() {
   const [newExName, setNewExName] = useState('');
   const [newExWeight, setNewExWeight] = useState('');
   const [updateWeightVal, setUpdateWeightVal] = useState('');
+  const [prCelebration, setPrCelebration] = useState<{ name: string; weight: number } | null>(null);
 
   const filteredExercises = exercises.filter(ex => ex.muscle === activeGymMuscle);
 
@@ -53,9 +55,24 @@ export function GymView() {
   const handleUpdateWeight = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingExId || !updateWeightVal) return;
-    updateWeight(editingExId, toKg(Number(updateWeightVal)));
-    if (settings.hapticFeedback) haptic([20, 40, 20]);
-    if (settings.soundEffects) playDing(660);
+    const ex = exercises.find(x => x.id === editingExId);
+    const newKg = toKg(Number(updateWeightVal));
+    const prevMax = ex && ex.weightHistory.length ? Math.max(...ex.weightHistory) : 0;
+    const isPR = !!ex && ex.weightHistory.length > 0 && newKg > prevMax;
+
+    updateWeight(editingExId, newKg);
+
+    if (isPR) {
+      // ¡Récord! Celebración a tope
+      confettiBig();
+      if (settings.hapticFeedback) haptic([40, 60, 40, 60, 90]);
+      if (settings.soundEffects) playDing(880);
+      setPrCelebration({ name: ex!.name, weight: Number(updateWeightVal) });
+      setTimeout(() => setPrCelebration(null), 2800);
+    } else {
+      if (settings.hapticFeedback) haptic([20, 40, 20]);
+      if (settings.soundEffects) playDing(660);
+    }
     setUpdateWeightVal('');
     setEditingExId(null);
   };
@@ -183,6 +200,38 @@ export function GymView() {
                   <button type="submit" className="flex-1 bg-accent text-content py-5 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.3)]">Confirmar</button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cronómetro de descanso (botón flotante + overlay) */}
+      <RestTimer />
+
+      {/* Celebración de RÉCORD */}
+      <AnimatePresence>
+        {prCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md pointer-events-none"
+          >
+            <motion.div
+              initial={{ scale: 0.5, rotate: -8, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', damping: 12 }}
+              className="text-center"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.15, 1], rotate: [0, -5, 5, 0] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+                className="text-7xl mb-2"
+              >
+                🏆
+              </motion.div>
+              <p className="text-amber-400 font-black uppercase tracking-[0.3em] text-sm mb-1">¡Nuevo Récord!</p>
+              <h2 className="text-5xl font-black text-content italic uppercase tracking-tighter mb-2">{prCelebration.weight} {unitLabel}</h2>
+              <p className="text-muted font-black uppercase tracking-widest text-xs">{prCelebration.name}</p>
             </motion.div>
           </motion.div>
         )}

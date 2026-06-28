@@ -10,7 +10,7 @@ import { format, subDays } from 'date-fns';
 import { useMemo } from 'react';
 import { Badge } from './Badge';
 import { useAppStore } from '@/store/useHabitStore';
-import { haptic, playDing } from '@/lib/feedback';
+import { haptic, playDing, confettiBurst } from '@/lib/feedback';
 
 interface HabitCardProps {
   id: string;
@@ -136,9 +136,14 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
         whileTap={{ scale: 1.4 }}
         onClick={(e) => {
           e.stopPropagation();
-          // Feedback controlado desde Ajustes
-          if (settings.hapticFeedback) haptic(30);
-          if (settings.soundEffects && !isCompletedToday) playDing();
+          // Feedback al marcar (solo al COMPLETAR, no al desmarcar)
+          if (!isCompletedToday) {
+            confettiBurst();
+            if (settings.hapticFeedback) haptic([20, 30, 60]);
+            if (settings.soundEffects) playDing();
+          } else if (settings.hapticFeedback) {
+            haptic(20);
+          }
           onToggleToday?.();
         }}
         className="absolute top-5 right-5 z-20 focus:outline-none"

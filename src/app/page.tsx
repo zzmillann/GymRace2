@@ -28,7 +28,7 @@ const THEMES = [
 let bootedOnce = false;
 
 export default function Home() {
-  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName, activeGymMuscle, settings } = useAppStore();
+  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userName, activeGymMuscle, settings, setHabitReminder } = useAppStore();
   const router = useRouter();
   const t = useT();
   const [mounted, setMounted] = useState(() => bootedOnce);
@@ -48,6 +48,7 @@ export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newTheme, setNewTheme] = useState('emerald');
+  const [newReminder, setNewReminder] = useState('');
 
   // Invitación entrante (enlace / QR): ?add=CODIGO
   const [inviteFriend, setInviteFriend] = useState<{ id: string; name: string; avatar: string; code: string } | null>(null);
@@ -113,12 +114,19 @@ export default function Home() {
     }
   }, [initialize]);
 
-  const handleAddHabit = (e: React.FormEvent) => {
+  const handleAddHabit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    addHabit({ title: newTitle.trim(), colorTheme: newTheme });
+    const id = await addHabit({ title: newTitle.trim(), colorTheme: newTheme });
+    if (id && newReminder) {
+      setHabitReminder(id, newReminder);
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
     setNewTitle('');
     setNewTheme('emerald');
+    setNewReminder('');
     setIsModalOpen(false);
   };
 
@@ -321,7 +329,20 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-                <button type="submit" disabled={!newTitle.trim()} className="w-full bg-white text-black font-black py-4 rounded-2xl mt-4 uppercase tracking-widest hover:bg-neutral-200 transition-all">Crear Hábito</button>
+                <div>
+                  <label className="block text-xs font-black text-muted mb-2 uppercase tracking-widest">⏰ Recordatorio (opcional)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time" value={newReminder} onChange={(e) => setNewReminder(e.target.value)}
+                      className="flex-1 bg-app border border-line/10 rounded-2xl px-5 py-4 text-content font-black outline-none focus:border-line/20"
+                    />
+                    {newReminder && (
+                      <button type="button" onClick={() => setNewReminder('')} className="px-4 py-4 bg-surface-2 text-muted rounded-2xl font-black text-xs">Quitar</button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted font-medium mt-2">Te avisamos a esa hora si no lo has marcado.</p>
+                </div>
+                <button type="submit" disabled={!newTitle.trim()} className="w-full bg-white text-black font-black py-4 rounded-2xl mt-2 uppercase tracking-widest hover:bg-neutral-200 transition-all">Crear Hábito</button>
               </form>
             </motion.div>
           </motion.div>

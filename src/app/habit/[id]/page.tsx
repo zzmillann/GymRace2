@@ -24,7 +24,7 @@ import { YearlyHeatmap } from '@/components/ui/YearlyHeatmap';
 export default function HabitDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { habits, friends, inviteToHabit, userId } = useAppStore();
+  const { habits, friends, inviteToHabit, userId, habitReminders, setHabitReminder } = useAppStore();
   const habit = habits.find(h => h.id === id);
   
   const [searchFriend, setSearchFriend] = useState('');
@@ -118,6 +118,24 @@ export default function HabitDetailPage() {
             </div>
         </div>
         <h1 className="text-4xl font-black tracking-tighter italic uppercase">{habit.title}</h1>
+        <div className="flex items-center gap-2 mt-3">
+          <span className="text-sm">⏰</span>
+          <input
+            type="time"
+            value={habitReminders[habit.id] || ''}
+            onChange={(e) => {
+              setHabitReminder(habit.id, e.target.value || null);
+              if (e.target.value && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+            }}
+            className="bg-surface border border-line/10 rounded-xl px-3 py-1.5 text-content font-black text-sm outline-none"
+          />
+          <span className="text-[10px] font-black text-muted uppercase tracking-widest">
+            {habitReminders[habit.id] ? 'Recordatorio diario' : 'Sin recordatorio'}
+          </span>
+          {habitReminders[habit.id] && (
+            <button onClick={() => setHabitReminder(habit.id, null)} className="text-[10px] font-black text-rose-500 uppercase tracking-widest ml-1">Quitar</button>
+          )}
+        </div>
       </header>
 
       <main className="p-6 space-y-12">
