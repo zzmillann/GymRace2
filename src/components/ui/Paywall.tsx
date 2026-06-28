@@ -70,14 +70,34 @@ export function Paywall() {
     return v.length >= 3 ? `${v.slice(0, 2)}/${v.slice(2)}` : v;
   };
 
-  const pay = (method: 'apple' | 'bizum' | 'card') => {
+  const demoSuccess = () => {
+    setProcessing(false);
+    setStep('success');
+    setTimeout(() => activatePro(plan), 1400);
+  };
+
+  const pay = async (_method: 'apple' | 'bizum' | 'card') => {
     setProcessing(true);
-    // Simulación de cobro (en producción: Apple Pay / Bizum vía Redsys / Stripe).
-    setTimeout(() => {
-      setProcessing(false);
-      setStep('success');
-      setTimeout(() => activatePro(plan), 1400);
-    }, method === 'card' ? 1300 : 900);
+    try {
+      const userId = useAppStore.getState().userId;
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, userId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          // Stripe Checkout: tarjeta, Apple Pay/Google Pay y Bizum según tu Dashboard.
+          window.location.href = data.url;
+          return;
+        }
+      }
+      // Stripe no configurado (503) → modo demo para no bloquear la app.
+      setTimeout(demoSuccess, 700);
+    } catch {
+      setTimeout(demoSuccess, 700);
+    }
   };
 
   const cardValid = cardNumber.replace(/\s/g, '').length === 16 && exp.length === 5 && cvc.length >= 3;
@@ -207,9 +227,9 @@ export function Paywall() {
                     )}
                   </button>
 
-                  {/* Pagar con tarjeta */}
+                  {/* Pagar con tarjeta (Stripe Checkout) */}
                   <button
-                    onClick={() => setStep('card')}
+                    onClick={() => pay('card')}
                     disabled={processing}
                     className="w-full bg-neutral-900 border border-white/10 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >

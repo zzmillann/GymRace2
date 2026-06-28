@@ -56,6 +56,22 @@ export default function Home() {
     initialize();
   }, [initialize]);
 
+  // Retorno desde Stripe Checkout: esperamos a que el webhook marque Pro y limpiamos la URL.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const pro = new URLSearchParams(window.location.search).get('pro');
+    if (!pro) return;
+    window.history.replaceState({}, '', '/');
+    if (pro === 'success') {
+      let tries = 0;
+      const iv = setInterval(async () => {
+        tries++;
+        await initialize();
+        if (useAppStore.getState().isPro || tries >= 5) clearInterval(iv);
+      }, 1500);
+    }
+  }, [initialize]);
+
   const handleAddHabit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;

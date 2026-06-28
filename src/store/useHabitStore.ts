@@ -275,6 +275,9 @@ export const useAppStore = create<AppState>()(
             userName: profile.user_name,
             userAvatar: profile.avatar_url || '👤',
             initialized: true,
+            // Estado Pro real desde Supabase (lo marca el webhook de Stripe)
+            isPro: profile.is_pro || false,
+            subscriptionPlan: profile.subscription_plan || 'free',
             habits: (allHabitsRaw || []).map((h: any) => {
               if (!h) return null;
               const myPart = (participantsRaw || []).find((p: any) => p.habit_id === h.id && p.user_id === currentUserId);
