@@ -62,7 +62,7 @@ export function BottomNav({ onPlusClick }: { onPlusClick?: () => void }) {
   ] as const;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-8 pt-4 bg-neutral-950/90 backdrop-blur-xl border-t border-white/5">
+    <div className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-8 pt-4 bg-app/90 backdrop-blur-xl border-t border-line/5">
       <div className="max-w-md mx-auto flex justify-between items-end relative h-12">
         {TABS.map((tab, idx) => {
           const isActive = activeTab === tab.id;
@@ -75,10 +75,10 @@ export function BottomNav({ onPlusClick }: { onPlusClick?: () => void }) {
                 onClick={() => setActiveTab(tab.id)}
                 className="relative flex flex-col items-center gap-1 group outline-none"
               >
-                <div className={`p-2 rounded-2xl transition-all duration-300 ${isActive ? 'bg-white text-black scale-110 shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'text-neutral-500 hover:text-neutral-300'}`}>
+                <div className={`p-2 rounded-2xl transition-all duration-300 ${isActive ? 'bg-white text-black scale-110 shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'text-muted hover:text-muted'}`}>
                   {isActive ? <tab.activeIcon style={{ fontSize: 24 }} /> : <tab.icon style={{ fontSize: 24 }} />}
                 </div>
-                <span className={`text-[10px] font-black uppercase tracking-tighter transition-all ${isActive ? 'text-white opacity-100' : 'text-neutral-600 opacity-0'}`}>
+                <span className={`text-[10px] font-black uppercase tracking-tighter transition-all ${isActive ? 'text-content opacity-100' : 'text-muted opacity-0'}`}>
                   {tab.label}
                 </span>
                 {isActive && (

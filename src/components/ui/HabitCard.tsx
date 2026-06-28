@@ -80,14 +80,14 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.97 }}
         onTap={onClick}
-        className="w-full text-left bg-neutral-900 border border-neutral-800 rounded-[32px] p-6 flex flex-col gap-5 relative overflow-hidden group cursor-pointer shadow-xl active:bg-neutral-800/80 transition-colors"
+        className="w-full text-left bg-surface border border-line/10 rounded-[32px] p-6 flex flex-col gap-5 relative overflow-hidden group cursor-pointer shadow-xl active:bg-surface-2/80 transition-colors"
       >
         <div className={`absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full blur-3xl opacity-20 ${theme.bg}`} />
 
         <div className="flex justify-between items-start z-10 pr-12">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-2xl font-black tracking-tight text-white">{title}</h3>
+                <h3 className="text-2xl font-black tracking-tight text-content">{title}</h3>
                 {isShared && (
                   <motion.div 
                     animate={{ x: [0, 2, 0] }} transition={{ repeat: Infinity, duration: 2 }}
@@ -104,7 +104,7 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
                         {participants.map((p, i) => (
                             <motion.div 
                               initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 }}
-                              key={p.id} className="w-8 h-8 rounded-xl border-2 border-neutral-950 bg-neutral-800 flex items-center justify-center text-[10px] overflow-hidden shadow-xl"
+                              key={p.id} className="w-8 h-8 rounded-xl border-2 border-neutral-950 bg-surface-2 flex items-center justify-center text-[10px] overflow-hidden shadow-xl"
                             >
                                 {p.avatar.startsWith('http') ? <img src={p.avatar} className="w-full h-full object-cover" /> : p.avatar}
                             </motion.div>
@@ -113,7 +113,7 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
                 )}
             </div>
           </div>
-          <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-2xl ${theme.bg} ${theme.text} border border-white/5 shadow-inner`}>
+          <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-2xl ${theme.bg} ${theme.text} border border-line/5 shadow-inner`}>
             <Fire24Filled className="animate-pulse" />
             <span className="font-black text-lg">{streak}</span>
           </div>
@@ -124,7 +124,7 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
             <div
               key={i}
               className={`w-2 h-6 rounded-sm transition-colors duration-300 flex-1 max-w-[8px] ${
-                completed ? theme.gridActive : 'bg-neutral-800'
+                completed ? theme.gridActive : 'bg-surface-2'
               }`}
             />
           ))}
@@ -161,7 +161,7 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
             >
-              <Circle24Regular className="text-neutral-700 hover:text-neutral-500 transition-colors" style={{ fontSize: 42 }} />
+              <Circle24Regular className="text-muted hover:text-muted transition-colors" style={{ fontSize: 42 }} />
             </motion.div>
           )}
         </AnimatePresence>

@@ -116,11 +116,11 @@ export function Paywall() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="bg-neutral-950 border border-white/10 w-full max-w-md rounded-t-[40px] sm:rounded-[40px] p-7 relative shadow-2xl max-h-[92vh] overflow-y-auto hide-scrollbar"
+            className="bg-app border border-line/10 w-full max-w-md rounded-t-[40px] sm:rounded-[40px] p-7 relative shadow-2xl max-h-[92vh] overflow-y-auto hide-scrollbar"
           >
             <button
               onClick={closePaywall}
-              className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-neutral-900 border border-white/5 rounded-xl text-neutral-400 hover:text-white transition-colors z-10 text-lg font-bold"
+              className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface border border-line/5 rounded-xl text-muted hover:text-content transition-colors z-10 text-lg font-bold"
             >
               ✕
             </button>
@@ -133,17 +133,17 @@ export function Paywall() {
                     <motion.div
                       animate={{ rotate: [0, 8, -8, 0], scale: [1, 1.08, 1] }}
                       transition={{ duration: 3, repeat: Infinity }}
-                      className="w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.4)] mb-4 text-3xl"
+                      className="w-16 h-16 rounded-3xl bg-gradient-to-br from-accent to-accent flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.4)] mb-4 text-3xl"
                     >
                       ✨
                     </motion.div>
-                    <h2 className="text-3xl font-black tracking-tighter text-white uppercase italic">
-                      GymRace <span className="text-emerald-500">Pro</span>
+                    <h2 className="text-3xl font-black tracking-tighter text-content uppercase italic">
+                      GymRace <span className="text-accent">Pro</span>
                     </h2>
                     {paywall.reason ? (
                       <p className="text-amber-400/90 text-xs font-bold mt-2 leading-snug">{paywall.reason}</p>
                     ) : (
-                      <p className="text-neutral-500 text-xs font-bold mt-2">Desbloquea todo tu potencial</p>
+                      <p className="text-muted text-xs font-bold mt-2">Desbloquea todo tu potencial</p>
                     )}
                   </div>
 
@@ -151,12 +151,12 @@ export function Paywall() {
                   <div className="space-y-3 mb-7">
                     {PRO_FEATURES.map((f) => (
                       <div key={f.label} className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 text-base">
+                        <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 text-base">
                           {f.emoji}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-white font-black text-sm leading-tight">{f.label}</p>
-                          <p className="text-neutral-500 text-[11px] font-medium leading-tight">{f.desc}</p>
+                          <p className="text-content font-black text-sm leading-tight">{f.label}</p>
+                          <p className="text-muted text-[11px] font-medium leading-tight">{f.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -171,23 +171,23 @@ export function Paywall() {
                           key={p.id}
                           onClick={() => setPlan(p.id)}
                           className={`w-full flex items-center justify-between rounded-2xl px-5 py-4 border transition-all ${
-                            active ? 'border-emerald-500 bg-emerald-500/10' : 'border-white/5 bg-neutral-900 hover:border-white/15'
+                            active ? 'border-accent bg-accent/10' : 'border-line/5 bg-surface hover:border-white/15'
                           }`}
                         >
                           <div className="flex items-center gap-3 text-left">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${active ? 'border-emerald-500 bg-emerald-500 text-black' : 'border-neutral-600'}`}>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${active ? 'border-accent bg-accent text-black' : 'border-neutral-600'}`}>
                               {active && <CheckIcon size={12} />}
                             </div>
                             <div>
-                              <p className="text-white font-black text-sm">{p.name}</p>
-                              <p className="text-neutral-500 text-[11px] font-bold">{p.sub}</p>
+                              <p className="text-content font-black text-sm">{p.name}</p>
+                              <p className="text-muted text-[11px] font-bold">{p.sub}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             {p.badge && (
-                              <span className="text-[8px] font-black text-emerald-400 bg-emerald-500/15 px-2 py-1 rounded-full uppercase tracking-wider">{p.badge}</span>
+                              <span className="text-[8px] font-black text-accent bg-accent/15 px-2 py-1 rounded-full uppercase tracking-wider">{p.badge}</span>
                             )}
-                            <p className="text-white font-black text-base">{p.price}</p>
+                            <p className="text-content font-black text-base">{p.price}</p>
                           </div>
                         </button>
                       );
@@ -214,7 +214,7 @@ export function Paywall() {
                   <button
                     onClick={() => pay('bizum')}
                     disabled={processing}
-                    className="w-full py-4 rounded-2xl font-black flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60 text-white"
+                    className="w-full py-4 rounded-2xl font-black flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60 text-content"
                     style={{ background: 'linear-gradient(135deg, #00B6CB 0%, #0A7FC2 100%)' }}
                   >
                     {processing ? (
@@ -231,12 +231,12 @@ export function Paywall() {
                   <button
                     onClick={() => pay('card')}
                     disabled={processing}
-                    className="w-full bg-neutral-900 border border-white/10 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
+                    className="w-full bg-surface border border-line/10 text-content py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
                     💳 Pagar con tarjeta
                   </button>
 
-                  <p className="text-center text-[10px] text-neutral-600 font-medium mt-4 leading-relaxed">
+                  <p className="text-center text-[10px] text-muted font-medium mt-4 leading-relaxed">
                     Pago seguro. Cancela cuando quieras.<br />
                     Renovación automática salvo cancelación 24 h antes.
                   </p>
@@ -247,25 +247,25 @@ export function Paywall() {
               {step === 'card' && (
                 <motion.div key="card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                   <div className="mb-6">
-                    <h2 className="text-2xl font-black tracking-tighter text-white uppercase italic">Pago con tarjeta</h2>
-                    <p className="text-neutral-500 text-xs font-bold mt-1">
-                      Plan {selectedPlan.name} · <span className="text-white">{selectedPlan.price}</span> {selectedPlan.sub}
+                    <h2 className="text-2xl font-black tracking-tighter text-content uppercase italic">Pago con tarjeta</h2>
+                    <p className="text-muted text-xs font-bold mt-1">
+                      Plan {selectedPlan.name} · <span className="text-content">{selectedPlan.price}</span> {selectedPlan.sub}
                     </p>
                   </div>
 
                   {/* Card preview */}
-                  <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 rounded-3xl p-5 h-40 flex flex-col justify-between mb-6 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-purple-500/10" />
+                  <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 border border-line/10 rounded-3xl p-5 h-40 flex flex-col justify-between mb-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-accent/10 via-transparent to-purple-500/10" />
                     <div className="flex justify-between items-start">
-                      <p className="text-white font-black tracking-widest italic">GYMRACE</p>
+                      <p className="text-content font-black tracking-widest italic">GYMRACE</p>
                       <div className="w-9 h-9 rounded-full bg-amber-400/80 relative">
                         <div className="w-9 h-9 rounded-full bg-rose-500/70 absolute -right-3 top-0 mix-blend-screen" />
                       </div>
                     </div>
                     <div>
-                      <p className="text-white/40 text-[8px] font-black uppercase tracking-[0.3em] mb-1">Número</p>
-                      <p className="text-white font-black tracking-[0.2em] text-sm">{formatCard(cardNumber) || '•••• •••• •••• ••••'}</p>
-                      <p className="text-white/60 text-[10px] font-bold mt-2 uppercase">{name || 'TU NOMBRE'} · {exp || 'MM/AA'}</p>
+                      <p className="text-content/40 text-[8px] font-black uppercase tracking-[0.3em] mb-1">Número</p>
+                      <p className="text-content font-black tracking-[0.2em] text-sm">{formatCard(cardNumber) || '•••• •••• •••• ••••'}</p>
+                      <p className="text-content/60 text-[10px] font-bold mt-2 uppercase">{name || 'TU NOMBRE'} · {exp || 'MM/AA'}</p>
                     </div>
                   </div>
 
@@ -274,23 +274,23 @@ export function Paywall() {
                       inputMode="numeric" placeholder="Número de tarjeta"
                       value={formatCard(cardNumber)}
                       onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
-                      className="w-full bg-neutral-900 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold tracking-widest outline-none focus:border-emerald-500/50 transition-all"
+                      className="w-full bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold tracking-widest outline-none focus:border-accent/50 transition-all"
                     />
                     <input
                       placeholder="Nombre del titular" value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-neutral-900 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-emerald-500/50 transition-all"
+                      className="w-full bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold outline-none focus:border-accent/50 transition-all"
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <input
                         inputMode="numeric" placeholder="MM/AA" value={exp}
                         onChange={(e) => setExp(formatExp(e.target.value))}
-                        className="bg-neutral-900 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold tracking-widest outline-none focus:border-emerald-500/50 transition-all text-center"
+                        className="bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold tracking-widest outline-none focus:border-accent/50 transition-all text-center"
                       />
                       <input
                         inputMode="numeric" type="password" placeholder="CVC" value={cvc}
                         onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        className="bg-neutral-900 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold tracking-widest outline-none focus:border-emerald-500/50 transition-all text-center"
+                        className="bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold tracking-widest outline-none focus:border-accent/50 transition-all text-center"
                       />
                     </div>
                   </div>
@@ -298,14 +298,14 @@ export function Paywall() {
                   <button
                     onClick={() => pay('card')}
                     disabled={!cardValid || processing}
-                    className="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm mt-6 active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full bg-accent text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm mt-6 active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {processing ? 'Procesando…' : `Pagar ${selectedPlan.price}`}
                   </button>
                   <button
                     onClick={() => setStep('plans')}
                     disabled={processing}
-                    className="w-full text-neutral-500 py-3 font-black uppercase tracking-widest text-[10px] mt-1 disabled:opacity-40"
+                    className="w-full text-muted py-3 font-black uppercase tracking-widest text-[10px] mt-1 disabled:opacity-40"
                   >
                     ← Volver
                   </button>
@@ -324,14 +324,14 @@ export function Paywall() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1, rotate: [0, -10, 10, 0] }}
                     transition={{ type: 'spring', damping: 12 }}
-                    className="w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.5)] mb-6 text-black"
+                    className="w-24 h-24 rounded-full bg-accent flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.5)] mb-6 text-black"
                   >
                     <CheckIcon size={50} />
                   </motion.div>
-                  <h2 className="text-3xl font-black tracking-tighter text-white uppercase italic mb-2">¡Ya eres Pro!</h2>
-                  <p className="text-neutral-400 text-sm font-bold leading-relaxed">
+                  <h2 className="text-3xl font-black tracking-tighter text-content uppercase italic mb-2">¡Ya eres Pro!</h2>
+                  <p className="text-muted text-sm font-bold leading-relaxed">
                     Actividades ilimitadas desbloqueadas.<br />
-                    <span className="text-emerald-500">Ahora a darlo todo. 💪</span>
+                    <span className="text-accent">Ahora a darlo todo. 💪</span>
                   </p>
                 </motion.div>
               )}

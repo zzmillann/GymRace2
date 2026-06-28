@@ -27,17 +27,17 @@ export function CountdownTimer() {
   if (!timeLeft) return null;
 
   return (
-    <div className="flex items-center gap-3 bg-neutral-900/50 border border-neutral-800 rounded-2xl px-5 py-2.5 backdrop-blur-sm shadow-xl">
+    <div className="flex items-center gap-3 bg-surface/50 border border-line/10 rounded-2xl px-5 py-2.5 backdrop-blur-sm shadow-xl">
       <div className="flex items-center gap-2">
-        <Timer size={14} className="text-emerald-500 animate-pulse" />
-        <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest whitespace-nowrap">Siguiente Check-in</span>
+        <Timer size={14} className="text-accent animate-pulse" />
+        <span className="text-[10px] font-black text-muted uppercase tracking-widest whitespace-nowrap">Siguiente Check-in</span>
       </div>
       <div className="flex gap-1.5 font-black text-xs">
-        <span className="text-white tabular-nums">{timeLeft.h.toString().padStart(2, '0')}h</span>
-        <span className="text-neutral-700">:</span>
-        <span className="text-white tabular-nums">{timeLeft.m.toString().padStart(2, '0')}m</span>
-        <span className="text-neutral-700">:</span>
-        <span className="text-white tabular-nums">{timeLeft.s.toString().padStart(2, '0')}s</span>
+        <span className="text-content tabular-nums">{timeLeft.h.toString().padStart(2, '0')}h</span>
+        <span className="text-muted">:</span>
+        <span className="text-content tabular-nums">{timeLeft.m.toString().padStart(2, '0')}m</span>
+        <span className="text-muted">:</span>
+        <span className="text-content tabular-nums">{timeLeft.s.toString().padStart(2, '0')}s</span>
       </div>
     </div>
   );

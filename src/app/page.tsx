@@ -16,7 +16,7 @@ import { AuthView } from '@/components/ui/AuthView';
 import { ProfileView } from '@/components/ui/ProfileView';
 
 const THEMES = [
-  { id: 'emerald', bg: 'bg-emerald-500' },
+  { id: 'emerald', bg: 'bg-accent' },
   { id: 'indigo', bg: 'bg-indigo-500' },
   { id: 'rose', bg: 'bg-rose-500' },
   { id: 'amber', bg: 'bg-amber-500' },
@@ -87,7 +87,7 @@ export default function Home() {
          <motion.div 
             animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-white font-black italic text-5xl tracking-tighter mb-4"
+            className="text-content font-black italic text-5xl tracking-tighter mb-4"
         >
             GYMRACE
         </motion.div>
@@ -95,7 +95,7 @@ export default function Home() {
         <div 
             className="fixed bottom-12 left-0 right-0 text-center opacity-30"
         >
-            <p className="text-[9px] text-white font-extralight uppercase tracking-[0.6em] italic">Developed by Alejandro Millán</p>
+            <p className="text-[9px] text-content font-extralight uppercase tracking-[0.6em] italic">Developed by Alejandro Millán</p>
         </div>
       </div>
     );
@@ -106,7 +106,7 @@ export default function Home() {
   }
 
   return (
-    <div className="p-6 pt-12 relative min-h-screen bg-neutral-950 overflow-x-hidden">
+    <div className="p-6 pt-12 relative min-h-screen bg-app overflow-x-hidden">
       <AnimatePresence mode="wait">
         {activeTab === 'habits' && (
           <motion.div 
@@ -116,7 +116,7 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <button 
                     onClick={() => setIsProfileOpen(true)}
-                    className="w-14 h-14 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all overflow-hidden"
+                    className="w-14 h-14 bg-surface border border-line/5 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all overflow-hidden"
                 >
                     {userAvatar && userAvatar.startsWith('http') ? (
                         <img src={userAvatar} className="w-full h-full object-cover" />
@@ -125,13 +125,13 @@ export default function Home() {
                     )}
                 </button>
                 <div className="flex flex-col gap-0.5">
-                  <p className="text-neutral-500 text-[9px] font-black uppercase tracking-[0.2em]">{dateFormatted}</p>
-                  <h1 className="text-3xl font-black tracking-tighter text-white leading-none">Hola, {userName.split(' ')[0]}</h1>
+                  <p className="text-muted text-[9px] font-black uppercase tracking-[0.2em]">{dateFormatted}</p>
+                  <h1 className="text-3xl font-black tracking-tighter text-content leading-none">Hola, {userName.split(' ')[0]}</h1>
                 </div>
               </div>
               <button
                 onClick={() => router.push('/settings')}
-                className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center text-neutral-500 active:scale-95 transition-all hover:text-white"
+                className="w-10 h-10 bg-surface border border-line/5 rounded-2xl flex items-center justify-center text-muted active:scale-95 transition-all hover:text-content"
               >
                 <Settings24Regular />
               </button>
@@ -144,7 +144,7 @@ export default function Home() {
             <div className="flex flex-col gap-4 pb-32">
               <AnimatePresence>
                 {habits.length === 0 && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-neutral-500 py-10 font-bold uppercase text-xs tracking-widest">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-muted py-10 font-bold uppercase text-xs tracking-widest">
                     No tienes hábitos todavía
                   </motion.div>
                 )}
@@ -214,20 +214,20 @@ export default function Home() {
           >
             <motion.div 
               initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="bg-neutral-900 border border-neutral-800 w-full max-w-sm rounded-[40px] p-8 relative"
+              className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative"
             >
-              <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-neutral-400"><X /></button>
-              <h2 className="text-2xl font-black mb-8 text-white uppercase tracking-tighter">Nuevo Hábito</h2>
+              <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-muted"><X /></button>
+              <h2 className="text-2xl font-black mb-8 text-content uppercase tracking-tighter">Nuevo Hábito</h2>
               <form onSubmit={handleAddHabit} className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-xs font-black text-neutral-500 mb-2 uppercase tracking-widest">Nombre</label>
+                  <label className="block text-xs font-black text-muted mb-2 uppercase tracking-widest">Nombre</label>
                   <input
                     autoFocus type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Ej. Meditar" className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5 py-4 text-white font-bold"
+                    placeholder="Ej. Meditar" className="w-full bg-app border border-line/10 rounded-2xl px-5 py-4 text-content font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-neutral-500 mb-3 uppercase tracking-widest">Tema</label>
+                  <label className="block text-xs font-black text-muted mb-3 uppercase tracking-widest">Tema</label>
                   <div className="flex gap-3">
                     {THEMES.map((t) => (
                       <button
@@ -248,14 +248,14 @@ export default function Home() {
       <AnimatePresence>
         {isGymAddOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-20 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ y: -50 }} animate={{ y: 0 }} exit={{ y: -50 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-[40px] p-8 pb-12 relative">
-              <button onClick={() => setIsGymAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
+            <motion.div initial={{ y: -50 }} animate={{ y: 0 }} exit={{ y: -50 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 pb-12 relative">
+              <button onClick={() => setIsGymAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted hover:text-content transition-colors">
                 <X size={18} />
               </button>
-              <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tighter">Nuevo Ejercicio</h2>
+              <h2 className="text-2xl font-black text-content mb-8 uppercase tracking-tighter">Nuevo Ejercicio</h2>
               <div className="flex flex-col gap-4">
-                <input autoFocus placeholder="Nombre (ej. Press Banca)" value={newExName} onChange={e => setNewExName(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
-                <input type="number" placeholder="Peso inicial (kg)" value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
+                <input autoFocus placeholder="Nombre (ej. Press Banca)" value={newExName} onChange={e => setNewExName(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none text-content text-center" />
+                <input type="number" placeholder="Peso inicial (kg)" value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none text-content text-center" />
                 <button 
                   onClick={() => {
                      if (!newExName || !newExWeight) return;
@@ -273,15 +273,15 @@ export default function Home() {
 
         {isLibraryAddOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-20 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ y: -50 }} animate={{ y: 0 }} exit={{ y: -50 }} className="bg-neutral-900 border border-white/10 w-full max-w-sm rounded-[40px] p-8 pb-12 relative">
-              <button onClick={() => setIsLibraryAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
+            <motion.div initial={{ y: -50 }} animate={{ y: 0 }} exit={{ y: -50 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 pb-12 relative">
+              <button onClick={() => setIsLibraryAddOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted hover:text-content transition-colors">
                 <X size={18} />
               </button>
-              <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tighter text-center">Añadir Libro</h2>
+              <h2 className="text-2xl font-black text-content mb-8 uppercase tracking-tighter text-center">Añadir Libro</h2>
               <div className="flex flex-col gap-4">
-                <input autoFocus placeholder="Título" value={newLibTitle} onChange={e => setNewLibTitle(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
-                <input placeholder="Autor" value={newLibAuthor} onChange={e => setNewLibAuthor(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
-                <input type="number" placeholder="Páginas" value={newLibPages} onChange={e => setNewLibPages(e.target.value)} className="bg-neutral-950 border border-white/5 rounded-2xl px-6 py-5 font-bold outline-none text-white text-center" />
+                <input autoFocus placeholder="Título" value={newLibTitle} onChange={e => setNewLibTitle(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none text-content text-center" />
+                <input placeholder="Autor" value={newLibAuthor} onChange={e => setNewLibAuthor(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none text-content text-center" />
+                <input type="number" placeholder="Páginas" value={newLibPages} onChange={e => setNewLibPages(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none text-content text-center" />
                 <button 
                   onClick={() => {
                       if (!newLibTitle || !newLibPages) return;

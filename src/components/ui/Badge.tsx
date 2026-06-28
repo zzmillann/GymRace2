@@ -13,8 +13,8 @@ const ROLES = [
   { min: 250, label: 'Maestro', icon: Star, color: 'text-blue-400', bg: 'bg-blue-400/20', animate: true },
   { min: 100, label: 'Guerrero', icon: Shield, color: 'text-red-400', bg: 'bg-red-400/20', animate: true },
   { min: 50, label: 'Constante', icon: Zap, color: 'text-orange-400', bg: 'bg-orange-400/20', animate: true },
-  { min: 10, label: 'Iniciado', icon: Flame, color: 'text-emerald-400', bg: 'bg-emerald-400/20', animate: true },
-  { min: 0, label: 'Novato', icon: Target, color: 'text-neutral-400', bg: 'bg-neutral-800', animate: false },
+  { min: 10, label: 'Iniciado', icon: Flame, color: 'text-accent', bg: 'bg-accent/20', animate: true },
+  { min: 0, label: 'Novato', icon: Target, color: 'text-muted', bg: 'bg-surface-2', animate: false },
 ];
 
 export function Badge({ level }: BadgeProps) {
@@ -34,7 +34,7 @@ export function Badge({ level }: BadgeProps) {
         rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
         scale: { type: "spring", stiffness: 300 }
       }}
-      className={`flex items-center gap-2 px-3 py-1 rounded-full ${role.bg} ${role.color} border border-white/5 shadow-2xl backdrop-blur-xl`}
+      className={`flex items-center gap-2 px-3 py-1 rounded-full ${role.bg} ${role.color} border border-line/5 shadow-2xl backdrop-blur-xl`}
     >
       <role.icon size={13} strokeWidth={3} className={role.animate ? "drop-shadow-[0_0_8px_currentColor]" : ""} />
       <span className="text-[10px] font-black uppercase tracking-[0.1em]">{role.label}</span>

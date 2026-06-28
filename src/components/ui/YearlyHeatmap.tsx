@@ -14,13 +14,13 @@ interface YearlyHeatmapProps {
 export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProps) {
   const activeColorFn = (theme: string) => {
     const map: Record<string, string> = {
-      emerald: 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]',
+      emerald: 'bg-accent shadow-[0_0_12px_rgba(16,185,129,0.4)]',
       indigo: 'bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.4)]',
       rose: 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]',
       amber: 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]',
       sky: 'bg-sky-500 shadow-[0_0_12px_rgba(14,165,233,0.4)]',
     };
-    return map[theme] || 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]';
+    return map[theme] || 'bg-accent shadow-[0_0_12px_rgba(16,185,129,0.4)]';
   };
 
   const activeBg = activeColorFn(colorTheme);
@@ -59,19 +59,19 @@ export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProp
   }, [startAt]);
 
   return (
-    <div className="w-full bg-neutral-900/80 border border-neutral-800/50 rounded-[32px] p-6 mb-8 overflow-hidden relative shadow-2xl backdrop-blur-md">
+    <div className="w-full bg-surface/80 border border-line/10/50 rounded-[32px] p-6 mb-8 overflow-hidden relative shadow-2xl backdrop-blur-md">
       <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 blur-[80px] rounded-full -mr-20 -mt-20 pointer-events-none" />
       
-      <h4 className="text-[10px] font-black text-neutral-500 mb-8 tracking-[0.3em] uppercase flex justify-between items-center px-1">
+      <h4 className="text-[10px] font-black text-muted mb-8 tracking-[0.3em] uppercase flex justify-between items-center px-1">
         <span>Ciclo de 365 Días</span>
         <div className="flex gap-1.5 items-center">
-            <span className="text-neutral-700 text-[8px]">LIBRE</span>
+            <span className="text-muted text-[8px]">LIBRE</span>
             <div className="flex gap-1">
-                <div className="w-2.5 h-2.5 rounded-[3px] bg-neutral-800" />
+                <div className="w-2.5 h-2.5 rounded-[3px] bg-surface-2" />
                 <div className={`w-2.5 h-2.5 rounded-[3px] ${activeBg} opacity-40`} />
                 <div className={`w-2.5 h-2.5 rounded-[3px] ${activeBg}`} />
             </div>
-            <span className="text-neutral-700 text-[8px]">LOGRADO</span>
+            <span className="text-muted text-[8px]">LOGRADO</span>
         </div>
       </h4>
       
@@ -79,7 +79,7 @@ export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProp
         <div className="relative">
             <div className="flex mb-3 h-4 relative">
                 {monthLabels.map((m, i) => (
-                    <span key={i} className="absolute text-[9px] font-bold text-neutral-600 uppercase" style={{ left: `${m.col * 1.5}rem` }}>
+                    <span key={i} className="absolute text-[9px] font-bold text-muted uppercase" style={{ left: `${m.col * 1.5}rem` }}>
                         {m.name}
                     </span>
                 ))}
@@ -95,7 +95,7 @@ export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProp
                             transition={{ delay: (weekIdx * 0.005) + (dayIdx * 0.01) }}
                             key={dateStr}
                             className={`w-4 h-4 rounded-[4px] transition-all duration-700 ${
-                                data[dateStr] ? activeBg : 'bg-neutral-800/40 hover:bg-neutral-700/60'
+                                data[dateStr] ? activeBg : 'bg-surface-2/40 hover:bg-surface-2/60'
                             }`}
                         />
                     ))}
@@ -105,14 +105,14 @@ export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProp
         </div>
       </div>
       
-      <div className="flex justify-between text-[9px] font-black text-neutral-700 uppercase tracking-[0.2em] mt-6 border-t border-neutral-800/50 pt-4 px-1">
+      <div className="flex justify-between text-[9px] font-black text-muted uppercase tracking-[0.2em] mt-6 border-t border-line/10/50 pt-4 px-1">
         <div className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-1 h-1 rounded-full bg-accent animate-pulse" />
             <span>Inicio ({format(startAt, 'dd MMM yy', { locale: es })})</span>
         </div>
         <div className="flex items-center gap-2">
             <span>Meta Anual</span>
-            <div className="w-1 h-1 rounded-full bg-neutral-700" />
+            <div className="w-1 h-1 rounded-full bg-surface-2" />
         </div>
       </div>
 

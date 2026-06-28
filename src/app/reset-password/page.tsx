@@ -51,23 +51,23 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/10 blur-[130px] rounded-full" />
+      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-accent/10 blur-[130px] rounded-full" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-indigo-500/10 blur-[130px] rounded-full" />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm relative z-10">
         <header className="text-center mb-10">
-          <h1 className="text-5xl font-black tracking-tighter text-white mb-2 italic">GYMRACE</h1>
-          <p className="text-neutral-500 font-bold uppercase text-[9px] tracking-[0.4em]">Nueva contraseña</p>
+          <h1 className="text-5xl font-black tracking-tighter text-content mb-2 italic">GYMRACE</h1>
+          <p className="text-muted font-bold uppercase text-[9px] tracking-[0.4em]">Nueva contraseña</p>
         </header>
 
-        <div className="bg-neutral-900/50 backdrop-blur-xl border border-white/5 p-8 rounded-[40px] shadow-2xl">
+        <div className="bg-surface/50 backdrop-blur-xl border border-line/5 p-8 rounded-[40px] shadow-2xl">
           {done ? (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center text-center py-4">
-              <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center mb-5 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
+              <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-5 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
                 <CheckCircle2 size={44} className="text-black" />
               </div>
-              <h2 className="text-xl font-black text-white uppercase tracking-tighter italic mb-2">¡Contraseña actualizada!</h2>
-              <p className="text-neutral-500 text-[11px] font-bold">Ya puedes iniciar sesión. Redirigiendo…</p>
+              <h2 className="text-xl font-black text-content uppercase tracking-tighter italic mb-2">¡Contraseña actualizada!</h2>
+              <p className="text-muted text-[11px] font-bold">Ya puedes iniciar sesión. Redirigiendo…</p>
             </motion.div>
           ) : (
             <form onSubmit={submit} className="flex flex-col gap-4">
@@ -78,17 +78,17 @@ export default function ResetPasswordPage() {
               )}
 
               <div className="relative">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-600" size={18} />
+                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                 <input
                   type="password" placeholder="Nueva contraseña" value={pass} onChange={e => setPass(e.target.value)}
-                  className="w-full bg-black/40 border border-white/5 rounded-2xl pl-14 pr-6 py-5 text-white font-bold outline-none focus:border-white/20 transition-all text-sm"
+                  className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                 />
               </div>
               <div className="relative">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-600" size={18} />
+                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                 <input
                   type="password" placeholder="Repite la contraseña" value={confirm} onChange={e => setConfirm(e.target.value)}
-                  className="w-full bg-black/40 border border-white/5 rounded-2xl pl-14 pr-6 py-5 text-white font-bold outline-none focus:border-white/20 transition-all text-sm"
+                  className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
                 />
               </div>
 
@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
 
               <button
                 type="button" onClick={() => router.push('/')}
-                className="text-neutral-500 text-xs font-bold hover:text-white transition-all uppercase tracking-widest mt-3"
+                className="text-muted text-xs font-bold hover:text-content transition-all uppercase tracking-widest mt-3"
               >
                 ← Volver
               </button>

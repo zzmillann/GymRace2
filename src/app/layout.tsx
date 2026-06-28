@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Paywall } from '@/components/ui/Paywall';
 import { ReminderScheduler } from '@/components/ui/ReminderScheduler';
+import { ThemeApplier } from '@/components/ui/ThemeApplier';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,10 +36,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="dark">
-      <body className={`${inter.className} bg-neutral-950 text-white antialiased selection:bg-neutral-800`}>
+      <body className={`${inter.className} bg-app text-content antialiased selection:bg-surface-2`}>
         <main className="min-h-screen safe-area-ios pb-20">
           {children}
         </main>
+        <ThemeApplier />
         <Paywall />
         <ReminderScheduler />
       </body>

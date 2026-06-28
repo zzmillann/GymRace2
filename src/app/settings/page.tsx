@@ -70,64 +70,64 @@ export default function SettingsPage() {
 
   // Evita mismatch de hidratación con el estado persistido de Zustand
   if (!mounted) {
-    return <div className="min-h-screen bg-neutral-950" />;
+    return <div className="min-h-screen bg-app" />;
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-6 pt-12 pb-24">
+    <div className="min-h-screen bg-app p-6 pt-12 pb-24">
       <header className="flex items-center gap-4 mb-8">
         <button
           onClick={() => router.back()}
-          className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-2xl flex items-center justify-center text-white active:scale-95 transition-all"
+          className="w-10 h-10 bg-surface border border-line/5 rounded-2xl flex items-center justify-center text-content active:scale-95 transition-all"
         >
           <ArrowLeft24Regular />
         </button>
-        <h1 className="text-3xl font-black tracking-tighter text-white uppercase italic">Ajustes</h1>
+        <h1 className="text-3xl font-black tracking-tighter text-content uppercase italic">Ajustes</h1>
       </header>
 
       {/* ───────── SUSCRIPCIÓN ───────── */}
       {isPro ? (
-        <div className="relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-[0_10px_40px_rgba(16,185,129,0.3)]">
+        <div className="relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-accent to-accent shadow-[0_10px_40px_rgba(16,185,129,0.3)]">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">👑</span>
-            <p className="text-white font-black uppercase tracking-tighter text-lg italic">GymRace Pro</p>
+            <p className="text-content font-black uppercase tracking-tighter text-lg italic">GymRace Pro</p>
           </div>
-          <p className="text-white/80 text-xs font-bold mb-5">{PLAN_LABEL[subscriptionPlan]} · Actividades ilimitadas</p>
+          <p className="text-content/80 text-xs font-bold mb-5">{PLAN_LABEL[subscriptionPlan]} · Actividades ilimitadas</p>
           <div className="flex gap-3">
-            <button onClick={() => showToast('Gestiona tu plan desde la App Store')} className="flex-1 bg-white/20 backdrop-blur text-white py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Gestionar</button>
-            <button onClick={() => { cancelPro(); showToast('Suscripción cancelada'); }} className="px-5 bg-black/20 text-white py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+            <button onClick={() => showToast('Gestiona tu plan desde la App Store')} className="flex-1 bg-white/20 backdrop-blur text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Gestionar</button>
+            <button onClick={() => { cancelPro(); showToast('Suscripción cancelada'); }} className="px-5 bg-black/20 text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
           </div>
         </div>
       ) : (
         <button
           onClick={() => openPaywall()}
-          className="w-full text-left relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 active:scale-[0.99] transition-transform"
+          className="w-full text-left relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-line/10 active:scale-[0.99] transition-transform"
         >
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full" />
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/20 blur-3xl rounded-full" />
           <div className="flex items-center gap-2 mb-1">
             <span className="text-lg">✨</span>
-            <p className="text-white font-black uppercase tracking-tighter text-lg italic">Hazte <span className="text-emerald-400">Pro</span></p>
+            <p className="text-content font-black uppercase tracking-tighter text-lg italic">Hazte <span className="text-accent">Pro</span></p>
           </div>
-          <p className="text-neutral-400 text-xs font-bold mb-4">Desbloquea actividades ilimitadas y mucho más</p>
+          <p className="text-muted text-xs font-bold mb-4">Desbloquea actividades ilimitadas y mucho más</p>
 
           {/* Barra de uso del plan gratis */}
           <div className="bg-black/40 rounded-2xl p-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Plan Gratis</span>
-              <span className="text-[10px] font-black text-white">{usage} / {FREE_ACTIVITY_LIMIT} actividades</span>
+              <span className="text-[10px] font-black text-muted uppercase tracking-widest">Plan Gratis</span>
+              <span className="text-[10px] font-black text-content">{usage} / {FREE_ACTIVITY_LIMIT} actividades</span>
             </div>
-            <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }} animate={{ width: `${usagePct}%` }}
-                className={`h-full rounded-full ${usage >= FREE_ACTIVITY_LIMIT ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                className={`h-full rounded-full ${usage >= FREE_ACTIVITY_LIMIT ? 'bg-rose-500' : 'bg-accent'}`}
               />
             </div>
             {usage >= FREE_ACTIVITY_LIMIT && (
               <p className="text-rose-400 text-[10px] font-bold mt-2">Has alcanzado el límite gratuito.</p>
             )}
           </div>
-          <div className="flex items-center justify-center gap-1 mt-4 text-emerald-400 font-black uppercase tracking-widest text-[11px]">
+          <div className="flex items-center justify-center gap-1 mt-4 text-accent font-black uppercase tracking-widest text-[11px]">
             Ver planes Pro →
           </div>
         </button>
@@ -136,7 +136,7 @@ export default function SettingsPage() {
       {/* ───────── CUENTA ───────── */}
       <Section title="Cuenta">
         <NavRow icon="🧑" label="Editar perfil" sub={userName} onClick={() => router.push('/')}>
-          <div className="w-8 h-8 rounded-lg bg-neutral-800 overflow-hidden flex items-center justify-center text-sm">
+          <div className="w-8 h-8 rounded-lg bg-surface-2 overflow-hidden flex items-center justify-center text-sm">
             {userAvatar?.startsWith('http') ? <img src={userAvatar} className="w-full h-full object-cover" /> : userAvatar}
           </div>
         </NavRow>
@@ -149,15 +149,15 @@ export default function SettingsPage() {
         <ToggleRow icon="🔔" label="Notificaciones push" checked={settings.pushEnabled} onChange={() => updateSettings({ pushEnabled: !settings.pushEnabled })} />
         <ToggleRow icon="⏰" label="Recordatorio diario" sub="Te avisa si te quedan actividades sin marcar" checked={settings.dailyReminder} onChange={toggleDailyReminder} />
         {settings.dailyReminder && (
-          <div className="flex items-center justify-between px-5 py-4 border-t border-white/5">
+          <div className="flex items-center justify-between px-5 py-4 border-t border-line/5">
             <div className="flex items-center gap-3">
               <span className="text-lg">🕐</span>
-              <span className="text-white font-bold text-sm">Hora del aviso</span>
+              <span className="text-content font-bold text-sm">Hora del aviso</span>
             </div>
             <input
               type="time" value={settings.reminderTime}
               onChange={(e) => updateSettings({ reminderTime: e.target.value })}
-              className="bg-neutral-800 border border-white/5 rounded-xl px-3 py-2 text-white font-black outline-none"
+              className="bg-surface-2 border border-line/5 rounded-xl px-3 py-2 text-content font-black outline-none"
             />
           </div>
         )}
@@ -218,9 +218,9 @@ export default function SettingsPage() {
         <NavRow icon="📄" label="Términos de servicio" onClick={() => showToast('Abriendo términos…')} />
         <NavRow icon="🛡️" label="Política de privacidad" onClick={() => showToast('Abriendo privacidad…')} />
         <NavRow icon="⭐" label="Valora GymRace" onClick={() => showToast('¡Gracias por tu apoyo! ⭐')} />
-        <div className="flex items-center justify-between px-5 py-4 border-t border-white/5">
-          <span className="text-neutral-500 font-bold text-sm">Versión</span>
-          <span className="text-neutral-500 font-black text-sm">{APP_VERSION}</span>
+        <div className="flex items-center justify-between px-5 py-4 border-t border-line/5">
+          <span className="text-muted font-bold text-sm">Versión</span>
+          <span className="text-muted font-black text-sm">{APP_VERSION}</span>
         </div>
       </Section>
 
@@ -229,12 +229,12 @@ export default function SettingsPage() {
         <button onClick={async () => { await signOut(); router.push('/'); }} className="w-full flex items-center gap-3 px-5 py-4 text-rose-400 font-black active:bg-white/5 transition-colors">
           <span className="text-lg">🚪</span> Cerrar sesión
         </button>
-        <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-black border-t border-white/5 active:bg-white/5 transition-colors">
+        <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-black border-t border-line/5 active:bg-white/5 transition-colors">
           <span className="text-lg">⚠️</span> Eliminar cuenta
         </button>
       </Section>
 
-      <p className="text-center text-[9px] text-neutral-700 font-extralight uppercase tracking-[0.4em] italic mt-8">
+      <p className="text-center text-[9px] text-muted font-extralight uppercase tracking-[0.4em] italic mt-8">
         Developed by Alejandro Millán
       </p>
 
@@ -258,8 +258,8 @@ export default function SettingsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-7">
-      <h2 className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.25em] mb-3 ml-2">{title}</h2>
-      <div className="bg-neutral-900 border border-white/5 rounded-[28px] overflow-hidden">{children}</div>
+      <h2 className="text-[10px] font-black text-muted uppercase tracking-[0.25em] mb-3 ml-2">{title}</h2>
+      <div className="bg-surface border border-line/5 rounded-[28px] overflow-hidden">{children}</div>
     </div>
   );
 }
@@ -276,20 +276,20 @@ function ToggleRow({
   icon, label, sub, checked, onChange, pro,
 }: { icon: string; label: string; sub?: string; checked: boolean; onChange: () => void; pro?: boolean }) {
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-b-0">
+    <div className="flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0">
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-lg flex-shrink-0">{icon}</span>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-white font-bold text-sm">{label}</span>
+            <span className="text-content font-bold text-sm">{label}</span>
             {pro && <ProBadge />}
           </div>
-          {sub && <p className="text-neutral-500 text-[11px] font-medium leading-tight">{sub}</p>}
+          {sub && <p className="text-muted text-[11px] font-medium leading-tight">{sub}</p>}
         </div>
       </div>
       <button
         onClick={onChange}
-        className={`relative w-12 h-7 rounded-full flex-shrink-0 transition-colors ${checked ? 'bg-emerald-500' : 'bg-neutral-700'}`}
+        className={`relative w-12 h-7 rounded-full flex-shrink-0 transition-colors ${checked ? 'bg-accent' : 'bg-surface-2'}`}
       >
         <motion.span layout className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow ${checked ? 'left-[22px]' : 'left-0.5'}`} />
       </button>
@@ -301,18 +301,18 @@ function NavRow({
   icon, label, sub, onClick, pro, children,
 }: { icon: string; label: string; sub?: string; onClick: () => void; pro?: boolean; children?: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="w-full flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
+    <button onClick={onClick} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-lg flex-shrink-0">{icon}</span>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-white font-bold text-sm">{label}</span>
+          <span className="text-content font-bold text-sm">{label}</span>
           {pro && <ProBadge />}
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {children}
-        {sub && <span className="text-neutral-500 font-bold text-xs">{sub}</span>}
-        <span className="text-neutral-600">›</span>
+        {sub && <span className="text-muted font-bold text-xs">{sub}</span>}
+        <span className="text-muted">›</span>
       </div>
     </button>
   );
@@ -331,15 +331,15 @@ function SelectRow({
   };
   const current = options.find((o) => o.v === value);
   return (
-    <button onClick={cycle} className="w-full flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
+    <button onClick={cycle} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
       <div className="flex items-center gap-3">
         <span className="text-lg">{icon}</span>
-        <span className="text-white font-bold text-sm">{label}</span>
+        <span className="text-content font-bold text-sm">{label}</span>
         {pro && <ProBadge />}
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-emerald-400 font-black text-xs uppercase tracking-wider">{current?.l}</span>
-        <span className="text-neutral-600">›</span>
+        <span className="text-accent font-black text-xs uppercase tracking-wider">{current?.l}</span>
+        <span className="text-muted">›</span>
       </div>
     </button>
   );

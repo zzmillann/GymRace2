@@ -3,11 +3,39 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* ---- Tokens semánticos (canales RGB para soportar /opacidad) ---- */
+  :root, .dark {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    --app: 10 10 10;        /* fondo app  (neutral-950) */
+    --surface: 23 23 23;    /* tarjetas   (neutral-900) */
+    --surface-2: 38 38 38;  /* inputs     (neutral-800) */
+    --line: 255 255 255;    /* bordes (se usa con opacidad) */
+    --content: 255 255 255; /* texto principal */
+    --muted: 115 115 115;   /* texto atenuado (neutral-500) */
+    --accent: 16 185 129;   /* emerald-500 */
   }
-  
+
+  .light {
+    --background: #f5f5f5;
+    --foreground: #111111;
+
+    --app: 244 244 245;
+    --surface: 255 255 255;
+    --surface-2: 229 229 229;
+    --line: 17 17 17;
+    --content: 17 17 17;
+    --muted: 113 113 122;
+  }
+
+  /* ---- Paletas de color de acento ---- */
+  [data-accent="emerald"] { --accent: 16 185 129; }
+  [data-accent="indigo"]  { --accent: 99 102 241; }
+  [data-accent="rose"]    { --accent: 244 63 94; }
+  [data-accent="amber"]   { --accent: 245 158 11; }
+  [data-accent="sky"]     { --accent: 14 165 233; }
+
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
