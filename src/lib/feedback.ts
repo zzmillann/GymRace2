@@ -1,14 +1,28 @@
 // Utilidades de feedback (háptico + sonido + confeti).
 import confetti from 'canvas-confetti';
 
-// Pequeño estallido de confeti (al completar un hábito)
-export function confettiBurst() {
+// Paleta de confeti por tema de color del hábito: tono base, uno claro,
+// blanco (da chispa) y un pastel del mismo tono.
+const CONFETTI_COLORS: Record<string, string[]> = {
+  emerald: ['#10b981', '#34d399', '#ffffff', '#a7f3d0'],
+  indigo:  ['#6366f1', '#818cf8', '#ffffff', '#c7d2fe'],
+  rose:    ['#f43f5e', '#fb7185', '#ffffff', '#fecdd3'],
+  amber:   ['#f59e0b', '#fbbf24', '#ffffff', '#fde68a'],
+  sky:     ['#0ea5e9', '#38bdf8', '#ffffff', '#bae6fd'],
+};
+
+/**
+ * Pequeño estallido de confeti (al completar un hábito).
+ * `theme` es el colorTheme del hábito, para que el confeti salga de su color
+ * en vez de verde siempre. Sin tema, cae en emerald.
+ */
+export function confettiBurst(theme?: string) {
   if (typeof window === 'undefined') return;
   try {
     confetti({
       particleCount: 70, spread: 75, startVelocity: 38,
       origin: { y: 0.75 }, scalar: 0.9, disableForReducedMotion: true,
-      colors: ['#10b981', '#34d399', '#ffffff', '#a7f3d0'],
+      colors: CONFETTI_COLORS[theme || 'emerald'] || CONFETTI_COLORS.emerald,
     });
   } catch { /* noop */ }
 }

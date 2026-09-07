@@ -2,8 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Play24Filled, Pause24Filled, Stop24Filled } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 import { haptic, playDing, confettiBurst } from '@/lib/feedback';
+
+/**
+ * Burbujas de la lámpara de lava del modo concentración.
+ * Suben y bajan a ritmos distintos para que nunca se repita el patrón;
+ * los colores son los mismos índigo/violeta/cian de la sección de estudio.
+ */
+const LAVA = [
+  { size: '46vw', left: '-8vw',  from: '78vh', to: '-18vh', drift: '6vw',  dur: 26, delay: 0,   color: 'rgba(99,102,241,0.55)' },
+  { size: '38vw', left: '22vw',  from: '96vh', to: '-12vh', drift: '-5vw', dur: 34, delay: 3,   color: 'rgba(168,85,247,0.50)' },
+  { size: '52vw', left: '52vw',  from: '88vh', to: '-22vh', drift: '4vw',  dur: 30, delay: 7,   color: 'rgba(56,189,248,0.42)' },
+  { size: '30vw', left: '76vw',  from: '70vh', to: '-10vh', drift: '-7vw', dur: 22, delay: 1.5, color: 'rgba(217,70,239,0.45)' },
+  { size: '42vw', left: '8vw',   from: '-16vh', to: '84vh', drift: '5vw',  dur: 38, delay: 5,   color: 'rgba(79,70,229,0.48)' },
+  { size: '34vw', left: '60vw',  from: '-14vh', to: '92vh', drift: '-4vw', dur: 29, delay: 9,   color: 'rgba(129,140,248,0.44)' },
+];
 
 const PRESETS = [15, 25, 45, 50];
 const R = 54;
@@ -47,7 +62,7 @@ export function StudyZone() {
       const m = completed ? Math.round(total / 60) : studied;
       if (m >= 1) {
         logStudy(m).then(reload);
-        confettiBurst();
+        if (useAppStore.getState().settings.confetti !== false) confettiBurst('sky');
         haptic([40, 60, 40]);
         playDing(880);
       }
@@ -63,13 +78,18 @@ export function StudyZone() {
   return (
     <div className="mb-8">
       {/* Tarjeta Pomodoro */}
-      <div className="bg-gradient-to-br from-indigo-600/20 to-violet-600/10 border border-indigo-500/20 rounded-[32px] p-6">
+      {/* Sin fondo ni borde: el recuadro cortaba la sección. El color queda
+          en un resplandor difuminado que no dibuja bordes. */}
+      <div className="relative rounded-[32px] px-1 py-2">
+        <div className="absolute -top-6 -left-10 w-56 h-56 rounded-full bg-indigo-600/15 blur-[90px] pointer-events-none" />
+        <div className="absolute -bottom-10 -right-8 w-52 h-52 rounded-full bg-violet-600/10 blur-[90px] pointer-events-none" />
+        <div className="relative">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <p className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em]">Sesión de estudio</p>
-            <h3 className="text-2xl font-black text-content tracking-tighter italic uppercase">Pomodoro</h3>
+            <p className="text-[10px] font-medium text-indigo-300 tracking-tight">Sesión de estudio</p>
+            <h3 className="text-2xl font-semibold text-content tracking-tight">Pomodoro</h3>
           </div>
-          <button onClick={openRanking} className="px-4 py-2 bg-surface-2 rounded-2xl text-content font-black uppercase text-[9px] tracking-widest active:scale-95 transition-all">🏆 Ranking</button>
+          <button onClick={openRanking} className="px-4 py-2 bg-surface-2 rounded-2xl text-content font-medium text-[11px] tracking-tight active:scale-95 transition-all">Ranking</button>
         </div>
 
         {/* Stats */}
@@ -82,36 +102,116 @@ export function StudyZone() {
         {/* Duración */}
         <div className="grid grid-cols-4 gap-2 mb-4">
           {PRESETS.map((p) => (
-            <button key={p} onClick={() => setMins(p)} className={`py-3 rounded-xl font-black text-sm transition-all ${mins === p ? 'bg-indigo-500 text-white' : 'bg-surface-2 text-muted'}`}>{p}m</button>
+            <button key={p} onClick={() => setMins(p)} className={`py-3 rounded-xl font-medium text-sm transition-all ${mins === p ? 'bg-indigo-500 text-white' : 'bg-surface-2 text-muted'}`}>{p}m</button>
           ))}
         </div>
 
-        <button onClick={startFocus} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm active:scale-[0.98] transition-transform">
-          ▶ Empezar a estudiar
-        </button>
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={startFocus}
+            className="inline-flex items-center bg-sky-400/15 text-sky-300 border border-sky-400/25 hover:bg-sky-400/25 px-6 py-3 rounded-2xl font-medium tracking-tight text-sm active:scale-95 transition-all"
+          >
+            Empezar a estudiar
+          </button>
+        </div>
+        </div>
       </div>
 
       {/* Modo concentración */}
       <AnimatePresence>
         {focus && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-gradient-to-br from-indigo-950 via-black to-violet-950 flex flex-col items-center justify-center p-8">
-            <p className="text-indigo-300 font-black uppercase tracking-[0.3em] text-xs mb-8">Concéntrate 🧠</p>
-            <div className="relative w-60 h-60 mb-10">
-              <svg className="w-60 h-60 -rotate-90" viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r={R} fill="none" stroke="currentColor" strokeWidth="7" className="text-white/10" />
-                <motion.circle cx="60" cy="60" r={R} fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" className="text-indigo-400" style={{ strokeDasharray: C }} animate={{ strokeDashoffset: C * (1 - progress) }} transition={{ duration: 0.5, ease: 'linear' }} />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-6xl font-black text-white tabular-nums tracking-tighter">{clock(left)}</span>
-                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest mt-1">{running ? 'estudiando' : 'pausa'}</span>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-[#07060f] flex flex-col items-center justify-center p-8 overflow-hidden">
+            {/* Lámpara de lava: burbujas que suben, bajan y se deforman. El
+                filtro 'goo' las funde cuando se acercan, que es lo que da el
+                efecto de lava en vez de círculos sueltos. */}
+            <svg className="absolute w-0 h-0" aria-hidden>
+              <defs>
+                <filter id="lava-goo">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="26" result="b" />
+                  <feColorMatrix
+                    in="b"
+                    mode="matrix"
+                    values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"
+                  />
+                </filter>
+              </defs>
+            </svg>
+
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none overflow-hidden"
+              style={{ filter: 'url(#lava-goo) blur(22px)' }}
+            >
+              {LAVA.map((b, i) => (
+                <motion.span
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    width: b.size, height: b.size, left: b.left, background: b.color,
+                  }}
+                  initial={{ y: b.from }}
+                  animate={{
+                    y: [b.from, b.to, b.from],
+                    x: [0, b.drift, 0],
+                    scaleX: [1, 1.18, 0.9, 1],
+                    scaleY: [1, 0.86, 1.14, 1],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: b.dur,
+                    delay: b.delay,
+                    ease: 'easeInOut',
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center w-full">
+              <p className="text-indigo-200/70 font-normal tracking-tight text-[11px] mb-10">Concéntrate</p>
+
+              <div className="relative w-[19rem] h-[19rem] mb-12">
+                <svg className="w-[19rem] h-[19rem] -rotate-90 overflow-visible" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r={R} fill="none" stroke="currentColor" strokeWidth="6" className="text-white/10" />
+                  <motion.circle
+                    cx="60" cy="60" r={R} fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round"
+                    className="text-indigo-300"
+                    style={{ strokeDasharray: C, filter: 'drop-shadow(0 0 8px rgba(129,140,248,0.6))' }}
+                    animate={{ strokeDashoffset: C * (1 - progress) }}
+                    transition={{ duration: 0.5, ease: 'linear' }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[5.5rem] leading-none font-semibold text-white tabular-nums tracking-tighter">{clock(left)}</span>
+                </div>
               </div>
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setLeft((l) => l + 300)}
+                  className="w-16 h-16 rounded-full bg-white/10 border border-white/10 text-white flex flex-col items-center justify-center font-medium text-xs active:scale-90 transition-transform"
+                >
+                  +5m
+                </button>
+                <button
+                  onClick={() => setRunning((r) => !r)}
+                  aria-label={running ? 'Pausar' : 'Seguir'}
+                  className="w-24 h-24 rounded-full bg-white text-black flex items-center justify-center shadow-[0_8px_40px_rgba(255,255,255,0.25)] active:scale-95 transition-transform"
+                >
+                  {running
+                    ? <Pause24Filled style={{ fontSize: 40 }} />
+                    : <Play24Filled style={{ fontSize: 40 }} />}
+                </button>
+                <button
+                  onClick={() => finish(false)}
+                  aria-label="Terminar"
+                  className="w-16 h-16 rounded-full bg-white/10 border border-white/10 text-rose-400 flex items-center justify-center active:scale-90 transition-transform"
+                >
+                  <Stop24Filled style={{ fontSize: 26 }} />
+                </button>
+              </div>
+
+              <p className="text-white/25 text-[11px] font-normal tracking-tight mt-8 text-center">Al terminar se guardan tus minutos de estudio</p>
             </div>
-            <div className="flex gap-3 w-full max-w-xs">
-              <button onClick={() => setLeft((l) => l + 300)} className="flex-1 bg-white/10 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest">+5m</button>
-              <button onClick={() => setRunning((r) => !r)} className="flex-1 bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest">{running ? 'Pausa' : 'Seguir'}</button>
-              <button onClick={() => finish(false)} className="flex-1 bg-white/10 text-rose-400 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest">Terminar</button>
-            </div>
-            <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest mt-6 text-center">Al terminar se guardan tus minutos de estudio</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -119,20 +219,20 @@ export function StudyZone() {
       {/* Ranking de estudio */}
       <AnimatePresence>
         {rankOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-app/95 backdrop-blur-xl">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-7 relative shadow-2xl max-h-[80vh] flex flex-col">
-              <button onClick={() => setRankOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted text-lg font-bold">✕</button>
-              <div className="flex items-center gap-2 mb-1"><span className="text-xl">🏆</span><h2 className="text-lg font-black text-content uppercase tracking-tighter italic">Ranking de estudio</h2></div>
-              <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-5">Esta semana</p>
+              <button onClick={() => setRankOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted text-lg font-medium">✕</button>
+              <div className="flex items-center gap-2 mb-1"><h2 className="text-lg font-medium text-content tracking-tight">Ranking de estudio</h2></div>
+              <p className="text-[10px] font-medium text-muted tracking-tight mb-5">Esta semana</p>
               <div className="flex-1 overflow-y-auto hide-scrollbar space-y-2">
                 {ranking.map((r, i) => (
-                  <div key={r.id} className={`flex items-center gap-3 rounded-2xl p-3 border ${i === 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-black/30 border-line/5'}`}>
-                    <span className={`text-sm font-black w-5 ${i === 0 ? 'text-amber-500' : 'text-muted'}`}>{i + 1}</span>
+                  <div key={r.id} className={`flex items-center gap-3 rounded-2xl p-3 border ${i === 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-app/30 border-line/5'}`}>
+                    <span className={`text-sm font-medium w-5 ${i === 0 ? 'text-amber-500' : 'text-muted'}`}>{i + 1}</span>
                     <div className="w-9 h-9 rounded-xl bg-surface-2 overflow-hidden flex items-center justify-center text-sm">
                       {r.avatar?.startsWith('http') ? <img src={r.avatar} className="w-full h-full object-cover" /> : r.avatar}
                     </div>
-                    <span className="font-black text-content text-sm flex-1 truncate">{r.name}</span>
-                    <span className="font-black text-indigo-400 text-sm">{fmt(r.minutes)}</span>
+                    <span className="font-normal text-content text-sm flex-1 truncate">{r.name}</span>
+                    <span className="font-medium text-indigo-400 text-sm">{fmt(r.minutes)}</span>
                   </div>
                 ))}
               </div>
@@ -146,9 +246,9 @@ export function StudyZone() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-black/30 rounded-2xl p-3 text-center border border-line/5">
-      <p className="text-lg font-black text-content tabular-nums">{value}</p>
-      <p className="text-[8px] font-black text-muted uppercase tracking-widest">{label}</p>
+    <div className="bg-app/30 rounded-2xl p-3 text-center border border-line/5">
+      <p className="text-lg font-medium text-content tabular-nums">{value}</p>
+      <p className="text-[11px] font-medium text-muted tracking-tight">{label}</p>
     </div>
   );
 }

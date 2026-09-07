@@ -33,7 +33,7 @@ const BADGE: Partial<Record<FrameId, { e: string; bg: string }>> = {
 };
 
 export function FramedAvatar({
-  src, frame = 'none', size = 56, rounded = 'rounded-2xl', className = '',
+  src, frame = 'none', size = 56, rounded = 'rounded-full', className = '',
 }: { src?: string; frame?: FrameId; size?: number; rounded?: string; className?: string }) {
   const conic = CONIC[frame];
   const ring = RING[frame] || '';
@@ -64,7 +64,7 @@ export function FramedAvatar({
         <div className={`${rounded} w-full h-full ${ring}`}>{inner}</div>
       )}
       {badge && (
-        <div className={`absolute -bottom-1 -right-1 w-5 h-5 ${badge.bg} rounded-full flex items-center justify-center text-[10px] font-black text-white border-2 border-app shadow-lg z-10`}>
+        <div className={`absolute -bottom-1 -right-1 w-5 h-5 ${badge.bg} rounded-full flex items-center justify-center text-[10px] font-medium text-white border-2 border-app shadow-lg z-10`}>
           {badge.e}
         </div>
       )}

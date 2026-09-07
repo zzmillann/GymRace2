@@ -8,6 +8,7 @@ import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 import { haptic, playDing, confettiBig } from '@/lib/feedback';
 import { RestTimer } from '@/components/ui/RestTimer';
+import { RoutesView } from '@/components/ui/RoutesView';
 
 // Conversión kg <-> unidad mostrada (los pesos se guardan SIEMPRE en kg)
 const KG_TO_LB = 2.20462;
@@ -40,6 +41,7 @@ export function GymView() {
   const [newExWeight, setNewExWeight] = useState('');
   const [updateWeightVal, setUpdateWeightVal] = useState('');
   const [prCelebration, setPrCelebration] = useState<{ name: string; weight: number } | null>(null);
+  const [gymTab, setGymTab] = useState<'pesas' | 'rutas'>('pesas');
 
   const filteredExercises = exercises.filter(ex => ex.muscle === activeGymMuscle);
 
@@ -81,7 +83,7 @@ export function GymView() {
     <div className="pb-32 px-1">
       <header className="mb-10">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-black tracking-tighter text-content">Gimnasio</h1>
+          <h1 className="text-4xl font-semibold tracking-tighter text-content">Gimnasio</h1>
           <button
             onClick={() => router.push('/settings')}
             className="w-10 h-10 bg-surface border border-line/5 rounded-2xl flex items-center justify-center text-muted active:scale-95 transition-all hover:text-content"
@@ -89,24 +91,35 @@ export function GymView() {
             <Settings24Regular />
           </button>
         </div>
-        
+
+        {/* Toggle Pesas / Rutas */}
+        <div className="flex gap-2 bg-surface p-1 rounded-2xl border border-line/5 mb-5">
+          <button onClick={() => setGymTab('pesas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'pesas' ? 'bg-white text-black shadow-lg' : 'text-muted'}`}>Pesas</button>
+          <button onClick={() => setGymTab('rutas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'rutas' ? 'bg-white text-black shadow-lg' : 'text-muted'}`}>Rutas</button>
+        </div>
+
+        {gymTab === 'pesas' && (
         <div className="flex gap-2 overflow-x-auto hide-scrollbar -mx-6 px-6">
           {MUSCLES.map(m => (
             <button
               key={m}
               onClick={() => setActiveGymMuscle(m)}
-              className={`px-6 py-3 rounded-2xl whitespace-nowrap font-black uppercase text-[10px] tracking-widest transition-all ${activeGymMuscle === m ? 'bg-white text-black scale-105 shadow-2xl shadow-white/10' : 'bg-surface text-muted border border-line/5'}`}
+              className={`px-6 py-3 rounded-2xl whitespace-nowrap font-medium text-[10px] tracking-tight transition-all ${activeGymMuscle === m ? 'bg-white text-black scale-105 shadow-2xl shadow-white/10' : 'bg-surface text-muted border border-line/5'}`}
             >
               {m}
             </button>
           ))}
         </div>
+        )}
       </header>
 
+      {gymTab === 'rutas' && <RoutesView />}
+
+      {gymTab === 'pesas' && (
       <div className="grid gap-6">
         <AnimatePresence mode="popLayout">
           {filteredExercises.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted font-bold uppercase text-[10px] tracking-widest">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted font-medium text-[10px] tracking-tight">
                 No hay ejercicios en {activeGymMuscle}
             </motion.div>
           )}
@@ -131,18 +144,18 @@ export function GymView() {
                 </button>
 
                 <div className="mb-8">
-                    <span className={`inline-block px-3 py-1 rounded-full ${role.bg} ${role.color} text-[10px] font-black uppercase tracking-[0.2em] mb-3`}>
+                    <span className={`inline-block px-3 py-1 rounded-full ${role.bg} ${role.color} text-[10px] font-medium tracking-tight mb-3`}>
                         {role.label}
                     </span>
-                    <h3 className="text-3xl font-black text-content leading-tight">{ex.name}</h3>
+                    <h3 className="text-3xl font-semibold text-content leading-tight">{ex.name}</h3>
                 </div>
 
                 <div className="flex justify-between items-end mb-8">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Peso Récord</span>
+                    <span className="text-[10px] font-medium text-muted tracking-tight mb-1">Peso Récord</span>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-black text-content tabular-nums">{toDisplay(currentWeight)}</span>
-                        <span className="text-sm font-black text-muted">{unitLabel}</span>
+                        <span className="text-5xl font-semibold text-content tabular-nums">{toDisplay(currentWeight)}</span>
+                        <span className="text-sm font-medium text-muted">{unitLabel}</span>
                     </div>
                   </div>
                   
@@ -155,10 +168,10 @@ export function GymView() {
                 </div>
 
                 {/* Stashed Weights */}
-                <div className="flex flex-wrap gap-3 p-4 bg-black/20 rounded-2xl border border-line/5">
+                <div className="flex flex-wrap gap-3 p-4 bg-app/20 rounded-2xl border border-line/5">
                   <History size={14} className="text-muted mr-2" />
                   {ex.weightHistory.map((w, i) => (
-                    <span key={i} className={`text-xs font-black tracking-tighter ${i === ex.weightHistory.length - 1 ? 'text-accent' : 'text-muted line-through opacity-40'}`}>
+                    <span key={i} className={`text-xs font-medium tracking-tighter ${i === ex.weightHistory.length - 1 ? 'text-accent' : 'text-muted line-through opacity-40'}`}>
                         {toDisplay(w)}{unit}
                     </span>
                   ))}
@@ -168,18 +181,19 @@ export function GymView() {
           })}
         </AnimatePresence>
       </div>
+      )}
 
       {/* Modal Añadir */}
       <AnimatePresence>
         {isAddModalOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 bg-black/90 backdrop-blur-md">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 bg-app/90 backdrop-blur-md">
             <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -30, opacity: 0 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative">
               <button onClick={() => setIsAddModalOpen(false)} className="mx-auto w-12 h-1.5 bg-surface-2 rounded-full mb-8 sm:hidden" />
-              <h2 className="text-2xl font-black text-content mb-8 uppercase tracking-tighter">Nuevo Ejercicio</h2>
+              <h2 className="text-2xl font-semibold text-content mb-8 tracking-tighter">Nuevo Ejercicio</h2>
               <form onSubmit={handleAdd} className="flex flex-col gap-4 text-content">
-                <input autoFocus placeholder="Nombre (ej. Press Banca)" value={newExName} onChange={e => setNewExName(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none focus:border-line/20" />
-                <input type="number" placeholder={`Peso inicial (${unit})`} value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-bold outline-none focus:border-line/20" />
-                <button type="submit" className="bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest mt-4">Guardar</button>
+                <input autoFocus placeholder="Nombre (ej. Press Banca)" value={newExName} onChange={e => setNewExName(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
+                <input type="number" placeholder={`Peso inicial (${unit})`} value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
+                <button type="submit" className="bg-white text-black py-5 rounded-2xl font-medium tracking-tight mt-4">Guardar</button>
               </form>
             </motion.div>
           </motion.div>
@@ -189,15 +203,15 @@ export function GymView() {
       {/* Modal Actualizar Peso */}
       <AnimatePresence>
         {editingExId && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 bg-black/90 backdrop-blur-md">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 bg-app/90 backdrop-blur-md">
             <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -30, opacity: 0 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative">
-              <h2 className="text-2xl font-black text-content mb-2 uppercase tracking-tighter text-center">Nuevo Récord</h2>
-              <p className="text-center text-muted text-xs font-bold mb-8 uppercase tracking-widest">¿Cuánto has levantado hoy? ({unitLabel})</p>
+              <h2 className="text-2xl font-semibold text-content mb-2 tracking-tighter text-center">Nuevo Récord</h2>
+              <p className="text-center text-muted text-xs font-medium mb-8 tracking-tight">¿Cuánto has levantado hoy? ({unitLabel})</p>
               <form onSubmit={handleUpdateWeight} className="flex flex-col gap-4 text-center">
-                <input type="number" autoFocus placeholder="00" value={updateWeightVal} onChange={e => setUpdateWeightVal(e.target.value)} className="bg-transparent text-content text-7xl font-black text-center outline-none mb-4" />
+                <input type="number" autoFocus placeholder="00" value={updateWeightVal} onChange={e => setUpdateWeightVal(e.target.value)} className="bg-transparent text-content text-7xl font-medium text-center outline-none mb-4" />
                 <div className="flex gap-4">
-                  <button type="button" onClick={() => setEditingExId(null)} className="flex-1 bg-surface-2 text-content py-5 rounded-2xl font-black uppercase tracking-widest">Cancelar</button>
-                  <button type="submit" className="flex-1 bg-accent text-content py-5 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.3)]">Confirmar</button>
+                  <button type="button" onClick={() => setEditingExId(null)} className="flex-1 bg-surface-2 text-content py-5 rounded-2xl font-medium tracking-tight">Cancelar</button>
+                  <button type="submit" className="flex-1 bg-accent text-content py-5 rounded-2xl font-medium tracking-tight shadow-[0_0_20px_rgba(16,185,129,0.3)]">Confirmar</button>
                 </div>
               </form>
             </motion.div>
@@ -213,7 +227,7 @@ export function GymView() {
         {prCelebration && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md pointer-events-none"
+            className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-app/80 backdrop-blur-md pointer-events-none"
           >
             <motion.div
               initial={{ scale: 0.5, rotate: -8, opacity: 0 }}
@@ -229,9 +243,9 @@ export function GymView() {
               >
                 🏆
               </motion.div>
-              <p className="text-amber-400 font-black uppercase tracking-[0.3em] text-sm mb-1">¡Nuevo Récord!</p>
-              <h2 className="text-5xl font-black text-content italic uppercase tracking-tighter mb-2">{prCelebration.weight} {unitLabel}</h2>
-              <p className="text-muted font-black uppercase tracking-widest text-xs">{prCelebration.name}</p>
+              <p className="text-amber-400 font-medium tracking-tight text-sm mb-1">¡Nuevo Récord!</p>
+              <h2 className="text-5xl font-semibold text-content tracking-tighter mb-2">{prCelebration.weight} {unitLabel}</h2>
+              <p className="text-muted font-medium tracking-tight text-xs">{prCelebration.name}</p>
             </motion.div>
           </motion.div>
         )}

@@ -61,10 +61,10 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
       bg: 'from-violet-600 via-fuchsia-600 to-rose-500',
       content: (
         <>
-          <p className="text-white/70 font-black uppercase tracking-[0.3em] text-xs mb-3">Tu mes en</p>
-          <h1 className="text-6xl font-black text-white italic uppercase tracking-tighter mb-4">GymRace</h1>
-          <p className="text-white font-black uppercase tracking-widest text-lg capitalize">{monthName}</p>
-          <p className="text-white/70 font-bold text-sm mt-8">Toca para ver tu resumen 👉</p>
+          <p className="text-white/70 font-medium tracking-tight text-xs mb-3">Tu mes en</p>
+          <h1 className="text-6xl font-semibold text-white tracking-tighter mb-4">GymRace</h1>
+          <p className="text-white font-medium tracking-tight text-lg capitalize">{monthName}</p>
+          <p className="text-white/70 font-medium text-sm mt-8">Toca para ver tu resumen 👉</p>
         </>
       ),
     },
@@ -72,10 +72,10 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
       bg: 'from-emerald-500 via-teal-600 to-cyan-600',
       content: (
         <>
-          <p className="text-white/80 font-black uppercase tracking-widest text-xs mb-4">Este mes completaste</p>
-          <motion.h1 initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="text-8xl font-black text-white italic tracking-tighter">{stats.monthCompletions}</motion.h1>
-          <p className="text-white font-black uppercase tracking-widest text-xl mt-2">actividades 💪</p>
-          <p className="text-white/70 font-bold text-sm mt-6">en {stats.activeDays} días activos</p>
+          <p className="text-white/80 font-medium tracking-tight text-xs mb-4">Este mes completaste</p>
+          <motion.h1 initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="text-8xl font-medium text-white tracking-tighter">{stats.monthCompletions}</motion.h1>
+          <p className="text-white font-semibold tracking-tight text-xl mt-2">actividades 💪</p>
+          <p className="text-white/70 font-medium text-sm mt-6">en {stats.activeDays} días activos</p>
         </>
       ),
     },
@@ -83,10 +83,10 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
       bg: 'from-orange-500 via-red-500 to-rose-600',
       content: (
         <>
-          <p className="text-white/80 font-black uppercase tracking-widest text-xs mb-4">Tu mejor racha</p>
+          <p className="text-white/80 font-medium tracking-tight text-xs mb-4">Tu mejor racha</p>
           <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 1.2 }} className="text-7xl mb-2">🔥</motion.div>
-          <h1 className="text-8xl font-black text-white italic tracking-tighter">{stats.bestStreak}</h1>
-          <p className="text-white font-black uppercase tracking-widest text-xl mt-2">días seguidos</p>
+          <h1 className="text-8xl font-medium text-white tracking-tighter">{stats.bestStreak}</h1>
+          <p className="text-white font-semibold tracking-tight text-xl mt-2">días seguidos</p>
         </>
       ),
     },
@@ -94,10 +94,10 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
       bg: 'from-amber-400 via-amber-500 to-yellow-600',
       content: (
         <>
-          <p className="text-black/70 font-black uppercase tracking-widest text-xs mb-4">Tu puesto mundial</p>
+          <p className="text-black/70 font-medium tracking-tight text-xs mb-4">Tu puesto mundial</p>
           <motion.div animate={{ rotate: [0, -8, 8, 0] }} transition={{ repeat: Infinity, duration: 1.5 }} className="text-7xl mb-2">🏆</motion.div>
-          <h1 className="text-8xl font-black text-black italic tracking-tighter">#{rank ?? '—'}</h1>
-          <p className="text-black/80 font-black uppercase tracking-widest text-sm mt-3">{total} éxitos totales</p>
+          <h1 className="text-8xl font-medium text-black tracking-tighter">#{rank ?? '—'}</h1>
+          <p className="text-black/80 font-medium tracking-tight text-sm mt-3">{total} éxitos totales</p>
         </>
       ),
     },
@@ -105,16 +105,16 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
       bg: 'from-sky-500 via-indigo-600 to-violet-700',
       content: (
         <>
-          <p className="text-white/80 font-black uppercase tracking-widest text-xs mb-4">Tu mejor levantamiento</p>
+          <p className="text-white/80 font-medium tracking-tight text-xs mb-4">Tu mejor levantamiento</p>
           {stats.topEx.weight > 0 ? (
             <>
-              <h1 className="text-7xl font-black text-white italic tracking-tighter">{stats.topWeight}<span className="text-3xl"> {stats.unit.toUpperCase()}</span></h1>
-              <p className="text-white font-black uppercase tracking-widest text-lg mt-2">{stats.topEx.name}</p>
+              <h1 className="text-7xl font-medium text-white tracking-tighter">{stats.topWeight}<span className="text-3xl"> {stats.unit.toUpperCase()}</span></h1>
+              <p className="text-white font-medium tracking-tight text-lg mt-2">{stats.topEx.name}</p>
             </>
           ) : (
-            <p className="text-white font-black uppercase tracking-widest text-lg">Aún sin récords 👀</p>
+            <p className="text-white font-medium tracking-tight text-lg">Aún sin récords 👀</p>
           )}
-          <p className="text-white/70 font-bold text-sm mt-6">Tu mejor día: {stats.bestDay}</p>
+          <p className="text-white/70 font-medium text-sm mt-6">Tu mejor día: {stats.bestDay}</p>
         </>
       ),
     },
@@ -122,7 +122,7 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
       bg: 'from-neutral-900 via-neutral-800 to-black',
       content: (
         <>
-          <p className="text-emerald-400 font-black uppercase tracking-[0.3em] text-xs mb-6">Resumen de {userName}</p>
+          <p className="text-emerald-400 font-medium tracking-tight text-xs mb-6">Resumen de {userName}</p>
           <div className="space-y-3 text-left w-full max-w-[240px]">
             <Row k="Actividades" v={`${stats.monthCompletions}`} />
             <Row k="Días activos" v={`${stats.activeDays}`} />
@@ -132,7 +132,7 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); shareWrapped(stats, rank, monthName); }}
-            className="mt-8 bg-white text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all"
+            className="mt-8 bg-white text-black px-8 py-4 rounded-2xl font-medium tracking-tight text-xs active:scale-95 transition-all"
           >
             📤 Compartir
           </button>
@@ -154,7 +154,7 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[800] bg-black flex items-center justify-center">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[800] bg-app flex items-center justify-center">
           <div className={`relative w-full h-full max-w-md mx-auto bg-gradient-to-br ${slides[slide].bg} flex flex-col`}>
             {/* Barras de progreso */}
             <div className="flex gap-1.5 p-4 pt-6 z-20">
@@ -164,7 +164,7 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                 </div>
               ))}
             </div>
-            <button onClick={onClose} className="absolute top-5 right-5 z-30 text-white/80 text-2xl font-bold">✕</button>
+            <button onClick={onClose} className="absolute top-5 right-5 z-30 text-white/80 text-2xl font-semibold">✕</button>
 
             {/* Zonas de toque */}
             <button className="absolute left-0 top-0 bottom-0 w-1/3 z-10" onClick={prev} aria-label="anterior" />
@@ -179,7 +179,7 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               </AnimatePresence>
             </div>
 
-            <p className="text-center text-white/40 text-[9px] font-black uppercase tracking-[0.4em] italic pb-6 z-0">GymRace Wrapped</p>
+            <p className="text-center text-white/40 text-[11px] font-medium tracking-tight pb-6 z-0">GymRace Wrapped</p>
           </div>
         </motion.div>
       )}
@@ -190,8 +190,8 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex justify-between items-center border-b border-white/10 pb-2">
-      <span className="text-white/60 font-bold text-sm">{k}</span>
-      <span className="text-white font-black text-lg">{v}</span>
+      <span className="text-white/60 font-medium text-sm">{k}</span>
+      <span className="text-white font-medium text-lg">{v}</span>
     </div>
   );
 }

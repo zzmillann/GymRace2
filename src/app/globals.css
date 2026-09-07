@@ -4,17 +4,22 @@
 
 @layer base {
   /* ---- Tokens semánticos (canales RGB para soportar /opacidad) ---- */
+  /* Tema oscuro por defecto: azul-morado profundo en vez de negro plano.
+     El fondo lleva halos de color (ver el bloque de más abajo). */
   :root, .dark {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #191a3d;
+    --foreground: #f4f4fb;
 
-    --app: 10 10 10;        /* fondo app  (neutral-950) */
-    --surface: 23 23 23;    /* tarjetas   (neutral-900) */
-    --surface-2: 38 38 38;  /* inputs     (neutral-800) */
-    --line: 255 255 255;    /* bordes (se usa con opacidad) */
-    --content: 255 255 255; /* texto principal */
-    --muted: 115 115 115;   /* texto atenuado (neutral-500) */
-    --accent: 16 185 129;   /* emerald-500 */
+    --app: 25 26 61;         /* fondo app */
+    --surface: 42 43 82;     /* tarjetas */
+    --surface-2: 60 61 106;  /* inputs y botones suaves */
+    --line: 255 255 255;     /* bordes (se usa con opacidad) */
+    --content: 242 242 249;  /* texto principal */
+    --muted: 145 145 180;    /* texto atenuado */
+    --accent: 16 185 129;    /* emerald-500 */
+    --g1: rgba(124, 92, 255, 0.60);
+    --g2: rgba(186, 92, 235, 0.42);
+    --g3: rgba(70, 90, 220, 0.50);
   }
 
   .light {
@@ -27,6 +32,21 @@
     --line: 17 17 17;
     --content: 17 17 17;
     --muted: 113 113 122;
+  }
+
+  /* Tema "Medianoche": azul-morado profundo con superficies grises suaves,
+     al estilo de las apps de banca modernas. El fondo no es plano, lleva
+     dos halos de color (ver más abajo). */
+  .midnight {
+    --background: #14142b;
+    --foreground: #f4f4fb;
+
+    --app: 20 20 43;         /* fondo app */
+    --surface: 33 33 61;     /* tarjetas */
+    --surface-2: 49 49 84;   /* inputs y botones suaves */
+    --line: 255 255 255;
+    --content: 244 244 251;
+    --muted: 148 148 184;
   }
 
   /* ---- Paletas de color de acento ---- */
@@ -49,7 +69,10 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Inter (next/font). Antes ponia Arial aqui y pisaba la fuente cargada. */
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -65,4 +88,165 @@ body {
 .safe-area-ios {
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
+}
+
+/* ── Preloader: barrido lateral de la marca "GYMRACE." (igual que la landing del waitlist) ── */
+@keyframes gymraceReveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+.gymrace-reveal {
+  animation: gymraceReveal 1s cubic-bezier(0.76, 0, 0.24, 1) 0.2s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gymrace-reveal { animation: none; clip-path: inset(0 0 0 0); }
+}
+
+/* ── Cartel de rol: brillo de color en movimiento (sin flotar) ── */
+@keyframes badgeShine {
+  to { background-position: -200% center; }
+}
+.badge-shine {
+  /* currentColor = color del rol (heredado); el blanco es el destello que se desplaza */
+  background-image: linear-gradient(110deg, currentColor 35%, #ffffff 50%, currentColor 65%);
+  background-size: 200% auto;
+  background-position: 200% center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: badgeShine 2.8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge-shine { animation: none; }
+}
+
+/* ── Punto de "estás aquí" del mapa de rutas (Leaflet divIcon) ── */
+.gr-locate {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+.gr-locate-dot {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, .45);
+}
+.gr-locate-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, .45);
+  animation: grLocatePulse 2s ease-out infinite;
+}
+@keyframes grLocatePulse {
+  0%   { transform: scale(.55); opacity: .8; }
+  70%  { transform: scale(2.1);  opacity: 0; }
+  100% { transform: scale(2.1);  opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gr-locate-pulse { animation: none; opacity: .35; transform: scale(1.2); }
+}
+
+/* ── Fondo con halos de color (temas oscuros) ──
+   Como background-image del body (encima de bg-app) y fijo, así no se
+   desplaza con el scroll ni compite en z-index con el contenido. */
+.dark body, .midnight body {
+  background-attachment: fixed;
+  background-image:
+    radial-gradient(85% 50% at 10% -8%, var(--g1) 0%, transparent 62%),
+    radial-gradient(75% 45% at 100% 5%, var(--g2) 0%, transparent 62%),
+    radial-gradient(95% 55% at 45% 108%, var(--g3) 0%, transparent 66%);
+}
+
+/* ── Paletas de color (se eligen en Ajustes → Estilo) ── */
+.dark[data-palette="aurora"] {
+  --app: 25 26 61;
+  --surface: 42 43 82;
+  --surface-2: 64 66 118;
+  --content: 242 242 249;
+  --muted: 145 145 180;
+  --g1: rgba(124, 92, 255, 0.60);
+  --g2: rgba(186, 92, 235, 0.42);
+  --g3: rgba(70, 90, 220, 0.50);
+}
+.dark[data-palette="ocean"] {
+  --app: 13 31 51;
+  --surface: 23 48 71;
+  --surface-2: 39 72 103;
+  --content: 238 246 251;
+  --muted: 138 166 189;
+  --g1: rgba(34, 149, 224, 0.55);
+  --g2: rgba(20, 205, 200, 0.38);
+  --g3: rgba(24, 78, 160, 0.55);
+}
+.dark[data-palette="sunset"] {
+  --app: 43 19 48;
+  --surface: 67 32 74;
+  --surface-2: 98 51 107;
+  --content: 253 242 248;
+  --muted: 192 149 184;
+  --g1: rgba(255, 122, 89, 0.52);
+  --g2: rgba(236, 72, 153, 0.45);
+  --g3: rgba(129, 60, 180, 0.55);
+}
+.dark[data-palette="forest"] {
+  --app: 13 35 32;
+  --surface: 23 58 52;
+  --surface-2: 39 86 78;
+  --content: 239 250 245;
+  --muted: 135 171 159;
+  --g1: rgba(16, 185, 129, 0.48);
+  --g2: rgba(45, 212, 191, 0.35);
+  --g3: rgba(14, 90, 110, 0.55);
+}
+.dark[data-palette="cherry"] {
+  --app: 42 15 34;
+  --surface: 66 26 51;
+  --surface-2: 97 43 76;
+  --content: 255 241 245;
+  --muted: 193 147 168;
+  --g1: rgba(244, 63, 94, 0.50);
+  --g2: rgba(217, 70, 239, 0.40);
+  --g3: rgba(120, 40, 110, 0.55);
+}
+.dark[data-palette="graphite"] {
+  --app: 20 20 23;
+  --surface: 35 35 41;
+  --surface-2: 55 55 63;
+  --content: 244 244 245;
+  --muted: 139 139 149;
+  --g1: rgba(120, 120, 140, 0.28);
+  --g2: rgba(90, 100, 130, 0.22);
+  --g3: rgba(60, 60, 80, 0.35);
+}
+.dark[data-palette="mango"] {
+  --app: 43 26 13;
+  --surface: 67 42 22;
+  --surface-2: 98 64 37;
+  --content: 255 247 237;
+  --muted: 194 161 132;
+  --g1: rgba(251, 146, 60, 0.52);
+  --g2: rgba(250, 204, 21, 0.35);
+  --g3: rgba(190, 60, 40, 0.48);
+}
+.dark[data-palette="violet"] {
+  --app: 28 16 48;
+  --surface: 46 28 77;
+  --surface-2: 70 45 111;
+  --content: 245 240 255;
+  --muted: 168 148 201;
+  --g1: rgba(168, 85, 247, 0.55);
+  --g2: rgba(99, 102, 241, 0.45);
+  --g3: rgba(59, 30, 120, 0.55);
+}
+
+/* ── Tipografía de titular ──
+   Se usa SOLO en el nombre de los retos (la tarjeta y su pantalla de
+   detalle). Todo lo demás va en Inter. */
+.font-display {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }

@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore, type SubscriptionPlan } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
+import { Infinity as InfinityIcon, BarChart3, Cloud, Palette, ShieldCheck, CreditCard } from 'lucide-react';
 
 const PRO_FEATURES = [
-  { emoji: '♾️', key: 'unlimited' },
-  { emoji: '📊', key: 'stats' },
-  { emoji: '☁️', key: 'cloud' },
-  { emoji: '🎨', key: 'themes' },
-  { emoji: '🛡️', key: 'noads' },
+  { Icon: InfinityIcon, key: 'unlimited' },
+  { Icon: BarChart3, key: 'stats' },
+  { Icon: Cloud, key: 'cloud' },
+  { Icon: Palette, key: 'themes' },
+  { Icon: ShieldCheck, key: 'noads' },
 ];
 
 const PLANS: { id: Exclude<SubscriptionPlan, 'free'>; name: string; price: string; sub: string; badge?: string }[] = [
@@ -111,7 +112,7 @@ export function Paywall() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-xl"
+          className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center bg-app/80 backdrop-blur-xl"
         >
           <motion.div
             initial={{ y: '100%' }}
@@ -122,7 +123,7 @@ export function Paywall() {
           >
             <button
               onClick={closePaywall}
-              className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface border border-line/5 rounded-xl text-muted hover:text-content transition-colors z-10 text-lg font-bold"
+              className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface border border-line/5 rounded-xl text-muted hover:text-content transition-colors z-10 text-lg font-medium"
             >
               ✕
             </button>
@@ -139,13 +140,13 @@ export function Paywall() {
                     >
                       ✨
                     </motion.div>
-                    <h2 className="text-3xl font-black tracking-tighter text-content uppercase italic">
+                    <h2 className="text-3xl font-semibold tracking-tighter text-content">
                       GymRace <span className="text-accent">Pro</span>
                     </h2>
                     {paywall.reason ? (
-                      <p className="text-amber-400/90 text-xs font-bold mt-2 leading-snug">{paywall.reason}</p>
+                      <p className="text-amber-400/90 text-xs font-medium mt-2 leading-snug">{paywall.reason}</p>
                     ) : (
-                      <p className="text-muted text-xs font-bold mt-2">{t('pw.unlock')}</p>
+                      <p className="text-muted text-xs font-medium mt-2">{t('pw.unlock')}</p>
                     )}
                   </div>
 
@@ -153,11 +154,11 @@ export function Paywall() {
                   <div className="space-y-3 mb-7">
                     {PRO_FEATURES.map((f) => (
                       <div key={f.key} className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 text-base">
-                          {f.emoji}
+                        <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 text-accent">
+                          <f.Icon size={18} strokeWidth={2} />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-content font-black text-sm leading-tight">{t(`pw.feat.${f.key}`)}</p>
+                          <p className="text-content font-medium text-sm leading-tight">{t(`pw.feat.${f.key}`)}</p>
                         </div>
                       </div>
                     ))}
@@ -180,15 +181,15 @@ export function Paywall() {
                               {active && <CheckIcon size={12} />}
                             </div>
                             <div>
-                              <p className="text-content font-black text-sm">{p.name}</p>
-                              <p className="text-muted text-[11px] font-bold">{p.sub}</p>
+                              <p className="text-content font-medium text-sm">{p.name}</p>
+                              <p className="text-muted text-[11px] font-medium">{p.sub}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             {p.badge && (
-                              <span className="text-[8px] font-black text-accent bg-accent/15 px-2 py-1 rounded-full uppercase tracking-wider">{p.badge}</span>
+                              <span className="text-[11px] font-medium text-accent bg-accent/15 px-2 py-1 rounded-full tracking-wider">{p.badge}</span>
                             )}
-                            <p className="text-content font-black text-base">{p.price}</p>
+                            <p className="text-content font-medium text-base">{p.price}</p>
                           </div>
                         </button>
                       );
@@ -199,14 +200,14 @@ export function Paywall() {
                   <button
                     onClick={() => pay('apple')}
                     disabled={processing}
-                    className="w-full bg-white text-black py-4 rounded-2xl font-bold flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60"
+                    className="w-full bg-white text-black py-4 rounded-2xl font-medium flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
                     {processing ? (
-                      <span className="font-black uppercase tracking-widest text-sm">{t('pw.processing')}</span>
+                      <span className="font-medium tracking-tight text-sm">{t('pw.processing')}</span>
                     ) : (
                       <>
                         <AppleLogo className="w-5 h-5 -mt-0.5" />
-                        <span className="text-lg font-medium">Pay</span>
+                        <span className="text-lg font-normal">Pay</span>
                       </>
                     )}
                   </button>
@@ -215,15 +216,15 @@ export function Paywall() {
                   <button
                     onClick={() => pay('bizum')}
                     disabled={processing}
-                    className="w-full py-4 rounded-2xl font-black flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60 text-content"
+                    className="w-full py-4 rounded-2xl font-medium flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60 text-content"
                     style={{ background: 'linear-gradient(135deg, #00B6CB 0%, #0A7FC2 100%)' }}
                   >
                     {processing ? (
-                      <span className="font-black uppercase tracking-widest text-sm">{t('pw.processing')}</span>
+                      <span className="font-medium tracking-tight text-sm">{t('pw.processing')}</span>
                     ) : (
                       <>
-                        <span className="text-base font-black lowercase tracking-tight">{t('pw.bizum')}</span>
-                        <span className="text-lg font-black lowercase tracking-tighter italic">bizum</span>
+                        <span className="text-base font-medium lowercase tracking-tight">{t('pw.bizum')}</span>
+                        <span className="text-lg font-medium lowercase tracking-tighter">bizum</span>
                       </>
                     )}
                   </button>
@@ -232,12 +233,12 @@ export function Paywall() {
                   <button
                     onClick={() => pay('card')}
                     disabled={processing}
-                    className="w-full bg-surface border border-line/10 text-content py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
+                    className="w-full bg-surface border border-line/10 text-content py-4 rounded-2xl font-medium tracking-tight text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
-                    💳 {t('pw.card')}
+                    <CreditCard size={18} strokeWidth={2} /> {t('pw.card')}
                   </button>
 
-                  <p className="text-center text-[10px] text-muted font-medium mt-4 leading-relaxed">
+                  <p className="text-center text-[10px] text-muted font-normal mt-4 leading-relaxed">
                     {t('pw.legal')}
                   </p>
                 </motion.div>
@@ -247,8 +248,8 @@ export function Paywall() {
               {step === 'card' && (
                 <motion.div key="card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                   <div className="mb-6">
-                    <h2 className="text-2xl font-black tracking-tighter text-content uppercase italic">Pago con tarjeta</h2>
-                    <p className="text-muted text-xs font-bold mt-1">
+                    <h2 className="text-2xl font-semibold tracking-tighter text-content">Pago con tarjeta</h2>
+                    <p className="text-muted text-xs font-medium mt-1">
                       Plan {selectedPlan.name} · <span className="text-content">{selectedPlan.price}</span> {selectedPlan.sub}
                     </p>
                   </div>
@@ -257,15 +258,15 @@ export function Paywall() {
                   <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 border border-line/10 rounded-3xl p-5 h-40 flex flex-col justify-between mb-6 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-tr from-accent/10 via-transparent to-purple-500/10" />
                     <div className="flex justify-between items-start">
-                      <p className="text-content font-black tracking-widest italic">GYMRACE</p>
+                      <p className="text-content font-medium tracking-tight">GYMRACE</p>
                       <div className="w-9 h-9 rounded-full bg-amber-400/80 relative">
                         <div className="w-9 h-9 rounded-full bg-rose-500/70 absolute -right-3 top-0 mix-blend-screen" />
                       </div>
                     </div>
                     <div>
-                      <p className="text-content/40 text-[8px] font-black uppercase tracking-[0.3em] mb-1">Número</p>
-                      <p className="text-content font-black tracking-[0.2em] text-sm">{formatCard(cardNumber) || '•••• •••• •••• ••••'}</p>
-                      <p className="text-content/60 text-[10px] font-bold mt-2 uppercase">{name || 'TU NOMBRE'} · {exp || 'MM/AA'}</p>
+                      <p className="text-content/40 text-[11px] font-medium tracking-tight mb-1">Número</p>
+                      <p className="text-content font-medium tracking-tight text-sm">{formatCard(cardNumber) || '•••• •••• •••• ••••'}</p>
+                      <p className="text-content/60 text-[10px] font-medium mt-2">{name || 'TU NOMBRE'} · {exp || 'MM/AA'}</p>
                     </div>
                   </div>
 
@@ -274,23 +275,23 @@ export function Paywall() {
                       inputMode="numeric" placeholder="Número de tarjeta"
                       value={formatCard(cardNumber)}
                       onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
-                      className="w-full bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold tracking-widest outline-none focus:border-accent/50 transition-all"
+                      className="w-full bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-medium tracking-tight outline-none focus:border-accent/50 transition-all"
                     />
                     <input
                       placeholder="Nombre del titular" value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold outline-none focus:border-accent/50 transition-all"
+                      className="w-full bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-medium outline-none focus:border-accent/50 transition-all"
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <input
                         inputMode="numeric" placeholder="MM/AA" value={exp}
                         onChange={(e) => setExp(formatExp(e.target.value))}
-                        className="bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold tracking-widest outline-none focus:border-accent/50 transition-all text-center"
+                        className="bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-medium tracking-tight outline-none focus:border-accent/50 transition-all text-center"
                       />
                       <input
                         inputMode="numeric" type="password" placeholder="CVC" value={cvc}
                         onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        className="bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-bold tracking-widest outline-none focus:border-accent/50 transition-all text-center"
+                        className="bg-surface border border-line/5 rounded-2xl px-5 py-4 text-content font-medium tracking-tight outline-none focus:border-accent/50 transition-all text-center"
                       />
                     </div>
                   </div>
@@ -298,14 +299,14 @@ export function Paywall() {
                   <button
                     onClick={() => pay('card')}
                     disabled={!cardValid || processing}
-                    className="w-full bg-accent text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm mt-6 active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full bg-accent text-black py-4 rounded-2xl font-medium tracking-tight text-sm mt-6 active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {processing ? 'Procesando…' : `Pagar ${selectedPlan.price}`}
                   </button>
                   <button
                     onClick={() => setStep('plans')}
                     disabled={processing}
-                    className="w-full text-muted py-3 font-black uppercase tracking-widest text-[10px] mt-1 disabled:opacity-40"
+                    className="w-full text-muted py-3 font-medium tracking-tight text-[10px] mt-1 disabled:opacity-40"
                   >
                     ← Volver
                   </button>
@@ -328,8 +329,8 @@ export function Paywall() {
                   >
                     <CheckIcon size={50} />
                   </motion.div>
-                  <h2 className="text-3xl font-black tracking-tighter text-content uppercase italic mb-2">{t('pw.successTitle')}</h2>
-                  <p className="text-muted text-sm font-bold leading-relaxed">
+                  <h2 className="text-3xl font-semibold tracking-tighter text-content mb-2">{t('pw.successTitle')}</h2>
+                  <p className="text-muted text-sm font-medium leading-relaxed">
                     {t('pw.successBody')}<br />
                     <span className="text-accent">💪</span>
                   </p>

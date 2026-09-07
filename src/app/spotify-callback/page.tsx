@@ -36,9 +36,9 @@ export default function SpotifyCallback() {
   }, [router, setSpotifyTokens]);
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-app flex flex-col items-center justify-center p-6 text-center">
       <div className="w-16 h-16 rounded-full border-4 border-[#1DB954]/30 border-t-[#1DB954] animate-spin mb-6" />
-      <p className="text-content font-black uppercase tracking-widest text-sm">{msg}</p>
+      <p className="text-content font-medium tracking-tight text-sm">{msg}</p>
     </div>
   );
 }

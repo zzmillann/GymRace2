@@ -23,21 +23,12 @@ export function Badge({ level }: BadgeProps) {
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ 
-        scale: 1, 
-        opacity: 1,
-        y: role.animate ? [0, -6, 0] : 0,
-        rotate: role.animate ? [0, -2, 2, 0] : 0
-      }}
-      transition={{ 
-        y: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
-        rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-        scale: { type: "spring", stiffness: 300 }
-      }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ scale: { type: "spring", stiffness: 300 } }}
       className={`flex items-center gap-2 px-3 py-1 rounded-full ${role.bg} ${role.color} border border-line/5 shadow-2xl backdrop-blur-xl`}
     >
       <role.icon size={13} strokeWidth={3} className={role.animate ? "drop-shadow-[0_0_8px_currentColor]" : ""} />
-      <span className="text-[10px] font-black uppercase tracking-[0.1em]">{role.label}</span>
+      <span className={`text-[10px] font-medium tracking-[0.1em] ${role.animate ? "badge-shine" : ""}`}>{role.label}</span>
     </motion.div>
   );
 }

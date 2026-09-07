@@ -67,7 +67,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
       {isOpen && (
         <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl"
+            className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-app/95 backdrop-blur-xl"
         >
           <motion.div 
             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
@@ -81,12 +81,12 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
 
             <header className="flex flex-col items-center mb-6">
                 <div className="mb-4">
-                    <FramedAvatar src={selectedAvatar} frame={selectedFrame} size={96} rounded="rounded-[32px]" />
+                    <FramedAvatar src={selectedAvatar} frame={selectedFrame} size={96} />
                 </div>
 
                 {/* Selector de marco */}
                 <div className="w-full mb-4">
-                  <p className="text-[8px] font-black text-muted uppercase tracking-widest text-center mb-3">Marco / Aura</p>
+                  <p className="text-[11px] font-medium text-muted tracking-tight text-center mb-3">Marco / Aura</p>
                   <div className="flex gap-2 overflow-x-auto pb-3 hide-scrollbar -mx-2 px-2">
                     {FRAMES.map((f) => (
                       <button
@@ -95,14 +95,14 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                         className={`flex-shrink-0 px-3 py-2 rounded-xl border-2 transition-all flex items-center gap-1.5 ${selectedFrame === f.id ? 'border-accent bg-accent/10' : 'border-line/5 opacity-50 hover:opacity-100'}`}
                       >
                         <span className="text-sm">{f.emoji}</span>
-                        <span className="text-[9px] font-black text-content uppercase tracking-tighter">{f.label}</span>
+                        <span className="text-[11px] font-medium text-content tracking-tighter">{f.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="w-full">
-                  <p className="text-[8px] font-black text-muted uppercase tracking-widest text-center mb-3">Elige tu Avatar</p>
+                  <p className="text-[11px] font-medium text-muted tracking-tight text-center mb-3">Elige tu Avatar</p>
                   <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar -mx-2 px-2">
                     {AVATAR_SEEDS.map((seed) => {
                       const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
@@ -111,7 +111,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                         <button
                           key={seed}
                           onClick={() => setSelectedAvatar(url)}
-                          className={`flex-shrink-0 w-12 h-12 rounded-xl border-2 transition-all overflow-hidden ${isSelected ? 'border-accent scale-110 shadow-lg' : 'border-line/5 opacity-40 hover:opacity-100'}`}
+                          className={`flex-shrink-0 w-12 h-12 rounded-full border-2 transition-all overflow-hidden ${isSelected ? 'border-accent scale-110 shadow-lg' : 'border-line/5 opacity-40 hover:opacity-100'}`}
                         >
                           <img src={url} className="w-full h-full bg-surface-2" alt={seed} />
                         </button>
@@ -120,22 +120,22 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-black text-content mt-1 tracking-tighter uppercase italic">Tu Leyenda</h2>
+                <h2 className="text-2xl font-semibold text-content mt-1 tracking-tighter">Tu Leyenda</h2>
             </header>
 
             <div className="space-y-6">
                 <div>
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1 mb-2 block">Nombre de Guerrero</label>
+                    <label className="text-[10px] font-medium text-muted tracking-tight ml-1 mb-2 block">Nombre de Guerrero</label>
                     <input 
                         type="text" value={newName} onChange={e => setNewName(e.target.value)}
-                        className="w-full bg-black/40 border border-line/5 rounded-2xl px-5 py-4 text-content font-bold outline-none focus:border-line/20"
+                        className="w-full bg-app/40 border border-line/5 rounded-2xl px-5 py-4 text-content font-medium outline-none focus:border-line/20"
                     />
                 </div>
 
-                <div className="bg-black/40 border border-line/5 rounded-2xl p-4 flex items-center justify-between">
+                <div className="bg-app/40 border border-line/5 rounded-2xl p-4 flex items-center justify-between">
                     <div>
-                        <p className="text-[8px] font-black text-muted uppercase tracking-widest">Código de Invitación</p>
-                        <p className="text-lg font-black text-content tracking-widest font-mono italic">{userCode}</p>
+                        <p className="text-[11px] font-medium text-muted tracking-tight">Código de Invitación</p>
+                        <p className="text-lg font-medium text-content tracking-tight font-mono">{userCode}</p>
                     </div>
                     <button onClick={copyCode} className={`p-3 rounded-xl transition-all ${copied ? 'bg-accent text-content' : 'bg-surface-2 text-content'}`}>
                         {copied ? <Checkmark24Regular /> : <Copy24Regular />}
@@ -145,32 +145,32 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="bg-surface-2/50 p-4 rounded-2xl border border-line/5 flex flex-col items-center">
                         <Trophy24Regular className="text-amber-500 mb-1" />
-                        <span className="text-xl font-black text-content">{totalStreak}</span>
-                        <span className="text-[8px] font-black text-muted uppercase">Racha Total</span>
+                        <span className="text-xl font-semibold text-content">{totalStreak}</span>
+                        <span className="text-[11px] font-medium text-muted">Racha Total</span>
                     </div>
                     <div className="bg-surface-2/50 p-4 rounded-2xl border border-line/5 flex flex-col items-center">
                         <Checkmark24Regular className="text-accent mb-1" />
-                        <span className="text-xl font-black text-content">{habits.length}</span>
-                        <span className="text-[8px] font-black text-muted uppercase">Hábitos</span>
+                        <span className="text-xl font-semibold text-content">{habits.length}</span>
+                        <span className="text-[11px] font-medium text-muted">Hábitos</span>
                     </div>
                 </div>
 
                 {msg && (
-                    <p className={`text-center text-[10px] font-black uppercase ${msg.type === 's' ? 'text-accent' : 'text-rose-500'}`}>
+                    <p className={`text-center text-[10px] font-medium ${msg.type === 's' ? 'text-accent' : 'text-rose-500'}`}>
                         {msg.t}
                     </p>
                 )}
 
                 <button
                     onClick={() => setWrappedOpen(true)}
-                    className="w-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg"
+                    className="w-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 text-white py-4 rounded-2xl font-medium tracking-tight text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg"
                 >
                     📊 Mi Wrapped del mes
                 </button>
 
                 <button
                     onClick={openViewers}
-                    className="w-full bg-surface-2 text-content py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all border border-line/5"
+                    className="w-full bg-surface-2 text-content py-4 rounded-2xl font-medium tracking-tight text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all border border-line/5"
                 >
                     👀 Quién ha visto tu perfil
                 </button>
@@ -178,7 +178,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <div className="flex gap-4 pb-4">
                     <button 
                         onClick={handleUpdate} disabled={loading}
-                        className="flex-1 bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all outline-none"
+                        className="flex-1 bg-white text-black py-4 rounded-2xl font-medium tracking-tight text-[10px] flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all outline-none"
                     >
                         <Save24Regular /> {loading ? '...' : 'Guardar'}
                     </button>
@@ -197,24 +197,24 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
           {/* Quién te ha visto */}
           <AnimatePresence>
             {viewersOpen && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-app/95 backdrop-blur-xl">
                 <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-7 relative shadow-2xl max-h-[80vh] flex flex-col">
-                  <button onClick={() => setViewersOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted text-lg font-bold">✕</button>
+                  <button onClick={() => setViewersOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted text-lg font-medium">✕</button>
                   <div className="flex items-center gap-2 mb-5">
                     <span className="text-xl">👀</span>
-                    <h2 className="text-lg font-black text-content uppercase tracking-tighter italic">Quién te ha visto</h2>
+                    <h2 className="text-lg font-medium text-content tracking-tighter">Quién te ha visto</h2>
                   </div>
                   <div className="flex-1 overflow-y-auto hide-scrollbar space-y-2">
                     {viewersLoading ? (
                       <div className="flex justify-center py-12"><div className="w-7 h-7 border-2 border-line/10 border-t-white rounded-full animate-spin" /></div>
                     ) : viewers.length === 0 ? (
-                      <p className="text-center text-muted font-bold uppercase text-[10px] tracking-widest py-12">Aún no te ha visto nadie 👻</p>
+                      <p className="text-center text-muted font-medium text-[10px] tracking-tight py-12">Aún no te ha visto nadie 👻</p>
                     ) : viewers.map((v) => (
-                      <div key={v.id} className="flex items-center gap-3 bg-black/30 border border-line/5 rounded-2xl p-3">
-                        <div className="w-10 h-10 rounded-xl bg-surface-2 overflow-hidden flex items-center justify-center border border-line/5">
+                      <div key={v.id} className="flex items-center gap-3 bg-app/30 border border-line/5 rounded-2xl p-3">
+                        <div className="w-10 h-10 rounded-full bg-surface-2 overflow-hidden flex items-center justify-center border border-line/5">
                           {v.avatar?.startsWith('http') ? <img src={v.avatar} className="w-full h-full object-cover" /> : <Person24Regular className="text-muted" />}
                         </div>
-                        <span className="font-black text-content text-sm italic uppercase">{v.name}</span>
+                        <span className="font-normal text-content text-sm">{v.name}</span>
                       </div>
                     ))}
                   </div>

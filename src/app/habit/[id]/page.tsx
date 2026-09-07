@@ -2,29 +2,29 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useHabitStore';
+import { isCreator } from '@/store/useHabitStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft24Regular, 
-  Fire24Filled, 
-  Star24Regular, 
+  Fire24Regular,
   Search24Regular, 
   Trophy24Regular, 
   Checkmark24Regular, 
   Dismiss24Regular, 
   Calendar24Regular, 
   Share24Regular,
-  Add24Filled,
-  ArrowClockwise24Regular,
   Warning24Regular,
-  Person24Regular
+  Person24Regular,
+  People24Regular
 } from '@fluentui/react-icons';
 import { useState, useMemo } from 'react';
 import { YearlyHeatmap } from '@/components/ui/YearlyHeatmap';
+import { ReminderPicker } from '@/components/ui/ReminderPicker';
 
 export default function HabitDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { habits, friends, inviteToHabit, userId, habitReminders, setHabitReminder } = useAppStore();
+  const { habits, friends, inviteToHabit, userId, userCode, habitReminders, setHabitReminder } = useAppStore();
   const habit = habits.find(h => h.id === id);
   
   const [searchFriend, setSearchFriend] = useState('');
@@ -32,24 +32,8 @@ export default function HabitDetailPage() {
   const [feedback, setFeedback] = useState<{msg: string, type: 's'|'e'} | null>(null);
 
   const participants = habit?.participants || [];
+  const isShared = participants.length > 1;
 
-  const RANK_TITLES = [
-    "DIOS DE LA GUERRA",
-    "BESTIA INDOMABLE",
-    "EXTERMINADOR",
-    "TITÁN DE SANGRE",
-    "MÁQUINA DE MATAR",
-    "DEMONIO DEL HIERRO",
-    "GLADIADOR DE ÉLITE",
-    "CAZADOR DE ALMAS",
-    "DESTRUCTOR",
-    "MONSTRUO",
-    "BÁRBARO",
-    "SOLDADO RASO",
-    "RECLUTA DÉBIL",
-    "ESTORBO",
-    "BASURA HUMANA"
-  ];
   
   const participantsWithStats = useMemo(() => {
     return participants.map(p => {
@@ -63,18 +47,40 @@ export default function HabitDetailPage() {
     return [...participantsWithStats].sort((a, b) => b.totalCompletions - a.totalCompletions);
   }, [participantsWithStats]);
 
+  // Total propio: en retos individuales se muestra junto al título
+  const myCompletions = useMemo(
+    () => Object.values(habit?.history || {}).filter((v) => v === true).length,
+    [habit],
+  );
+
   const filteredFriends = friends.filter(f => 
     f.name.toLowerCase().includes(searchFriend.toLowerCase()) && 
     !participants.some(p => p.id === f.id)
   );
 
   if (!habit) return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-app flex flex-col items-center justify-center p-6 text-center">
         <Warning24Regular className="text-neutral-800 mb-4" style={{ fontSize: 48 }} />
-        <h1 className="text-content font-black text-xl uppercase tracking-tighter">Hábito no encontrado</h1>
-        <button onClick={() => router.push('/')} className="mt-4 text-accent font-bold uppercase text-[10px] tracking-widest border-b border-accent pb-1">Volver al Dashboard</button>
+        <h1 className="text-content font-semibold text-xl tracking-tighter">Hábito no encontrado</h1>
+        <button onClick={() => router.push('/')} className="mt-4 text-accent font-medium text-[10px] tracking-tight border-b border-accent pb-1">Volver al Dashboard</button>
     </div>
   );
+
+  // Enlace de invitación al reto. Lleva el reto y mi código: quien lo abra
+  // se une al reto y además nos hacemos amigos, aunque tenga que registrarse.
+  const shareHabit = async () => {
+    const url = `${window.location.origin}/?join=${habit.id}${userCode ? `&ref=${userCode}` : ''}`;
+    const text = `¡Únete a mi reto "${habit.title}" en GymRace!`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'GymRace', text, url });
+        return;
+      }
+    } catch { /* el usuario canceló el diálogo */ }
+    // Sin API de compartir (escritorio): abrimos WhatsApp directamente
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text}
+${url}`)}`, '_blank');
+  };
 
   const handleInvite = async (friendId: string, name: string) => {
     const res = await inviteToHabit(habit.id, friendId);
@@ -83,67 +89,67 @@ export default function HabitDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-content pb-32">
+    <div className="min-h-screen bg-app text-content pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-line/5 p-6">
+      <header className="sticky top-0 z-40 bg-app/80 backdrop-blur-xl border-b border-line/5 p-6">
         <div className="flex items-center justify-between mb-4">
             <button onClick={() => router.push('/')} className="p-3 bg-surface rounded-2xl border border-line/5 active:scale-90 transition-all">
                 <ArrowLeft24Regular />
             </button>
             <div className="flex -space-x-3 pr-2">
                 {participants.map(p => (
-                    <div key={p.id} className="w-10 h-10 rounded-xl border-2 border-black bg-surface-2 flex items-center justify-center text-sm shadow-xl overflow-hidden">
+                    <div key={p.id} className="w-10 h-10 rounded-full border-2 border-app bg-surface-2 flex items-center justify-center text-sm shadow-xl overflow-hidden">
                         {p.avatar.startsWith('http') ? <img src={p.avatar} className="w-full h-full object-cover" /> : p.avatar}
                     </div>
                 ))}
             </div>
             <div className="flex gap-2">
-                <button 
-                    onClick={async () => {
-                        const btn = document.getElementById('sync-habit-btn');
-                        btn?.classList.add('animate-spin');
-                        await useAppStore.getState().initialize();
-                        setTimeout(() => btn?.classList.remove('animate-spin'), 1000);
-                    }}
-                    className="p-3 bg-surface rounded-2xl border border-line/5 active:scale-95 transition-all text-muted hover:text-content"
-                >
-                    <ArrowClockwise24Regular id="sync-habit-btn" />
-                </button>
-                <button 
+                {/* Invitar amigos ya registrados */}
+                <button
                     onClick={() => setIsInviteModalOpen(true)}
-                    className="w-10 h-10 rounded-xl border-2 border-black bg-white text-black flex items-center justify-center shadow-xl active:scale-90 transition-all font-black"
+                    aria-label="Invitar amigos"
+                    className="w-10 h-10 rounded-full bg-surface border border-line/10 text-content flex items-center justify-center active:scale-90 transition-all"
                 >
-                    <Add24Filled />
+                    <People24Regular style={{ fontSize: 20 }} />
+                </button>
+                {/* Enlace para quien todavía no usa la app */}
+                <button
+                    onClick={shareHabit}
+                    aria-label="Compartir enlace del reto"
+                    className="w-10 h-10 rounded-full bg-accent text-black flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                >
+                    <Share24Regular style={{ fontSize: 20 }} />
                 </button>
             </div>
         </div>
-        <h1 className="text-4xl font-black tracking-tighter italic uppercase">{habit.title}</h1>
-        <div className="flex items-center gap-2 mt-3">
-          <span className="text-sm">⏰</span>
-          <input
-            type="time"
-            value={habitReminders[habit.id] || ''}
-            onChange={(e) => {
-              setHabitReminder(habit.id, e.target.value || null);
-              if (e.target.value && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-            }}
-            className="bg-surface border border-line/10 rounded-xl px-3 py-1.5 text-content font-black text-sm outline-none"
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="font-display lowercase first-letter:uppercase text-4xl font-bold tracking-tight">{habit.title}</h1>
+          {/* En retos individuales no hay podio: el total va aquí, con estrella */}
+          {!isShared && (
+            <span className="flex items-center gap-1 text-amber-500">
+              <Fire24Regular style={{ fontSize: 17 }} />
+              <span className="font-medium text-lg tabular-nums leading-none">{myCompletions}</span>
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2.5 mt-3">
+          <ReminderPicker
+            value={habitReminders[habit.id] || null}
+            onChange={(v) => setHabitReminder(habit.id, v)}
           />
-          <span className="text-[10px] font-black text-muted uppercase tracking-widest">
+          <span className="text-[10px] font-medium text-muted tracking-tight">
             {habitReminders[habit.id] ? 'Recordatorio diario' : 'Sin recordatorio'}
           </span>
-          {habitReminders[habit.id] && (
-            <button onClick={() => setHabitReminder(habit.id, null)} className="text-[10px] font-black text-rose-500 uppercase tracking-widest ml-1">Quitar</button>
-          )}
         </div>
       </header>
 
       <main className="p-6 space-y-12">
-        {/* PODIUM / RANKING */}
+        {/* PODIUM / RANKING — solo tiene sentido si el reto es colectivo */}
+        {isShared && (
         <section>
             <div className="flex items-center gap-2 mb-6">
-                <Trophy24Regular className="text-amber-500" />
-                <h2 className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Podio de Guerreros</h2>
+                <Trophy24Regular className="text-amber-500" style={{ fontSize: 18 }} />
+                <h2 className="text-[11px] font-medium text-muted tracking-tight">Podio</h2>
             </div>
             <div className="space-y-3">
                 {podium.map((p, i) => (
@@ -154,8 +160,8 @@ export default function HabitDetailPage() {
                     >
                         {i === 0 && <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 blur-2xl rounded-full -mr-12 -mt-12" />}
                         <div className="flex items-center gap-4 relative z-10">
-                            <span className={`text-lg font-black italic ${i === 0 ? 'text-amber-500' : 'text-muted'}`}>0{i + 1}</span>
-                            <div className="w-12 h-12 rounded-2xl bg-surface-2 border border-line/5 overflow-hidden flex items-center justify-center text-xl">
+                            <span className={`text-lg font-medium ${i === 0 ? 'text-amber-500' : 'text-muted'}`}>0{i + 1}</span>
+                            <div className="w-12 h-12 rounded-full bg-surface-2 border border-line/5 overflow-hidden flex items-center justify-center text-xl">
                                 {p.avatar && p.avatar.startsWith('http') ? (
                                     <img src={p.avatar} className="w-full h-full object-cover" />
                                 ) : (
@@ -163,60 +169,47 @@ export default function HabitDetailPage() {
                                 )}
                             </div>
                             <div>
-                                <div className="flex items-center gap-2 mb-1.5">
-                                    <h3 className="font-black text-content leading-none">
-                                        {p.name === userId ? 'Tú' : p.name}
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-normal text-content text-[15px] tracking-tight leading-none">
+                                        {p.id === userId ? 'Tú' : p.name}
                                     </h3>
-                                    {p.name.toLowerCase() === 'zzmillann' && (
-                                        <span className="bg-amber-500/10 text-amber-500 text-[7px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-[0.1em]">El Creador</span>
+                                    {isCreator(p.name) && (
+                                        <span className="bg-amber-500/10 text-amber-500 text-[10px] font-normal px-1.5 py-0.5 rounded-md border border-amber-500/20 tracking-tight">El Creador</span>
                                     )}
                                 </div>
-                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest italic ${i === 0 ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-white/10 text-muted'}`}>
-                                    {(() => {
-                                        const L = RANK_TITLES.length;
-                                        const N = podium.length;
-                                        if (N === 1) return RANK_TITLES[0];
-                                        const pick = Math.floor((i / (N - 1)) * (L - 1));
-                                        return RANK_TITLES[pick];
-                                    })()}
-                                </span>
                             </div>
                         </div>
                         <div className="flex flex-col items-end relative z-10">
                             <div className="flex items-baseline gap-1">
-                                <span className={`text-2xl font-black ${i === 0 ? 'text-amber-400' : 'text-content'}`}>{p.totalCompletions}</span>
-                                <Star24Regular className="text-amber-500 shadow-glow" />
+                                <span className={`text-2xl font-semibold ${i === 0 ? 'text-amber-400' : 'text-content'}`}>{p.totalCompletions}</span>
+                                <Fire24Regular className="text-amber-500" />
                             </div>
                         </div>
                     </motion.div>
                 ))}
             </div>
         </section>
+        )}
 
         {/* YEARLY GRAPHS PER PARTICIPANT */}
         <section className="space-y-12">
             <div className="flex items-center gap-2 px-1">
-                <Calendar24Regular className="text-muted" />
-                <h2 className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Gráficos de Combate (365d)</h2>
+                <Calendar24Regular className="text-muted" style={{ fontSize: 18 }} />
+                <h2 className="text-[11px] font-medium text-muted tracking-tight">Progreso del año</h2>
             </div>
             {participants.map((p, i) => (
                 <div key={p.id} className="space-y-4">
-                    <div className="flex items-center gap-3 px-2">
-                         <div className="w-8 h-8 rounded-lg bg-surface border border-line/5 overflow-hidden flex items-center justify-center text-sm">
-                            {p.avatar && p.avatar.startsWith('http') ? (
-                                <img src={p.avatar} className="w-full h-full object-cover" />
-                            ) : (
-                                <Person24Regular className="text-muted" style={{ fontSize: 16 }} />
-                            )}
-                         </div>
-                         <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                                <h4 className="font-black text-content text-sm uppercase tracking-tighter italic">{p.name === userId ? 'Tu Progreso' : `Progreso de ${p.name}`}</h4>
-                                {p.name.toLowerCase() === 'zzmillann' && (
-                                    <span className="bg-amber-500/10 text-amber-500 text-[7px] font-black px-1 py-0.5 rounded-md border border-amber-500/20 uppercase tracking-[0.1em]">El Creador</span>
-                                )}
-                            </div>
-                         </div>
+                    <div className="flex items-center gap-2 px-2">
+                        <h4 className="font-normal text-content/80 text-[15px] tracking-tight">
+                            {/* comparamos por id: antes se cotejaba p.name con userId
+                                (nombre contra id) y nunca coincidía */}
+                            {participants.length <= 1 || p.id === userId
+                              ? 'Mi progreso'
+                              : `Progreso de ${p.name}`}
+                        </h4>
+                        {isCreator(p.name) && (
+                            <span className="bg-amber-500/10 text-amber-500 text-[10px] font-medium px-1 py-0.5 rounded-md border border-amber-500/20 tracking-[0.1em]">El Creador</span>
+                        )}
                     </div>
                     <YearlyHeatmap data={p.history} colorTheme={habit.colorTheme} startDate={habit.createdAt} />
                 </div>
@@ -227,7 +220,7 @@ export default function HabitDetailPage() {
       {/* INVITE MODAL */}
       <AnimatePresence>
         {isInviteModalOpen && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-app/95 backdrop-blur-xl flex items-center justify-center p-6">
                 <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="bg-surface border border-line/10 w-full max-w-md rounded-[48px] p-8 shadow-3xl relative overflow-hidden">
                     <button onClick={() => setIsInviteModalOpen(false)} className="absolute top-6 right-6 text-muted p-2"><Dismiss24Regular /></button>
                     
@@ -235,31 +228,31 @@ export default function HabitDetailPage() {
                         <div className="w-16 h-16 bg-white rounded-3xl mb-4 flex items-center justify-center text-black shadow-xl">
                             <Share24Regular style={{ fontSize: 32 }} />
                         </div>
-                        <h2 className="text-3xl font-black text-content italic uppercase tracking-tighter leading-none mb-1">Invitar al Reto</h2>
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest">Escoge a tus compañeros de armas</p>
+                        <h2 className="text-3xl font-semibold text-content tracking-tighter leading-none mb-1">Invitar al Reto</h2>
+                        <p className="text-[10px] font-medium text-muted tracking-tight">Escoge a tus compañeros de armas</p>
                     </header>
 
                     <div className="relative mb-8">
                         <Search24Regular className="absolute left-6 top-1/2 -translate-y-1/2 text-muted" />
                         <input 
                             type="text" placeholder="Busca entre tus amigos..." value={searchFriend} onChange={e => setSearchFriend(e.target.value)}
-                            className="w-full bg-black/40 border border-line/5 rounded-3xl pl-16 pr-6 py-6 text-content font-bold outline-none focus:border-line/10 transition-all text-sm"
+                            className="w-full bg-app/40 border border-line/5 rounded-3xl pl-16 pr-6 py-6 text-content font-medium outline-none focus:border-line/10 transition-all text-sm"
                         />
                     </div>
 
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                        {filteredFriends.length === 0 && <p className="text-center text-[10px] font-black text-muted uppercase py-10">No hay amigos disponibles para invitar</p>}
+                        {filteredFriends.length === 0 && <p className="text-center text-[10px] font-medium text-muted py-10">No hay amigos disponibles para invitar</p>}
                         {filteredFriends.map(f => (
-                            <div key={f.id} className="bg-black/20 border border-line/5 p-4 rounded-3xl flex items-center justify-between">
+                            <div key={f.id} className="bg-app/20 border border-line/5 p-4 rounded-3xl flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-surface-2 flex items-center justify-center text-lg overflow-hidden border border-line/5 shadow-inner">
+                                    <div className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center text-lg overflow-hidden border border-line/5 shadow-inner">
                                         {f.avatar?.startsWith('http') ? (
                                             <img src={f.avatar} className="w-full h-full object-cover" />
                                         ) : (
                                             <Person24Regular className="text-muted" />
                                         )}
                                     </div>
-                                    <h4 className="font-black text-content">{f.name}</h4>
+                                    <h4 className="font-medium text-content">{f.name}</h4>
                                 </div>
                                 <button 
                                     onClick={() => handleInvite(f.id, f.name)}
@@ -272,7 +265,7 @@ export default function HabitDetailPage() {
                     </div>
 
                     {feedback && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`mt-6 p-4 rounded-2xl text-[10px] font-black uppercase text-center tracking-widest ${feedback.type === 's' ? 'bg-accent text-content' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`mt-6 p-4 rounded-2xl text-[10px] font-medium text-center tracking-tight ${feedback.type === 's' ? 'bg-accent text-content' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
                             {feedback.msg}
                         </motion.div>
                     )}

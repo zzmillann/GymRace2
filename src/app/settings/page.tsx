@@ -3,7 +3,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft24Regular } from '@fluentui/react-icons';
+import { ArrowLeft24Regular, Fire24Regular } from '@fluentui/react-icons';
+import { ThemeGallery } from '@/components/ui/ThemeGallery';
+import {
+  User, KeyRound, Ticket, Bell, AlarmClock, Clock, CalendarDays, Users,
+  Moon, Palette, Globe, Scale, Calendar, CalendarRange, Vibrate, Volume2, PartyPopper,
+  Eye, Trophy, Share2, UserPlus, Cloud, Save, FileDown, FileText, HelpCircle,
+  Shield, Star, LogOut, AlertTriangle, Crown, Sparkles, Lock,
+} from 'lucide-react';
 import { useAppStore, FREE_ACTIVITY_LIMIT } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
 import { ProfileView } from '@/components/ui/ProfileView';
@@ -120,18 +127,18 @@ export default function SettingsPage() {
       .head { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:3px solid ${accent}; padding-bottom:20px; margin-bottom:32px; }
       .brand { font-size:42px; font-weight:900; font-style:italic; letter-spacing:-2px; }
       .brand span { color:${accent}; }
-      .meta { text-align:right; font-size:12px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:1px; line-height:1.6; }
+      .meta { text-align:right; font-size:12px; color:#666; font-weight:700; letter-spacing:1px; line-height:1.6; }
       .stats { display:flex; gap:16px; margin-bottom:36px; }
       .stat { flex:1; background:#f5f5f5; border-radius:20px; padding:22px; text-align:center; }
       .stat .num { font-size:40px; font-weight:900; color:${accent}; letter-spacing:-1px; }
-      .stat .lbl { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:#888; margin-top:4px; }
-      h2 { font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#aaa; margin:28px 0 12px; }
+      .stat .lbl { font-size:10px; font-weight:800; letter-spacing:1.5px; color:#888; margin-top:4px; }
+      h2 { font-size:13px; font-weight:900; letter-spacing:2px; color:#aaa; margin:28px 0 12px; }
       .row { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:#fafafa; border:1px solid #eee; border-radius:16px; margin-bottom:8px; }
       .rt { font-weight:800; font-size:15px; }
       .rs { font-size:12px; color:#999; font-weight:600; margin-top:2px; }
       .pill { background:${accent}1a; color:${accent}; font-weight:900; font-size:12px; padding:6px 14px; border-radius:999px; white-space:nowrap; }
       .empty { color:#bbb; font-weight:700; font-size:13px; padding:10px 18px; }
-      .foot { margin-top:40px; text-align:center; font-size:9px; color:#ccc; text-transform:uppercase; letter-spacing:3px; font-style:italic; }
+      .foot { margin-top:40px; text-align:center; font-size:9px; color:#ccc; letter-spacing:3px; font-style:italic; }
     </style></head><body>
       <div class="head">
         <div class="brand">GYM<span>RACE</span></div>
@@ -168,7 +175,7 @@ export default function SettingsPage() {
         >
           <ArrowLeft24Regular />
         </button>
-        <h1 className="text-3xl font-black tracking-tighter text-content uppercase italic">{t('set.title')}</h1>
+        <h1 className="text-3xl font-semibold tracking-tighter text-content">{t('set.title')}</h1>
       </header>
 
       {/* ───────── SUSCRIPCIÓN ───────── */}
@@ -176,13 +183,13 @@ export default function SettingsPage() {
         <div className="relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-accent to-accent shadow-[0_10px_40px_rgba(16,185,129,0.3)]">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">👑</span>
-            <p className="text-content font-black uppercase tracking-tighter text-lg italic">GymRace Pro</p>
+            <Crown size={20} strokeWidth={2} className="text-content" />
+            <p className="text-content font-medium tracking-tighter text-lg">GymRace Pro</p>
           </div>
-          <p className="text-content/80 text-xs font-bold mb-5">{planLabel(subscriptionPlan)} · {t('set.unlimited')}</p>
+          <p className="text-content/80 text-xs font-medium mb-5">{planLabel(subscriptionPlan)} · {t('set.unlimited')}</p>
           <div className="flex gap-3">
-            <button onClick={() => showToast('Gestiona tu plan desde la App Store')} className="flex-1 bg-white/20 backdrop-blur text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">{t('set.manage')}</button>
-            <button onClick={() => { cancelPro(); showToast('Suscripción cancelada'); }} className="px-5 bg-black/20 text-content py-3 rounded-2xl font-black uppercase tracking-widest text-[10px]">{t('common.cancel')}</button>
+            <button onClick={() => showToast('Gestiona tu plan desde la App Store')} className="flex-1 bg-white/20 backdrop-blur text-content py-3 rounded-2xl font-medium tracking-tight text-[10px]">{t('set.manage')}</button>
+            <button onClick={() => { cancelPro(); showToast('Suscripción cancelada'); }} className="px-5 bg-app/20 text-content py-3 rounded-2xl font-medium tracking-tight text-[10px]">{t('common.cancel')}</button>
           </div>
         </div>
       ) : (
@@ -192,16 +199,16 @@ export default function SettingsPage() {
         >
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/20 blur-3xl rounded-full" />
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">✨</span>
-            <p className="text-content font-black uppercase tracking-tighter text-lg italic">{t('set.goPro')} <span className="text-accent">Pro</span></p>
+            <Sparkles size={18} strokeWidth={2} className="text-accent" />
+            <p className="text-content font-medium tracking-tighter text-lg">{t('set.goPro')} <span className="text-accent">Pro</span></p>
           </div>
-          <p className="text-muted text-xs font-bold mb-4">{t('set.proPitch')}</p>
+          <p className="text-muted text-xs font-medium mb-4">{t('set.proPitch')}</p>
 
           {/* Barra de uso del plan gratis */}
-          <div className="bg-black/40 rounded-2xl p-4">
+          <div className="bg-app/40 rounded-2xl p-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] font-black text-muted uppercase tracking-widest">{t('set.freePlan')}</span>
-              <span className="text-[10px] font-black text-content">{usage} / {FREE_ACTIVITY_LIMIT} {t('set.activities')}</span>
+              <span className="text-[10px] font-medium text-muted tracking-tight">{t('set.freePlan')}</span>
+              <span className="text-[10px] font-medium text-content">{usage} / {FREE_ACTIVITY_LIMIT} {t('set.activities')}</span>
             </div>
             <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
               <motion.div
@@ -210,10 +217,10 @@ export default function SettingsPage() {
               />
             </div>
             {usage >= FREE_ACTIVITY_LIMIT && (
-              <p className="text-rose-400 text-[10px] font-bold mt-2">{t('set.limitReached')}</p>
+              <p className="text-rose-400 text-[10px] font-medium mt-2">{t('set.limitReached')}</p>
             )}
           </div>
-          <div className="flex items-center justify-center gap-1 mt-4 text-accent font-black uppercase tracking-widest text-[11px]">
+          <div className="flex items-center justify-center gap-1 mt-4 text-accent font-medium tracking-tight text-[11px]">
             {t('set.seePlans')} →
           </div>
         </button>
@@ -221,71 +228,76 @@ export default function SettingsPage() {
 
       {/* ───────── CUENTA ───────── */}
       <Section title={t('set.sec.account')}>
-        <NavRow icon="🧑" label={t('set.editProfile')} sub={userName} onClick={() => setProfileOpen(true)}>
+        <NavRow icon={<User size={19} strokeWidth={2} />} label={t('set.editProfile')} sub={userName} onClick={() => setProfileOpen(true)}>
           <div className="w-8 h-8 rounded-lg bg-surface-2 overflow-hidden flex items-center justify-center text-sm">
             {userAvatar?.startsWith('http') ? <img src={userAvatar} className="w-full h-full object-cover" /> : userAvatar}
           </div>
         </NavRow>
-        <NavRow icon="🔑" label={t('set.changePass')} onClick={() => { setPwError(''); setNewPass(''); setConfirmPass(''); setPwOpen(true); }} />
-        <NavRow icon="🎟️" label={t('set.inviteCode')} sub={userCode} onClick={() => { navigator.clipboard?.writeText(userCode); showToast('Código copiado'); }} />
+        <NavRow icon={<KeyRound size={19} strokeWidth={2} />} label={t('set.changePass')} onClick={() => { setPwError(''); setNewPass(''); setConfirmPass(''); setPwOpen(true); }} />
+        <NavRow icon={<Ticket size={19} strokeWidth={2} />} label={t('set.inviteCode')} sub={userCode} onClick={() => { navigator.clipboard?.writeText(userCode); showToast('Código copiado'); }} />
       </Section>
 
       {/* ───────── NOTIFICACIONES ───────── */}
       <Section title={t('set.sec.notifs')}>
-        <ToggleRow icon="🔔" label={t('set.pushNotifs')} checked={settings.pushEnabled} onChange={() => updateSettings({ pushEnabled: !settings.pushEnabled })} />
-        <ToggleRow icon="⏰" label={t('set.dailyReminder')} sub={t('set.dailyReminderSub')} checked={settings.dailyReminder} onChange={toggleDailyReminder} />
+        <ToggleRow icon={<Bell size={19} strokeWidth={2} />} label={t('set.pushNotifs')} checked={settings.pushEnabled} onChange={() => updateSettings({ pushEnabled: !settings.pushEnabled })} />
+        <ToggleRow icon={<AlarmClock size={19} strokeWidth={2} />} label={t('set.dailyReminder')} sub={t('set.dailyReminderSub')} checked={settings.dailyReminder} onChange={toggleDailyReminder} />
         {settings.dailyReminder && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-line/5">
             <div className="flex items-center gap-3">
-              <span className="text-lg">🕐</span>
-              <span className="text-content font-bold text-sm">{t('set.reminderTime')}</span>
+              <span className="text-muted"><Clock size={19} strokeWidth={2} /></span>
+              <span className="text-content font-medium text-sm">{t('set.reminderTime')}</span>
             </div>
             <input
               type="time" value={settings.reminderTime}
               onChange={(e) => updateSettings({ reminderTime: e.target.value })}
-              className="bg-surface-2 border border-line/5 rounded-xl px-3 py-2 text-content font-black outline-none"
+              className="bg-surface-2 border border-line/5 rounded-xl px-3 py-2 text-content font-medium outline-none"
             />
           </div>
         )}
-        <ToggleRow icon="🔥" label={t('set.streakAlerts')} checked={settings.streakAlerts} onChange={() => updateSettings({ streakAlerts: !settings.streakAlerts })} />
-        <ToggleRow icon="🗓️" label={t('set.weeklySummary')} checked={settings.weeklySummary} onChange={() => updateSettings({ weeklySummary: !settings.weeklySummary })} />
-        <ToggleRow icon="👥" label={t('set.socialNotifs')} sub={t('set.socialNotifsSub')} checked={settings.socialNotifs} onChange={() => updateSettings({ socialNotifs: !settings.socialNotifs })} />
+        <ToggleRow icon={<Fire24Regular style={{ fontSize: 19 }} className="text-orange-400" />} label={t('set.streakAlerts')} checked={settings.streakAlerts} onChange={() => updateSettings({ streakAlerts: !settings.streakAlerts })} />
+        <ToggleRow icon={<CalendarDays size={19} strokeWidth={2} />} label={t('set.weeklySummary')} checked={settings.weeklySummary} onChange={() => updateSettings({ weeklySummary: !settings.weeklySummary })} />
+        <ToggleRow icon={<Users size={19} strokeWidth={2} />} label={t('set.socialNotifs')} sub={t('set.socialNotifsSub')} checked={settings.socialNotifs} onChange={() => updateSettings({ socialNotifs: !settings.socialNotifs })} />
       </Section>
 
       {/* ───────── APARIENCIA ───────── */}
       <Section title={t('set.sec.appearance')}>
-        <SelectRow icon="🌙" label={t('set.theme')} value={settings.theme} pro={!isPro}
-          options={[{ v: 'dark', l: t('opt.dark') }, { v: 'light', l: t('opt.light') }, { v: 'system', l: t('opt.system') }]}
+        <div className="px-1 pt-1"><ThemeGallery /></div>
+        <SelectRow icon={<Moon size={19} strokeWidth={2} />} label={t('set.theme')} value={settings.theme} pro={!isPro}
+          options={[{ v: 'dark', l: t('opt.dark') }, { v: 'midnight', l: 'Medianoche' }, { v: 'light', l: t('opt.light') }, { v: 'system', l: t('opt.system') }]}
           onChange={(v) => updateSettings({ theme: v as any })} onLocked={() => openPaywall('Los temas son una función Pro.')} />
-        <SelectRow icon="🎨" label={t('set.accent')} value={settings.accentColor} pro={!isPro}
+        <SelectRow icon={<Palette size={19} strokeWidth={2} />} label={t('set.accent')} value={settings.accentColor} pro={!isPro}
           options={[{ v: 'emerald', l: t('opt.emerald') }, { v: 'indigo', l: t('opt.indigo') }, { v: 'rose', l: t('opt.rose') }, { v: 'amber', l: t('opt.amber') }, { v: 'sky', l: t('opt.sky') }]}
           onChange={(v) => updateSettings({ accentColor: v })} onLocked={() => openPaywall('La personalización de color es Pro.')} />
-        <SelectRow icon="🌐" label={t('set.language')} value={settings.language}
+        <SelectRow icon={<Globe size={19} strokeWidth={2} />} label={t('set.language')} value={settings.language}
           options={[{ v: 'es', l: t('opt.es') }, { v: 'en', l: t('opt.en') }]}
           onChange={(v) => updateSettings({ language: v as any })} />
+        <ToggleRow icon={<PartyPopper size={19} strokeWidth={2} />} label="Confeti al completar"
+          sub="Sale del color del hábito"
+          checked={settings.confetti !== false}
+          onChange={() => updateSettings({ confetti: settings.confetti === false })} />
       </Section>
 
       {/* ───────── UNIDADES Y PREFERENCIAS ───────── */}
       <Section title={t('set.sec.units')}>
-        <SelectRow icon="⚖️" label={t('set.weightUnit')} value={settings.weightUnit}
+        <SelectRow icon={<Scale size={19} strokeWidth={2} />} label={t('set.weightUnit')} value={settings.weightUnit}
           options={[{ v: 'kg', l: t('opt.kg') }, { v: 'lb', l: t('opt.lb') }]}
           onChange={(v) => updateSettings({ weightUnit: v as any })} />
-        <SelectRow icon="📅" label={t('set.weekStart')} value={settings.weekStart}
+        <SelectRow icon={<Calendar size={19} strokeWidth={2} />} label={t('set.weekStart')} value={settings.weekStart}
           options={[{ v: 'monday', l: t('opt.monday') }, { v: 'sunday', l: t('opt.sunday') }]}
           onChange={(v) => updateSettings({ weekStart: v as any })} />
-        <SelectRow icon="🗓️" label={t('set.dateFormat')} value={settings.dateFormat}
+        <SelectRow icon={<CalendarRange size={19} strokeWidth={2} />} label={t('set.dateFormat')} value={settings.dateFormat}
           options={[{ v: 'dmy', l: 'DD/MM/AAAA' }, { v: 'mdy', l: 'MM/DD/AAAA' }]}
           onChange={(v) => updateSettings({ dateFormat: v as any })} />
-        <ToggleRow icon="📳" label={t('set.haptics')} checked={settings.hapticFeedback} onChange={() => updateSettings({ hapticFeedback: !settings.hapticFeedback })} />
-        <ToggleRow icon="🔊" label={t('set.sound')} checked={settings.soundEffects} onChange={() => updateSettings({ soundEffects: !settings.soundEffects })} />
+        <ToggleRow icon={<Vibrate size={19} strokeWidth={2} />} label={t('set.haptics')} checked={settings.hapticFeedback} onChange={() => updateSettings({ hapticFeedback: !settings.hapticFeedback })} />
+        <ToggleRow icon={<Volume2 size={19} strokeWidth={2} />} label={t('set.sound')} checked={settings.soundEffects} onChange={() => updateSettings({ soundEffects: !settings.soundEffects })} />
       </Section>
 
       {/* ───────── PRIVACIDAD ───────── */}
       <Section title={t('set.sec.privacy')}>
-        <ToggleRow icon="👁️" label={t('set.publicProfile')} checked={settings.publicProfile} onChange={() => updateSettings({ publicProfile: !settings.publicProfile })} />
-        <ToggleRow icon="🏆" label={t('set.leaderboard')} checked={settings.showInLeaderboard} onChange={() => updateSettings({ showInLeaderboard: !settings.showInLeaderboard })} />
-        <ToggleRow icon="📤" label={t('set.shareProgress')} checked={settings.shareProgress} onChange={() => updateSettings({ shareProgress: !settings.shareProgress })} />
-        <SelectRow icon="➕" label={t('set.whoInvites')} value={settings.allowInvites}
+        <ToggleRow icon={<Eye size={19} strokeWidth={2} />} label={t('set.publicProfile')} checked={settings.publicProfile} onChange={() => updateSettings({ publicProfile: !settings.publicProfile })} />
+        <ToggleRow icon={<Trophy size={19} strokeWidth={2} />} label={t('set.leaderboard')} checked={settings.showInLeaderboard} onChange={() => updateSettings({ showInLeaderboard: !settings.showInLeaderboard })} />
+        <ToggleRow icon={<Share2 size={19} strokeWidth={2} />} label={t('set.shareProgress')} checked={settings.shareProgress} onChange={() => updateSettings({ shareProgress: !settings.shareProgress })} />
+        <SelectRow icon={<UserPlus size={19} strokeWidth={2} />} label={t('set.whoInvites')} value={settings.allowInvites}
           options={[{ v: 'everyone', l: t('opt.everyone') }, { v: 'friends', l: t('opt.friends') }, { v: 'none', l: t('opt.none') }]}
           onChange={(v) => updateSettings({ allowInvites: v as any })} />
       </Section>
@@ -296,11 +308,11 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <SpotifyLogo />
             <div className="min-w-0">
-              <p className="text-content font-bold text-sm">{spotify.connected ? t('set.spotifyConnected') : t('set.spotifyConnect')}</p>
+              <p className="text-content font-medium text-sm">{spotify.connected ? t('set.spotifyConnected') : t('set.spotifyConnect')}</p>
               {spotify.connected && (
                 nowPlaying?.track
-                  ? <p className="text-[#1DB954] text-[11px] font-bold truncate">🎧 {nowPlaying.track} · {nowPlaying.artist}</p>
-                  : <p className="text-muted text-[11px] font-medium">Reproduce algo en Spotify · {t('set.spotifyDisconnect')}</p>
+                  ? <p className="text-[#1DB954] text-[11px] font-medium truncate">🎧 {nowPlaying.track} · {nowPlaying.artist}</p>
+                  : <p className="text-muted text-[11px] font-normal">Reproduce algo en Spotify · {t('set.spotifyDisconnect')}</p>
               )}
             </div>
           </div>
@@ -310,34 +322,34 @@ export default function SettingsPage() {
 
       {/* ───────── DATOS ───────── */}
       <Section title={t('set.sec.data')}>
-        <ToggleRow icon="☁️" label={t('set.cloudSync')} pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
-        <ToggleRow icon="💾" label={t('set.autoBackup')} pro={!isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
-        <NavRow icon="📄" label={t('set.export')} pro={!isPro} onClick={exportPDF} />
+        <ToggleRow icon={<Cloud size={19} strokeWidth={2} />} label={t('set.cloudSync')} pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
+        <ToggleRow icon={<Save size={19} strokeWidth={2} />} label={t('set.autoBackup')} pro={!isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
+        <NavRow icon={<FileDown size={19} strokeWidth={2} />} label={t('set.export')} pro={!isPro} onClick={exportPDF} />
       </Section>
 
       {/* ───────── SOPORTE ───────── */}
       <Section title={t('set.sec.support')}>
-        <NavRow icon="❓" label={t('set.help')} onClick={() => showToast('Abriendo ayuda…')} />
-        <NavRow icon="📄" label={t('set.terms')} onClick={() => showToast('Abriendo términos…')} />
-        <NavRow icon="🛡️" label={t('set.privacy')} onClick={() => showToast('Abriendo privacidad…')} />
-        <NavRow icon="⭐" label={t('set.rate')} onClick={() => showToast('¡Gracias por tu apoyo! ⭐')} />
+        <NavRow icon={<HelpCircle size={19} strokeWidth={2} />} label={t('set.help')} onClick={() => showToast('Abriendo ayuda…')} />
+        <NavRow icon={<FileText size={19} strokeWidth={2} />} label={t('set.terms')} onClick={() => showToast('Abriendo términos…')} />
+        <NavRow icon={<Shield size={19} strokeWidth={2} />} label={t('set.privacy')} onClick={() => showToast('Abriendo privacidad…')} />
+        <NavRow icon={<Star size={19} strokeWidth={2} />} label={t('set.rate')} onClick={() => showToast('¡Gracias por tu apoyo! ⭐')} />
         <div className="flex items-center justify-between px-5 py-4 border-t border-line/5">
-          <span className="text-muted font-bold text-sm">{t('set.version')}</span>
-          <span className="text-muted font-black text-sm">{APP_VERSION}</span>
+          <span className="text-muted font-medium text-sm">{t('set.version')}</span>
+          <span className="text-muted font-medium text-sm">{APP_VERSION}</span>
         </div>
       </Section>
 
       {/* ───────── ZONA PELIGROSA ───────── */}
       <Section title={t('set.sec.danger')}>
-        <button onClick={async () => { await signOut(); router.push('/'); }} className="w-full flex items-center gap-3 px-5 py-4 text-rose-400 font-black active:bg-white/5 transition-colors">
-          <span className="text-lg">🚪</span> {t('set.logout')}
+        <button onClick={async () => { await signOut(); router.push('/'); }} className="w-full flex items-center gap-3 px-5 py-4 text-rose-400 font-medium active:bg-white/5 transition-colors">
+          <LogOut size={19} strokeWidth={2} /> {t('set.logout')}
         </button>
-        <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-black border-t border-line/5 active:bg-white/5 transition-colors">
-          <span className="text-lg">⚠️</span> {t('set.deleteAccount')}
+        <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-medium border-t border-line/5 active:bg-white/5 transition-colors">
+          <AlertTriangle size={19} strokeWidth={2} /> {t('set.deleteAccount')}
         </button>
       </Section>
 
-      <p className="text-center text-[9px] text-muted font-extralight uppercase tracking-[0.4em] italic mt-8">
+      <p className="text-center text-[11px] text-muted font-extralight tracking-tight mt-8">
         Developed by Alejandro Millán
       </p>
 
@@ -346,7 +358,7 @@ export default function SettingsPage() {
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl z-[200] text-center"
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-2xl font-medium text-xs tracking-tight shadow-2xl z-[200] text-center"
           >
             {toast}
           </motion.div>
@@ -361,32 +373,32 @@ export default function SettingsPage() {
         {pwOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[550] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+            className="fixed inset-0 z-[550] flex items-center justify-center p-4 bg-app/80 backdrop-blur-xl"
           >
             <motion.div
               initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
               className="bg-surface border border-line/10 w-full max-w-sm rounded-[36px] p-7 relative shadow-2xl"
             >
-              <button onClick={() => setPwOpen(false)} className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted hover:text-content transition-colors text-lg font-bold">✕</button>
+              <button onClick={() => setPwOpen(false)} className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted hover:text-content transition-colors text-lg font-medium">✕</button>
               <div className="flex items-center gap-2 mb-6">
-                <span className="text-xl">🔑</span>
-                <h2 className="text-xl font-black text-content uppercase tracking-tighter italic">{t('set.changePass')}</h2>
+                <KeyRound size={20} strokeWidth={2} className="text-content" />
+                <h2 className="text-xl font-semibold text-content tracking-tighter">{t('set.changePass')}</h2>
               </div>
               <div className="flex flex-col gap-3">
                 <input
                   type="password" placeholder={t('set.newPassword')} value={newPass}
                   onChange={(e) => setNewPass(e.target.value)}
-                  className="w-full bg-app border border-line/5 rounded-2xl px-5 py-4 text-content font-bold outline-none focus:border-accent/50 transition-all"
+                  className="w-full bg-app border border-line/5 rounded-2xl px-5 py-4 text-content font-medium outline-none focus:border-accent/50 transition-all"
                 />
                 <input
                   type="password" placeholder={t('set.repeatPassword')} value={confirmPass}
                   onChange={(e) => setConfirmPass(e.target.value)}
-                  className="w-full bg-app border border-line/5 rounded-2xl px-5 py-4 text-content font-bold outline-none focus:border-accent/50 transition-all"
+                  className="w-full bg-app border border-line/5 rounded-2xl px-5 py-4 text-content font-medium outline-none focus:border-accent/50 transition-all"
                 />
-                {pwError && <p className="text-rose-500 text-[11px] font-black uppercase text-center">{pwError}</p>}
+                {pwError && <p className="text-rose-500 text-[11px] font-medium text-center">{pwError}</p>}
                 <button
                   onClick={handleChangePassword} disabled={pwLoading}
-                  className="w-full bg-accent text-black py-4 rounded-2xl font-black uppercase tracking-widest text-sm mt-1 active:scale-[0.98] transition-transform disabled:opacity-50"
+                  className="w-full bg-accent text-black py-4 rounded-2xl font-medium tracking-tight text-sm mt-1 active:scale-[0.98] transition-transform disabled:opacity-50"
                 >
                   {pwLoading ? '...' : t('common.save')}
                 </button>
@@ -404,7 +416,7 @@ export default function SettingsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-7">
-      <h2 className="text-[10px] font-black text-muted uppercase tracking-[0.25em] mb-3 ml-2">{title}</h2>
+      <h2 className="text-[11px] font-medium text-muted tracking-tight mb-3 ml-2">{title}</h2>
       <div className="bg-surface border border-line/5 rounded-[28px] overflow-hidden">{children}</div>
     </div>
   );
@@ -420,25 +432,25 @@ function SpotifyLogo() {
 
 function ProBadge() {
   return (
-    <span className="flex items-center gap-0.5 text-[8px] font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-      🔒 Pro
+    <span className="flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full tracking-wider">
+      <Lock size={10} strokeWidth={2.5} /> Pro
     </span>
   );
 }
 
 function ToggleRow({
   icon, label, sub, checked, onChange, pro,
-}: { icon: string; label: string; sub?: string; checked: boolean; onChange: () => void; pro?: boolean }) {
+}: { icon: React.ReactNode; label: string; sub?: string; checked: boolean; onChange: () => void; pro?: boolean }) {
   return (
     <div className="flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0">
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-lg flex-shrink-0">{icon}</span>
+        <span className="flex-shrink-0 text-muted">{icon}</span>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-content font-bold text-sm">{label}</span>
+            <span className="text-content font-medium text-sm">{label}</span>
             {pro && <ProBadge />}
           </div>
-          {sub && <p className="text-muted text-[11px] font-medium leading-tight">{sub}</p>}
+          {sub && <p className="text-muted text-[11px] font-normal leading-tight">{sub}</p>}
         </div>
       </div>
       <button
@@ -453,19 +465,19 @@ function ToggleRow({
 
 function NavRow({
   icon, label, sub, onClick, pro, children,
-}: { icon: string; label: string; sub?: string; onClick: () => void; pro?: boolean; children?: React.ReactNode }) {
+}: { icon: React.ReactNode; label: string; sub?: string; onClick: () => void; pro?: boolean; children?: React.ReactNode }) {
   return (
     <button onClick={onClick} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-lg flex-shrink-0">{icon}</span>
+        <span className="flex-shrink-0 text-muted">{icon}</span>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-content font-bold text-sm">{label}</span>
+          <span className="text-content font-medium text-sm">{label}</span>
           {pro && <ProBadge />}
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {children}
-        {sub && <span className="text-muted font-bold text-xs">{sub}</span>}
+        {sub && <span className="text-muted font-medium text-xs">{sub}</span>}
         <span className="text-muted">›</span>
       </div>
     </button>
@@ -475,7 +487,7 @@ function NavRow({
 function SelectRow({
   icon, label, value, options, onChange, pro, onLocked,
 }: {
-  icon: string; label: string; value: string; options: { v: string; l: string }[];
+  icon: React.ReactNode; label: string; value: string; options: { v: string; l: string }[];
   onChange: (v: string) => void; pro?: boolean; onLocked?: () => void;
 }) {
   const cycle = () => {
@@ -487,12 +499,12 @@ function SelectRow({
   return (
     <button onClick={cycle} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
       <div className="flex items-center gap-3">
-        <span className="text-lg">{icon}</span>
-        <span className="text-content font-bold text-sm">{label}</span>
+        <span className="text-muted">{icon}</span>
+        <span className="text-content font-medium text-sm">{label}</span>
         {pro && <ProBadge />}
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-accent font-black text-xs uppercase tracking-wider">{current?.l}</span>
+        <span className="text-accent font-medium text-xs tracking-wider">{current?.l}</span>
         <span className="text-muted">›</span>
       </div>
     </button>

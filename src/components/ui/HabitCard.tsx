@@ -2,13 +2,12 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Fire24Filled, 
   CheckmarkCircle24Filled, 
   Circle24Regular 
 } from '@fluentui/react-icons';
+import { Flame } from '@/components/ui/Flame';
 import { format, subDays } from 'date-fns';
 import { useMemo } from 'react';
-import { Badge } from './Badge';
 import { useAppStore } from '@/store/useHabitStore';
 import { haptic, playDing, confettiBurst } from '@/lib/feedback';
 
@@ -80,31 +79,34 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.97 }}
         onTap={onClick}
-        className="w-full text-left bg-surface border border-line/10 rounded-[32px] p-6 flex flex-col gap-5 relative overflow-hidden group cursor-pointer shadow-xl active:bg-surface-2/80 transition-colors"
+        className="w-full text-left rounded-[32px] p-6 flex flex-col gap-5 relative overflow-hidden group cursor-pointer transition-colors
+                   bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14]
+                   shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:bg-white/[0.10] active:bg-white/[0.12]"
       >
-        <div className={`absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full blur-3xl opacity-20 ${theme.bg}`} />
+        {/* brillo superior, el reflejo típico del cristal */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+        <div className={`absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full blur-3xl opacity-30 ${theme.bg}`} />
 
-        <div className="flex justify-between items-start z-10 pr-12">
+        <div className="flex justify-between items-start z-10 pr-14">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-2xl font-black tracking-tight text-content">{title}</h3>
+                <h3 className="font-display lowercase first-letter:uppercase text-2xl font-semibold tracking-tight text-content">{title}</h3>
                 {isShared && (
                   <motion.div 
                     animate={{ x: [0, 2, 0] }} transition={{ repeat: Infinity, duration: 2 }}
-                    className="p-1 px-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg text-[8px] font-black uppercase text-black tracking-widest shadow-lg"
+                    className="p-1 px-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg text-[11px] font-medium text-black tracking-tight shadow-lg"
                   >
                     Competición
                   </motion.div>
                 )}
             </div>
             <div className="flex items-center gap-2">
-                <Badge level={totalCompletions} />
                 {isShared && (
-                    <div className="flex -space-x-2 ml-2">
+                    <div className="flex -space-x-2">
                         {participants.map((p, i) => (
                             <motion.div 
                               initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 }}
-                              key={p.id} className="w-8 h-8 rounded-xl border-2 border-neutral-950 bg-surface-2 flex items-center justify-center text-[10px] overflow-hidden shadow-xl"
+                              key={p.id} className="w-8 h-8 rounded-full border-2 border-app bg-surface-2 flex items-center justify-center text-[10px] overflow-hidden shadow-xl"
                             >
                                 {p.avatar.startsWith('http') ? <img src={p.avatar} className="w-full h-full object-cover" /> : p.avatar}
                             </motion.div>
@@ -114,8 +116,8 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
             </div>
           </div>
           <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-2xl ${theme.bg} ${theme.text} border border-line/5 shadow-inner`}>
-            <Fire24Filled className="animate-pulse" />
-            <span className="font-black text-lg">{streak}</span>
+            <Flame size={20} />
+            <span className="font-medium text-lg">{streak}</span>
           </div>
         </div>
 
@@ -132,13 +134,13 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
       </motion.div>
 
       {/* Botón flotante para marcar el día de hoy, separado del onClick de la tarjeta */}
-      <motion.button 
+      <motion.button
         whileTap={{ scale: 1.4 }}
         onClick={(e) => {
           e.stopPropagation();
           // Feedback al marcar (solo al COMPLETAR, no al desmarcar)
           if (!isCompletedToday) {
-            confettiBurst();
+            if (settings.confetti !== false) confettiBurst(colorTheme);
             if (settings.hapticFeedback) haptic([20, 30, 60]);
             if (settings.soundEffects) playDing();
           } else if (settings.hapticFeedback) {
@@ -155,9 +157,9 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
               initial={{ scale: 0, rotate: -45 }}
               animate={{ scale: 1, rotate: 0 }}
               exit={{ scale: 0, rotate: 45 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
             >
-              <CheckmarkCircle24Filled className={theme.text} style={{ fontSize: 42 }} />
+              <CheckmarkCircle24Filled className={theme.text} style={{ fontSize: 54 }} />
             </motion.div>
           ) : (
             <motion.div
@@ -166,7 +168,7 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
             >
-              <Circle24Regular className="text-muted hover:text-muted transition-colors" style={{ fontSize: 42 }} />
+              <Circle24Regular className="text-muted hover:text-muted transition-colors" style={{ fontSize: 54 }} />
             </motion.div>
           )}
         </AnimatePresence>

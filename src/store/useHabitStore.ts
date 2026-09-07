@@ -18,6 +18,7 @@ export interface HabitInvitation {
 }
 
 export interface Exercise { id: string; name: string; muscle: string; weightHistory: number[]; }
+export interface RouteRec { id: number; coords: [number, number][]; distance_m: number; duration_s: number; created_at: string; }
 export interface Book { id: string; title: string; author: string; pages: number; readPages: number; }
 export interface Friend {
   id: string; name: string; code: string; avatar?: string;
@@ -52,6 +53,23 @@ export const FREE_ACTIVITY_LIMIT = 3;
 
 export type SubscriptionPlan = 'free' | 'weekly' | 'monthly' | 'quarterly';
 
+/**
+ * Cuenta del creador: siempre Pro, sin pasar por el paywall.
+ * Provisional — lo suyo es marcar is_pro = true en su fila de `profiles`:
+ *   update profiles set is_pro = true, subscription_plan = 'monthly'
+ *   where lower(user_name) = 'zzmillann';
+ * Mientras tanto, esto lo resuelve en el cliente.
+ */
+export const CREATOR_USERNAME = 'zzmillann';
+export const isCreator = (name?: string) =>
+  (name || '').trim().toLowerCase() === CREATOR_USERNAME;
+
+/** Primera letra en mayúscula, respetando el resto de lo que escriba el usuario. */
+const capitalize = (t?: string) => {
+  const v = (t || '').trim();
+  return v ? v.charAt(0).toUpperCase() + v.slice(1) : '';
+};
+
 export interface AppSettings {
   // Notificaciones
   pushEnabled: boolean;
@@ -61,11 +79,14 @@ export interface AppSettings {
   weeklySummary: boolean;
   socialNotifs: boolean;
   // Apariencia
-  theme: 'dark' | 'light' | 'system';
+  theme: 'dark' | 'light' | 'system' | 'midnight';
   accentColor: string;
+  palette: string;      // estilo de color (ver src/lib/palettes.ts)
+  confetti: boolean;   // confeti al completar un hábito
   language: 'es' | 'en';
   // Unidades y preferencias
   weightUnit: 'kg' | 'lb';
+  bodyWeightKg: number; // peso corporal, para estimar calorías en las rutas
   weekStart: 'monday' | 'sunday';
   dateFormat: 'dmy' | 'mdy';
   hapticFeedback: boolean;
@@ -89,8 +110,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   socialNotifs: true,
   theme: 'dark',
   accentColor: 'emerald',
+  palette: 'aurora',
+  confetti: true,
   language: 'es',
   weightUnit: 'kg',
+  bodyWeightKg: 70,
   weekStart: 'monday',
   dateFormat: 'dmy',
   hapticFeedback: true,
@@ -135,6 +159,10 @@ interface AppState {
   // Shared Habits
   inviteToHabit: (habitId: string, friendId: string) => Promise<{ success: boolean; message: string }>;
   acceptHabitInvitation: (invitationId: string) => Promise<void>;
+  /** Unirse a un reto desde un enlace compartido (y hacerse amigo de quien invita) */
+  joinHabitByLink: (habitId: string, inviterCode?: string) => Promise<{ success: boolean; message: string; title?: string }>;
+  /** Datos del reto para pintar la invitación antes de entrar */
+  getHabitPreview: (habitId: string) => Promise<{ id: string; title: string; owner: string; ownerAvatar: string; members: number } | null>;
   declineHabitInvitation: (invitationId: string) => Promise<void>;
 
   // Gym
@@ -160,6 +188,9 @@ interface AppState {
   getUserDetails: (id: string) => Promise<{ id: string; name: string; code: string; avatar: string; friendCount: number; totalCompletions: number; maxStreak: number; rank: number } | null>;
   logProfileView: (profileId: string) => Promise<void>;
   getProfileViewers: () => Promise<{ id: string; name: string; avatar: string; when: string }[]>;
+  saveRoute: (coords: [number, number][], distanceM: number, durationS: number) => Promise<void>;
+  getRoutes: () => Promise<RouteRec[]>;
+  deleteRoute: (id: number) => Promise<void>;
   logStudy: (minutes: number) => Promise<void>;
   getStudyStats: () => Promise<{ today: number; week: number; month: number }>;
   getStudyRanking: () => Promise<{ id: string; name: string; avatar: string; minutes: number }[]>;
@@ -225,7 +256,7 @@ export const useAppStore = create<AppState>()(
       cancelPro: () => set({ isPro: false, subscriptionPlan: 'free' }),
       restorePro: async () => {
         // En producción aquí se validaría el recibo con la App Store / Stripe.
-        return get().isPro;
+        return get().isPro || isCreator(get().userName);
       },
       updateSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
       getActivityCount: () => {
@@ -234,7 +265,7 @@ export const useAppStore = create<AppState>()(
       },
       canCreateActivity: () => {
         const s = get();
-        return s.isPro || s.getActivityCount() < FREE_ACTIVITY_LIMIT;
+        return s.isPro || isCreator(s.userName) || s.getActivityCount() < FREE_ACTIVITY_LIMIT;
       },
 
       // --- Spotify ---
@@ -405,6 +436,19 @@ export const useAppStore = create<AppState>()(
             .select('user_id, streak, habits(title, max_streak)')
             .in('user_id', friendIds) : { data: [] };
 
+          // Migración puntual: los hábitos guardados antes de la regla de
+          // capitalizar siguen en minúscula en la base. Los normalizamos una vez.
+          const needFix = (allHabitsRaw || []).filter(
+            (h: any) => h?.title && h.title !== capitalize(h.title),
+          );
+          if (needFix.length) {
+            Promise.all(
+              needFix.map((h: any) =>
+                supabase.from('habits').update({ title: capitalize(h.title) }).eq('id', h.id),
+              ),
+            ).catch(() => { /* si falla, al menos se ve bien en la app */ });
+          }
+
           set({
             userId: currentUserId,
             userCode: profile.user_code,
@@ -413,13 +457,15 @@ export const useAppStore = create<AppState>()(
             userFrame: profile.profile_frame || 'none',
             initialized: true,
             // Estado Pro real desde Supabase (lo marca el webhook de Stripe)
-            isPro: profile.is_pro || false,
-            subscriptionPlan: profile.subscription_plan || 'free',
+            isPro: profile.is_pro || isCreator(profile.user_name),
+            subscriptionPlan: profile.subscription_plan || (isCreator(profile.user_name) ? 'monthly' : 'free'),
             habits: (allHabitsRaw || []).map((h: any) => {
               if (!h) return null;
               const myPart = (participantsRaw || []).find((p: any) => p.habit_id === h.id && p.user_id === currentUserId);
               return {
-                id: h.id, title: h.title, colorTheme: h.color_theme, 
+                // capitalize también al leer: los hábitos creados antes de esta
+                // regla siguen guardados en minúscula (ver migración más abajo)
+                id: h.id, title: capitalize(h.title), colorTheme: h.color_theme,
                 // Individual progress for shared habits
                 history: myPart?.history || h.history || {},
                 streak: myPart?.streak || h.streak || 0,
@@ -628,7 +674,7 @@ export const useAppStore = create<AppState>()(
         const hId = crypto.randomUUID();
         const newHabit: Habit = {
           id: hId,
-          title: habit.title || 'Nuevo Hábito',
+          title: capitalize(habit.title) || 'Nuevo hábito',
           colorTheme: habit.colorTheme || 'emerald',
           history: {},
           streak: 0,
@@ -674,6 +720,58 @@ export const useAppStore = create<AppState>()(
         ]);
 
         return { success: true, message: '¡Invitación enviada!' };
+      },
+
+      getHabitPreview: async (habitId) => {
+        const { data: h } = await supabase
+          .from('habits').select('id, title, user_id').eq('id', habitId).single();
+        if (!h) return null;
+        const { data: owner } = await supabase
+          .from('profiles').select('user_name, avatar_url').eq('id', h.user_id).single();
+        const { count } = await supabase
+          .from('habit_participants').select('*', { count: 'exact', head: true }).eq('habit_id', habitId);
+        return {
+          id: h.id,
+          title: capitalize(h.title),
+          owner: owner?.user_name || 'Alguien',
+          ownerAvatar: owner?.avatar_url || '',
+          members: count || 1,
+        };
+      },
+
+      joinHabitByLink: async (habitId, inviterCode) => {
+        const uid = get().userId;
+        if (!uid) return { success: false, message: 'Necesitas iniciar sesión' };
+
+        const { data: h } = await supabase
+          .from('habits').select('id, title, user_id').eq('id', habitId).single();
+        if (!h) return { success: false, message: 'Ese reto ya no existe' };
+
+        // 1. Entrar al reto (upsert: si ya estaba dentro, no duplica)
+        const { error } = await supabase.from('habit_participants').upsert(
+          [{ habit_id: habitId, user_id: uid }],
+          { onConflict: 'habit_id,user_id' },
+        );
+        if (error) return { success: false, message: 'No se pudo entrar al reto' };
+
+        // 2. Amistad automática con quien te invitó: el enlace ya es la
+        //    aceptación por ambas partes, así que la damos por aceptada.
+        const inviterId = inviterCode
+          ? (await get().getProfileByCode(inviterCode))?.id
+          : h.user_id;
+
+        if (inviterId && inviterId !== uid) {
+          await supabase.from('friendships').upsert(
+            [
+              { user_id: uid, friend_id: inviterId, status: 'accepted' },
+              { user_id: inviterId, friend_id: uid, status: 'accepted' },
+            ],
+            { onConflict: 'user_id,friend_id' },
+          );
+        }
+
+        await get().initialize();
+        return { success: true, message: '¡Dentro!', title: capitalize(h.title) };
       },
 
       acceptHabitInvitation: async (invitationId) => {
@@ -841,6 +939,20 @@ export const useAppStore = create<AppState>()(
         return out;
       },
 
+      saveRoute: async (coords, distanceM, durationS) => {
+        const uid = get().userId;
+        if (!uid || coords.length < 2) return;
+        try { await supabase.from('routes').insert({ user_id: uid, coords, distance_m: Math.round(distanceM), duration_s: Math.round(durationS) }); } catch { /* tabla aún sin crear */ }
+      },
+      getRoutes: async () => {
+        const uid = get().userId;
+        if (!uid) return [];
+        const { data } = await supabase.from('routes').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(50);
+        return (data || []) as RouteRec[];
+      },
+      deleteRoute: async (id) => {
+        try { await supabase.from('routes').delete().eq('id', id); } catch { /* noop */ }
+      },
       logStudy: async (minutes) => {
         const uid = get().userId;
         if (!uid || minutes <= 0) return;

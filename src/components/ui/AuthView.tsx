@@ -6,10 +6,11 @@ import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } 
 import { useAppStore } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
 
-export function AuthView() {
+export function AuthView({ invite }: { invite?: { title: string; owner: string } } = {}) {
   const { signUp, signIn, resetPassword } = useAppStore();
   const t = useT();
-  const [isLogin, setIsLogin] = useState(true);
+  // Si vienes de una invitación lo normal es que no tengas cuenta
+  const [isLogin, setIsLogin] = useState(!invite);
   const [forgot, setForgot] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,7 +91,7 @@ export function AuthView() {
           className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl flex items-center gap-3"
         >
           <AlertCircle className="text-rose-500 flex-shrink-0" size={18} />
-          <p className="text-rose-500 text-[11px] font-black uppercase leading-tight">{error}</p>
+          <p className="text-rose-500 text-[11px] font-medium leading-tight">{error}</p>
         </motion.div>
       )}
       {success && (
@@ -99,14 +100,14 @@ export function AuthView() {
           className="bg-accent/10 border border-accent/20 p-4 rounded-2xl flex items-center gap-3"
         >
           <CheckCircle2 className="text-accent flex-shrink-0" size={18} />
-          <p className="text-accent text-[11px] font-black uppercase leading-tight">{success}</p>
+          <p className="text-accent text-[11px] font-medium leading-tight">{success}</p>
         </motion.div>
       )}
     </AnimatePresence>
   );
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-app flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-accent/10 blur-[130px] rounded-full" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-indigo-500/10 blur-[130px] rounded-full" />
@@ -117,8 +118,24 @@ export function AuthView() {
         className="w-full max-w-sm relative z-10"
       >
         <header className="text-center mb-10">
-          <h1 className="text-5xl font-black tracking-tighter text-content mb-2 italic">GYMRACE</h1>
-          <p className="text-muted font-bold uppercase text-[9px] tracking-[0.4em]">{t('auth.subtitle')}</p>
+          <h1 className="text-5xl font-semibold tracking-tighter text-content italic">GYMRACE</h1>
+
+          {/* Llega desde un enlace de reto: le contamos a qué entra y por qué
+              tiene que crearse la cuenta antes. */}
+          {invite && (
+            <div className="mt-6 bg-accent/10 border border-accent/25 rounded-3xl px-5 py-4 text-left">
+              <p className="text-[11px] font-medium text-accent tracking-tight mb-1">
+                {invite.owner} te ha invitado
+              </p>
+              <p className="font-display lowercase first-letter:uppercase text-2xl font-semibold text-content leading-tight">
+                {invite.title}
+              </p>
+              <p className="text-[12px] text-muted mt-2 leading-snug">
+                Crea tu perfil y entrarás al reto automáticamente. Además os
+                agregaréis como amigos.
+              </p>
+            </div>
+          )}
         </header>
 
         <div className="bg-surface/50 backdrop-blur-xl border border-line/5 p-8 rounded-[40px] shadow-2xl">
@@ -126,8 +143,8 @@ export function AuthView() {
             /* ───────── RESTABLECER CONTRASEÑA ───────── */
             <>
               <div className="mb-6 text-center">
-                <h2 className="text-xl font-black text-content uppercase tracking-tighter italic">{t('auth.resetTitle')}</h2>
-                <p className="text-muted text-[11px] font-bold mt-2 leading-relaxed">
+                <h2 className="text-xl font-semibold text-content tracking-tighter">{t('auth.resetTitle')}</h2>
+                <p className="text-muted text-[11px] font-medium mt-2 leading-relaxed">
                   {t('auth.resetHelp')}
                 </p>
               </div>
@@ -136,7 +153,7 @@ export function AuthView() {
                   <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                   <input
                     type="text" placeholder={t('auth.resetField')} value={resetId} onChange={e => setResetId(e.target.value)}
-                    className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
+                    className="w-full bg-app/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-medium placeholder:font-normal outline-none focus:border-line/20 transition-all text-sm"
                   />
                 </div>
 
@@ -145,7 +162,7 @@ export function AuthView() {
                 <motion.button
                   whileTap={{ scale: 0.96 }} transition={{ duration: 0.06 }}
                   type="submit" disabled={loading}
-                  className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-2 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
+                  className="w-full bg-white text-black py-5 rounded-3xl font-medium tracking-tight mt-2 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
                 >
                   {loading ? t('auth.resetSending') : t('auth.resetSend')}
                   <ArrowRight size={20} strokeWidth={3} />
@@ -155,7 +172,7 @@ export function AuthView() {
               <footer className="mt-8 text-center">
                 <button
                   onClick={() => { setForgot(false); clearMsgs(); }}
-                  className="text-muted text-xs font-bold hover:text-content transition-all uppercase tracking-widest"
+                  className="text-muted text-xs font-medium hover:text-content transition-all tracking-tight"
                 >
                   {t('auth.resetBack')}
                 </button>
@@ -171,7 +188,7 @@ export function AuthView() {
                       <User className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                       <input
                         type="text" placeholder={t('auth.username')} value={name} onChange={e => setName(e.target.value)}
-                        className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
+                        className="w-full bg-app/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-medium placeholder:font-normal outline-none focus:border-line/20 transition-all text-sm"
                       />
                     </>
                   ) : (
@@ -179,7 +196,7 @@ export function AuthView() {
                       <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                       <input
                         type="email" placeholder={t('auth.email')} value={email} onChange={e => setEmail(e.target.value)}
-                        className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
+                        className="w-full bg-app/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-medium placeholder:font-normal outline-none focus:border-line/20 transition-all text-sm"
                       />
                     </>
                   )}
@@ -196,7 +213,7 @@ export function AuthView() {
                       <User className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                       <input
                         type="text" placeholder={t('auth.name')} value={name} onChange={e => setName(e.target.value)}
-                        className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
+                        className="w-full bg-app/40 border border-line/5 rounded-2xl pl-14 pr-6 py-5 text-content font-medium placeholder:font-normal outline-none focus:border-line/20 transition-all text-sm"
                       />
                     </motion.div>
                   )}
@@ -206,7 +223,7 @@ export function AuthView() {
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
                   <input
                     type={showPassword ? 'text' : 'password'} placeholder={t('auth.password')} value={password} onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-black/40 border border-line/5 rounded-2xl pl-14 pr-14 py-5 text-content font-bold outline-none focus:border-line/20 transition-all text-sm"
+                    className="w-full bg-app/40 border border-line/5 rounded-2xl pl-14 pr-14 py-5 text-content font-medium placeholder:font-normal outline-none focus:border-line/20 transition-all text-sm"
                   />
                   <button
                     type="button" onClick={() => setShowPassword(s => !s)}
@@ -222,7 +239,7 @@ export function AuthView() {
                     <button
                       type="button"
                       onClick={() => { setForgot(true); clearMsgs(); setResetId(name); }}
-                      className="text-muted text-[11px] font-bold hover:text-content transition-all"
+                      className="text-muted text-[11px] font-medium hover:text-content transition-all"
                     >
                       {t('auth.forgot')}
                     </button>
@@ -234,17 +251,16 @@ export function AuthView() {
                 <motion.button
                   whileTap={{ scale: 0.96 }} transition={{ duration: 0.06 }}
                   type="submit" disabled={loading}
-                  className="w-full bg-white text-black py-5 rounded-3xl font-black uppercase tracking-widest mt-4 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
+                  className="w-full bg-white text-black py-5 rounded-3xl font-medium tracking-tight mt-4 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
                 >
                   {loading ? t('auth.loading') : (isLogin ? t('auth.login') : t('auth.signup'))}
-                  <ArrowRight size={20} strokeWidth={3} />
                 </motion.button>
               </form>
 
               <footer className="mt-8 text-center">
                 <button
                   onClick={() => { setIsLogin(!isLogin); clearMsgs(); }}
-                  className="text-muted text-xs font-bold hover:text-content transition-all uppercase tracking-widest"
+                  className="text-muted text-xs font-medium hover:text-content transition-all tracking-tight"
                 >
                   {isLogin ? t('auth.toSignup') : t('auth.toLogin')}
                 </button>
@@ -257,7 +273,7 @@ export function AuthView() {
       <div
         className="fixed bottom-12 left-0 right-0 text-center z-0 opacity-30"
       >
-        <p className="text-[9px] text-content font-extralight uppercase tracking-[0.6em] italic">Developed by Alejandro Millán</p>
+        <p className="text-[11px] text-content font-extralight tracking-tight">Developed by Alejandro Millán</p>
       </div>
     </div>
   );
