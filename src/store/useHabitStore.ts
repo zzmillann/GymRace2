@@ -51,6 +51,18 @@ export interface NowPlayingState { track: string; artist: string; isPlaying: boo
 // 👉 Cambia este único número para ajustar cuántas actividades son gratis.
 export const FREE_ACTIVITY_LIMIT = 3;
 
+/**
+ * Interruptor del modelo de pago.
+ *
+ * En false (ahora): todo el mundo es Pro, sin límite de actividades y sin que
+ * llegue a aparecer el paywall. La lógica de suscripción, Stripe y los planes
+ * sigue intacta debajo — solo está desactivada.
+ *
+ * Para volver a cobrar, poner esto en true. No hace falta tocar nada más:
+ * el límite, el paywall y la pantalla de planes reviven solos.
+ */
+export const PAYWALL_ENABLED = false;
+
 export type SubscriptionPlan = 'free' | 'weekly' | 'monthly' | 'quarterly';
 
 /**
@@ -250,12 +262,16 @@ export const useAppStore = create<AppState>()(
       subscriptionPlan: 'free',
       paywall: { open: false, reason: '' },
       settings: DEFAULT_SETTINGS,
-      openPaywall: (reason = '') => set({ paywall: { open: true, reason } }),
+      openPaywall: (reason = '') => {
+        if (!PAYWALL_ENABLED) return;   // desactivado: no molestamos con el muro
+        set({ paywall: { open: true, reason } });
+      },
       closePaywall: () => set({ paywall: { open: false, reason: '' } }),
       activatePro: (plan) => set({ isPro: true, subscriptionPlan: plan, paywall: { open: false, reason: '' } }),
       cancelPro: () => set({ isPro: false, subscriptionPlan: 'free' }),
       restorePro: async () => {
         // En producción aquí se validaría el recibo con la App Store / Stripe.
+        if (!PAYWALL_ENABLED) return true;
         return get().isPro || isCreator(get().userName);
       },
       updateSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
@@ -265,6 +281,7 @@ export const useAppStore = create<AppState>()(
       },
       canCreateActivity: () => {
         const s = get();
+        if (!PAYWALL_ENABLED) return true;
         return s.isPro || isCreator(s.userName) || s.getActivityCount() < FREE_ACTIVITY_LIMIT;
       },
 
@@ -457,7 +474,7 @@ export const useAppStore = create<AppState>()(
             userFrame: profile.profile_frame || 'none',
             initialized: true,
             // Estado Pro real desde Supabase (lo marca el webhook de Stripe)
-            isPro: profile.is_pro || isCreator(profile.user_name),
+            isPro: !PAYWALL_ENABLED || profile.is_pro || isCreator(profile.user_name),
             subscriptionPlan: profile.subscription_plan || (isCreator(profile.user_name) ? 'monthly' : 'free'),
             habits: (allHabitsRaw || []).map((h: any) => {
               if (!h) return null;
@@ -1111,6 +1128,13 @@ export const useAppStore = create<AppState>()(
       },
       removeFriend: (id) => set(state => ({ friends: state.friends.filter(f => f.id !== id) }))
     }),
-    { name: 'gymrace-persistent-store-v7' }
+    {
+      name: 'gymrace-persistent-store-v7',
+      // La pestaña activa no se guarda: al abrir la app siempre se entra por
+      // Hábitos, no por donde se quedó la última vez.
+      onRehydrateStorage: () => (state) => {
+        if (state) state.activeTab = 'habits';
+      },
+    }
   )
 );

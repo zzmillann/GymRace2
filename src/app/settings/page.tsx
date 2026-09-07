@@ -11,7 +11,7 @@ import {
   Eye, Trophy, Share2, UserPlus, Cloud, Save, FileDown, FileText, HelpCircle,
   Shield, Star, LogOut, AlertTriangle, Crown, Sparkles, Lock,
 } from 'lucide-react';
-import { useAppStore, FREE_ACTIVITY_LIMIT } from '@/store/useHabitStore';
+import { useAppStore, FREE_ACTIVITY_LIMIT, PAYWALL_ENABLED } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
 import { ProfileView } from '@/components/ui/ProfileView';
 import { beginSpotifyAuth, spotifyEnabled } from '@/lib/spotify';
@@ -179,7 +179,8 @@ export default function SettingsPage() {
       </header>
 
       {/* ───────── SUSCRIPCIÓN ───────── */}
-      {isPro ? (
+      {/* Oculta mientras PAYWALL_ENABLED sea false: todo el mundo es Pro */}
+      {PAYWALL_ENABLED && (isPro ? (
         <div className="relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-accent to-accent shadow-[0_10px_40px_rgba(16,185,129,0.3)]">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
           <div className="flex items-center gap-2 mb-1">
@@ -224,7 +225,7 @@ export default function SettingsPage() {
             {t('set.seePlans')} →
           </div>
         </button>
-      )}
+      ))}
 
       {/* ───────── CUENTA ───────── */}
       <Section title={t('set.sec.account')}>
@@ -262,10 +263,10 @@ export default function SettingsPage() {
       {/* ───────── APARIENCIA ───────── */}
       <Section title={t('set.sec.appearance')}>
         <div className="px-1 pt-1"><ThemeGallery /></div>
-        <SelectRow icon={<Moon size={19} strokeWidth={2} />} label={t('set.theme')} value={settings.theme} pro={!isPro}
+        <SelectRow icon={<Moon size={19} strokeWidth={2} />} label={t('set.theme')} value={settings.theme} pro={PAYWALL_ENABLED && !isPro}
           options={[{ v: 'dark', l: t('opt.dark') }, { v: 'midnight', l: 'Medianoche' }, { v: 'light', l: t('opt.light') }, { v: 'system', l: t('opt.system') }]}
           onChange={(v) => updateSettings({ theme: v as any })} onLocked={() => openPaywall('Los temas son una función Pro.')} />
-        <SelectRow icon={<Palette size={19} strokeWidth={2} />} label={t('set.accent')} value={settings.accentColor} pro={!isPro}
+        <SelectRow icon={<Palette size={19} strokeWidth={2} />} label={t('set.accent')} value={settings.accentColor} pro={PAYWALL_ENABLED && !isPro}
           options={[{ v: 'emerald', l: t('opt.emerald') }, { v: 'indigo', l: t('opt.indigo') }, { v: 'rose', l: t('opt.rose') }, { v: 'amber', l: t('opt.amber') }, { v: 'sky', l: t('opt.sky') }]}
           onChange={(v) => updateSettings({ accentColor: v })} onLocked={() => openPaywall('La personalización de color es Pro.')} />
         <SelectRow icon={<Globe size={19} strokeWidth={2} />} label={t('set.language')} value={settings.language}
@@ -322,9 +323,9 @@ export default function SettingsPage() {
 
       {/* ───────── DATOS ───────── */}
       <Section title={t('set.sec.data')}>
-        <ToggleRow icon={<Cloud size={19} strokeWidth={2} />} label={t('set.cloudSync')} pro={!isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
-        <ToggleRow icon={<Save size={19} strokeWidth={2} />} label={t('set.autoBackup')} pro={!isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
-        <NavRow icon={<FileDown size={19} strokeWidth={2} />} label={t('set.export')} pro={!isPro} onClick={exportPDF} />
+        <ToggleRow icon={<Cloud size={19} strokeWidth={2} />} label={t('set.cloudSync')} pro={PAYWALL_ENABLED && !isPro} checked={settings.cloudSync} onChange={() => proToggle('cloudSync')} />
+        <ToggleRow icon={<Save size={19} strokeWidth={2} />} label={t('set.autoBackup')} pro={PAYWALL_ENABLED && !isPro} checked={settings.autoBackup} onChange={() => proToggle('autoBackup')} />
+        <NavRow icon={<FileDown size={19} strokeWidth={2} />} label={t('set.export')} pro={PAYWALL_ENABLED && !isPro} onClick={exportPDF} />
       </Section>
 
       {/* ───────── SOPORTE ───────── */}
