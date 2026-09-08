@@ -81,7 +81,8 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
         onTap={onClick}
         className="w-full text-left rounded-[32px] p-6 flex flex-col gap-5 relative overflow-hidden group cursor-pointer transition-colors
                    bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14]
-                   shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:bg-white/[0.10] active:bg-white/[0.12]"
+                   shadow-[0_10px_36px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.16),inset_0_-1px_0_rgba(0,0,0,0.22)]
+                   hover:bg-white/[0.10] active:bg-white/[0.12]"
       >
         {/* brillo superior, el reflejo típico del cristal */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
@@ -150,28 +151,31 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
         }}
         className="absolute top-5 right-5 z-20 focus:outline-none"
       >
-        <AnimatePresence mode="wait">
-          {isCompletedToday ? (
-            <motion.div
-              key="checked"
-              initial={{ scale: 0, rotate: -45 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0, rotate: 45 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-            >
-              <CheckmarkCircle24Filled className={theme.text} style={{ fontSize: 54 }} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="unchecked"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-            >
-              <Circle24Regular className="text-muted hover:text-muted transition-colors" style={{ fontSize: 54 }} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Los dos estados se superponen y se cruzan a la vez. Con
+            AnimatePresence mode="wait" había que esperar a que saliera uno
+            para que entrara el otro: se veía cortado y lento, y al desmarcar
+            el círculo vacío tardaba en volver. */}
+        <span className="relative block" style={{ width: 54, height: 54 }}>
+          <motion.span
+            className="absolute inset-0 flex items-center justify-center text-muted"
+            animate={{ opacity: isCompletedToday ? 0 : 1, scale: isCompletedToday ? 0.7 : 1 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            <Circle24Regular style={{ fontSize: 54 }} />
+          </motion.span>
+          <motion.span
+            className={`absolute inset-0 flex items-center justify-center ${theme.text}`}
+            initial={false}
+            animate={{
+              opacity: isCompletedToday ? 1 : 0,
+              scale: isCompletedToday ? 1 : 0.5,
+              rotate: isCompletedToday ? 0 : -35,
+            }}
+            transition={{ type: 'spring', stiffness: 500, damping: 22, mass: 0.6 }}
+          >
+            <CheckmarkCircle24Filled style={{ fontSize: 54 }} />
+          </motion.span>
+        </span>
       </motion.button>
     </div>
   );

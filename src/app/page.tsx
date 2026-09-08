@@ -247,12 +247,13 @@ export default function Home() {
                   <h1 className="text-3xl font-semibold tracking-tighter text-content leading-none">{userName.split(' ')[0]}</h1>
                 </div>
               </div>
-              <button
+              {/* Ajustes solo desde Hábitos */}
+              {activeTab === 'habits' && <button
                 onClick={() => router.push('/settings')}
                 className="w-10 h-10 bg-surface border border-line/5 rounded-2xl flex items-center justify-center text-muted active:scale-95 transition-all hover:text-content"
               >
                 <Settings24Regular />
-              </button>
+              </button>}
             </header>
 
             <section className="mb-10 flex flex-col gap-4">
@@ -268,8 +269,20 @@ export default function Home() {
                 )}
                 {habits.map((habit, idx) => (
                   <motion.div
-                    layout key={habit.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.14, delay: Math.min(idx * 0.02, 0.08) }}
+                    /* Entrada suave y escalonada: caen desde arriba una tras
+                       otra, en vez de aparecer todas de golpe */
+                    layout
+                    key={habit.id}
+                    initial={{ opacity: 0, y: -18, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.94 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 260,
+                      damping: 26,
+                      mass: 0.9,
+                      delay: Math.min(idx * 0.07, 0.42),
+                    }}
                   >
                     <HabitCard
                       id={habit.id} title={habit.title} streak={habit.streak} colorTheme={habit.colorTheme}
@@ -473,7 +486,7 @@ export default function Home() {
               </button>
               <h2 className="text-2xl font-semibold text-content mb-8 tracking-tighter text-center">Añadir Libro</h2>
               <div className="flex flex-col gap-4">
-                <input autoFocus placeholder="Título" value={newLibTitle} onChange={e => setNewLibTitle(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none text-content text-center" />
+                <input placeholder="Título" value={newLibTitle} onChange={e => setNewLibTitle(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none text-content text-center" />
                 <input placeholder="Autor" value={newLibAuthor} onChange={e => setNewLibAuthor(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none text-content text-center" />
                 <input type="number" placeholder="Páginas" value={newLibPages} onChange={e => setNewLibPages(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none text-content text-center" />
                 <button 

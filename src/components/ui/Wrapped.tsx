@@ -134,7 +134,7 @@ export function Wrapped({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
             onClick={(e) => { e.stopPropagation(); shareWrapped(stats, rank, monthName); }}
             className="mt-8 bg-white text-black px-8 py-4 rounded-2xl font-medium tracking-tight text-xs active:scale-95 transition-all"
           >
-            📤 Compartir
+            Compartir
           </button>
         </>
       ),
@@ -197,10 +197,18 @@ function Row({ k, v }: { k: string; v: string }) {
 }
 
 function shareWrapped(stats: any, rank: number | null, month: string) {
-  const text = `Mi mes en GymRace (${month}): ${stats.monthCompletions} actividades, mejor racha ${stats.bestStreak} 🔥, Top mundial #${rank ?? '—'}. 💪`;
+  const text = `Mi mes en GymRace (${month}): ${stats.monthCompletions} actividades, mejor racha ${stats.bestStreak}, Top mundial #${rank ?? '—'}`;
+  const url = typeof window !== 'undefined' ? window.location.origin : '';
+
+  // navigator.share solo existe en móvil y con HTTPS. En escritorio caía en
+  // un clipboard.writeText silencioso: copiaba el texto sin decir nada y
+  // parecía que el botón no hacía nada. Ahora abrimos WhatsApp, igual que al
+  // compartir un reto.
   if (typeof navigator !== 'undefined' && (navigator as any).share) {
-    (navigator as any).share({ title: 'GymRace Wrapped', text }).catch(() => {});
-  } else if (typeof navigator !== 'undefined') {
-    navigator.clipboard?.writeText(text);
+    (navigator as any).share({ title: 'GymRace Wrapped', text, url }).catch(() => {});
+    return;
+  }
+  if (typeof window !== 'undefined') {
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`, '_blank');
   }
 }

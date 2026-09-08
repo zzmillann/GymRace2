@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, ArrowUpRight, History, Trash2, ChevronRight } from 'lucide-react';
-import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 import { haptic, playDing, confettiBig } from '@/lib/feedback';
 import { RestTimer } from '@/components/ui/RestTimer';
@@ -84,12 +83,6 @@ export function GymView() {
       <header className="mb-10">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-semibold tracking-tighter text-content">Gimnasio</h1>
-          <button
-            onClick={() => router.push('/settings')}
-            className="w-10 h-10 bg-surface border border-line/5 rounded-2xl flex items-center justify-center text-muted active:scale-95 transition-all hover:text-content"
-          >
-            <Settings24Regular />
-          </button>
         </div>
 
         {/* Toggle Pesas / Rutas */}
@@ -220,7 +213,8 @@ export function GymView() {
       </AnimatePresence>
 
       {/* Cronómetro de descanso (botón flotante + overlay) */}
-      <RestTimer />
+      {/* Solo tiene sentido entre series: en Rutas estorba */}
+      {gymTab === 'pesas' && <RestTimer />}
 
       {/* Celebración de RÉCORD */}
       <AnimatePresence>

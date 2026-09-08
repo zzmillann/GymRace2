@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Book as BookIcon, User, Trash2, CheckCircle2 } from 'lucide-react';
-import { Settings24Regular } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 import { StudyZone } from '@/components/ui/StudyZone';
 
@@ -48,12 +47,6 @@ export function LibraryView() {
           <div className="flex flex-col gap-1">
             <h1 className="text-4xl font-semibold tracking-tighter text-content">Estudio</h1>
           </div>
-          <button
-            onClick={() => router.push('/settings')}
-            className="w-10 h-10 bg-surface border border-line/5 rounded-2xl flex items-center justify-center text-muted active:scale-95 transition-all hover:text-content"
-          >
-            <Settings24Regular />
-          </button>
         </div>
       </header>
 
@@ -174,7 +167,7 @@ export function LibraryView() {
             <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -30, opacity: 0 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative shadow-2xl">
               <h2 className="text-2xl font-semibold text-content mb-8 tracking-tighter">Añadir Libro</h2>
               <form onSubmit={handleAdd} className="flex flex-col gap-4 text-content">
-                <input autoFocus placeholder="Título" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
+                <input placeholder="Título" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
                 <input placeholder="Autor" value={newAuthor} onChange={e => setNewAuthor(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
                 <input type="number" placeholder="Páginas totales" value={newPages} onChange={e => setNewPages(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
                 <button type="submit" className="bg-white text-black py-5 rounded-2xl font-medium tracking-tight mt-4">Guardar en Biblioteca</button>

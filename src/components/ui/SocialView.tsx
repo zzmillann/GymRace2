@@ -6,6 +6,8 @@ import {
     Search24Regular,
     PersonAdd24Regular,
     Fire24Regular,
+    Crown16Filled,
+    QrCode24Regular,
     Checkmark24Regular,
     Dismiss24Regular,
     People24Regular,
@@ -43,6 +45,7 @@ export function SocialView() {
     const [loading, setLoading] = useState(false);
     const [userDetails, setUserDetails] = useState<any | null>(null);
     const [detailsLoading, setDetailsLoading] = useState(false);
+    const [qrOpen, setQrOpen] = useState(false);
     const [requestedIds, setRequestedIds] = useState<string[]>([]);
 
     useEffect(() => {
@@ -195,7 +198,7 @@ export function SocialView() {
                                             <div className="text-center flex flex-col items-center">
                                                 <p className="text-[10px] font-medium text-content truncate w-20">{leaderboard[1].name}</p>
                                                 {isCreator(leaderboard[1].name) && (
-                                                    <span className="bg-amber-500/10 text-amber-500 text-[10px] font-medium px-1 py-0.5 rounded-md border border-amber-500/20 tracking-tighter mb-1">El Creador</span>
+                                                    <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                                                 )}
                                                 <p className="text-[11px] font-medium text-slate-400">{leaderboard[1].totalCompletions}</p>
                                             </div>
@@ -219,7 +222,7 @@ export function SocialView() {
                                             <div className="text-center flex flex-col items-center">
                                                 <p className="text-xs font-medium text-content truncate w-24">{leaderboard[0].name}</p>
                                                 {isCreator(leaderboard[0].name) && (
-                                                    <span className="bg-amber-500/10 text-amber-500 text-[10px] font-medium px-1 py-0.5 rounded-md border border-amber-500/20 tracking-tighter mb-1">El Creador</span>
+                                                    <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                                                 )}
                                                 <p className="text-[10px] font-normal text-amber-500 tracking-[0.15em]">{leaderboard[0].totalCompletions} Puntos</p>
                                             </div>
@@ -240,7 +243,7 @@ export function SocialView() {
                                             <div className="text-center flex flex-col items-center">
                                                 <p className="text-[10px] font-medium text-content truncate w-20">{leaderboard[2].name}</p>
                                                 {isCreator(leaderboard[2].name) && (
-                                                    <span className="bg-amber-500/10 text-amber-500 text-[10px] font-medium px-1 py-0.5 rounded-md border border-amber-500/20 tracking-tighter mb-1">El Creador</span>
+                                                    <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                                                 )}
                                                 <p className="text-[11px] font-medium text-amber-700">{leaderboard[2].totalCompletions}</p>
                                             </div>
@@ -265,7 +268,7 @@ export function SocialView() {
                                                     <div className="flex items-center gap-2">
                                                         <p className="font-normal text-content text-sm tracking-tight">{entry.name}</p>
                                                         {isCreator(entry.name) && (
-                                                            <span className="bg-amber-500/10 text-amber-500 text-[10px] font-medium px-1 py-0.5 rounded-md border border-amber-500/20 tracking-[0.1em]">El Creador</span>
+                                                            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -290,8 +293,8 @@ export function SocialView() {
                             key="search-view" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                             className="space-y-4"
                         >
-                            {/* SEARCH SECTION - COMPACT FOR MOBILE */}
-                            <div className="bg-surface border border-line/5 p-5 rounded-[32px] space-y-6 relative min-h-[300px]">
+                            {/* Buscador a pantalla completa, sin tarjeta que lo encajone */}
+                            <div className="relative min-h-[60vh]">
                                 <div className="space-y-4">
                                     <div className="relative">
                                         <div className="absolute left-5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-muted">
@@ -343,25 +346,42 @@ export function SocialView() {
                                     </div>
                                 </div>
                             </div>
-                            {/* INVITE: enlace + QR (debajo del buscador) */}
-                            <div className="bg-surface border border-line/5 p-6 rounded-[32px] flex flex-col items-center gap-4">
-                                <div className="text-center">
-                                    <p className="text-[10px] font-medium text-muted tracking-tight">Invita a un guerrero</p>
-                                    <p className="text-[11px] font-medium text-muted/70 mt-1">Comparte tu enlace o que escaneen tu QR</p>
-                                </div>
-                                <div className="bg-white p-3 rounded-3xl shadow-xl">
-                                    <img src={qrUrl} alt="QR de invitación" width={160} height={160} className="w-40 h-40 rounded-xl" />
-                                </div>
-                                <div className="w-full grid grid-cols-2 gap-2">
-                                    <button onClick={copyInvite} className="bg-surface-2 text-content py-4 rounded-2xl font-medium text-[10px] tracking-tight active:scale-95 transition-all flex items-center justify-center gap-2">
-                                        <Copy24Regular style={{ fontSize: 16 }} /> Copiar
-                                    </button>
-                                    <button onClick={shareInvite} className="bg-white text-black py-4 rounded-2xl font-medium text-[10px] tracking-tight active:scale-95 transition-all flex items-center justify-center gap-2">
-                                        <Share24Regular style={{ fontSize: 16 }} /> Compartir
-                                    </button>
-                                </div>
-                                <p className="text-[11px] font-medium text-muted">o tu código: <span className="text-content font-medium tracking-tight">{userCode}</span></p>
+                            {/* Invitar: fila compacta. El QR viene de un servicio
+                                externo, así que solo se pide al desplegarlo — antes
+                                se cargaba siempre y la pestaña tardaba en abrir. */}
+                            <div className="flex items-center gap-2">
+                                <button onClick={copyInvite} className="flex-1 bg-surface-2 text-content py-3 rounded-2xl font-medium text-[11px] active:scale-95 transition-all flex items-center justify-center gap-2">
+                                    <Copy24Regular style={{ fontSize: 15 }} /> Copiar enlace
+                                </button>
+                                <button onClick={shareInvite} className="flex-1 bg-surface-2 text-content py-3 rounded-2xl font-medium text-[11px] active:scale-95 transition-all flex items-center justify-center gap-2">
+                                    <Share24Regular style={{ fontSize: 15 }} /> Compartir
+                                </button>
+                                <button
+                                    onClick={() => setQrOpen((v) => !v)}
+                                    aria-label="Ver mi QR"
+                                    className={`w-11 h-11 rounded-2xl flex items-center justify-center active:scale-95 transition-all ${qrOpen ? 'bg-content text-app' : 'bg-surface-2 text-content'}`}
+                                >
+                                    <QrCode24Regular style={{ fontSize: 18 }} />
+                                </button>
                             </div>
+
+                            <AnimatePresence>
+                                {qrOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="bg-surface border border-line/5 p-6 rounded-[32px] flex flex-col items-center gap-3 mt-2">
+                                            <div className="bg-white p-3 rounded-3xl shadow-xl">
+                                                <img src={qrUrl} alt="QR de invitación" width={160} height={160} className="w-40 h-40 rounded-xl" loading="lazy" />
+                                            </div>
+                                            <p className="text-[11px] font-medium text-muted">tu código: <span className="text-content">{userCode}</span></p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </motion.div>
                     )}
 
@@ -384,7 +404,7 @@ export function SocialView() {
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h3 className="font-medium text-content tracking-tight leading-none">{friend.name}</h3>
                                                 {isCreator(friend.name) && (
-                                                    <span className="bg-amber-500/10 text-amber-500 text-[10px] font-medium px-1.5 py-0.5 rounded-md border border-amber-500/20 tracking-tight">El Creador</span>
+                                                    <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-1 text-accent">
@@ -554,7 +574,7 @@ export function SocialView() {
                                 <div className="flex items-center gap-3 mb-1">
                                     <h2 className="text-2xl font-semibold text-content tracking-tighter">{selectedFriend.name}</h2>
                                     {isCreator(selectedFriend.name) && (
-                                        <span className="bg-amber-500/10 text-amber-500 text-[11px] font-medium px-2 py-1 rounded-lg border border-amber-500/20 tracking-tight">El Creador</span>
+                                        <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                                     )}
                                 </div>
                             </div>

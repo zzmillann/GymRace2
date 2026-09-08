@@ -71,7 +71,17 @@ export function StudyZone() {
     setLeft(0); setTotal(0);
   };
 
-  const openRanking = async () => { setRankOpen(true); setRanking(await getStudyRanking()); };
+  // Se precarga al entrar en la sección: antes se pedía al pulsar y el modal
+  // salía vacío el primer par de segundos.
+  useEffect(() => {
+    if (userId) getStudyRanking().then(setRanking).catch(() => {});
+  }, [userId]);
+
+  const openRanking = async () => {
+    setRankOpen(true);
+    const r = await getStudyRanking();
+    setRanking(r);
+  };
 
   const progress = total ? left / total : 0;
 
@@ -219,7 +229,7 @@ export function StudyZone() {
       {/* Ranking de estudio */}
       <AnimatePresence>
         {rankOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-app/95 backdrop-blur-xl">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-start justify-center pt-16 p-4 bg-app/95 backdrop-blur-xl">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-7 relative shadow-2xl max-h-[80vh] flex flex-col">
               <button onClick={() => setRankOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted text-lg font-medium">✕</button>
               <div className="flex items-center gap-2 mb-1"><h2 className="text-lg font-medium text-content tracking-tight">Ranking de estudio</h2></div>

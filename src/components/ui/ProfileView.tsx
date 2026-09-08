@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Dismiss24Regular, 
@@ -32,6 +32,16 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
   const [viewersOpen, setViewersOpen] = useState(false);
   const [viewers, setViewers] = useState<{ id: string; name: string; avatar: string; when: string }[]>([]);
   const [viewersLoading, setViewersLoading] = useState(false);
+
+  // El modal vive montado todo el tiempo, así que los valores iniciales de
+  // useState se quedaban con lo que hubiera al arrancar la app.
+  useEffect(() => {
+    if (!isOpen) return;
+    setNewName(userName);
+    setSelectedAvatar(userAvatar);
+    setSelectedFrame((userFrame as FrameId) || 'none');
+    setMsg(null);
+  }, [isOpen, userName, userAvatar, userFrame]);
 
   const openViewers = async () => {
     setViewersOpen(true);
@@ -113,7 +123,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                           onClick={() => setSelectedAvatar(url)}
                           className={`flex-shrink-0 w-12 h-12 rounded-full border-2 transition-all overflow-hidden ${isSelected ? 'border-accent scale-110 shadow-lg' : 'border-line/5 opacity-40 hover:opacity-100'}`}
                         >
-                          <img src={url} className="w-full h-full bg-surface-2" alt={seed} />
+                          <img src={url} className="w-full h-full bg-surface-2" alt={seed} loading="lazy" decoding="async" />
                         </button>
                       );
                     })}

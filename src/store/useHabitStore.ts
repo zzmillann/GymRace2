@@ -812,6 +812,32 @@ export const useAppStore = create<AppState>()(
         set(state => ({ habitInvitations: state.habitInvitations.filter(i => i.id !== invitationId) }));
       },
 
+      /**
+       * Borra un reto. Estaba declarado en la interfaz pero sin implementar
+       * (de ahí el error de tipos que arrastraba el proyecto).
+       *
+       * Si el reto es mío lo elimino entero, y la cascada de la base se lleva
+       * participantes e invitaciones. Si soy un invitado, solo me salgo: no
+       * puedo borrarle el reto a los demás.
+       */
+      deleteHabit: async (id) => {
+        const uid = get().userId;
+        if (!uid) return;
+
+        const { data: h } = await supabase
+          .from('habits').select('user_id').eq('id', id).single();
+
+        if (h?.user_id === uid) {
+          await supabase.from('habit_participants').delete().eq('habit_id', id);
+          await supabase.from('habits').delete().eq('id', id);
+        } else {
+          await supabase.from('habit_participants')
+            .delete().eq('habit_id', id).eq('user_id', uid);
+        }
+
+        set((state) => ({ habits: state.habits.filter((x) => x.id !== id) }));
+      },
+
       toggleHabitToday: async (id) => {
         const habitToUpdate = get().habits.find(h => h.id === id);
         if (!habitToUpdate || !get().userId) return;
@@ -1112,12 +1138,15 @@ export const useAppStore = create<AppState>()(
       },
 
       getGlobalLeaderboard: async () => {
+        // Solo entra quien tenga actividad: antes salían cuentas con 0
+        // completadas y el ranking se llenaba de gente que no ha hecho nada.
         const { data, error } = await supabase
           .from('profiles')
           .select('id, user_name, avatar_url, total_completions')
+          .gt('total_completions', 0)
           .order('total_completions', { ascending: false })
           .limit(10);
-        
+
         if (error) return [];
         return data.map(p => ({
           id: p.id,

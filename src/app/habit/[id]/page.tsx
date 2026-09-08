@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft24Regular, 
   Fire24Regular,
+  Crown16Filled,
   Search24Regular, 
   Trophy24Regular, 
   Checkmark24Regular, 
@@ -24,12 +25,15 @@ import { ReminderPicker } from '@/components/ui/ReminderPicker';
 export default function HabitDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { habits, friends, inviteToHabit, userId, userCode, habitReminders, setHabitReminder } = useAppStore();
+  const { habits, friends, inviteToHabit, deleteHabit, userId, userCode, habitReminders, setHabitReminder } = useAppStore();
   const habit = habits.find(h => h.id === id);
   
   const [searchFriend, setSearchFriend] = useState('');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<{msg: string, type: 's'|'e'} | null>(null);
+  // Borrado en dos pasos: 0 = cerrado, 1 = primer aviso, 2 = confirmación final
+  const [deleteStep, setDeleteStep] = useState(0);
+  const [deleting, setDeleting] = useState(false);
 
   const participants = habit?.participants || [];
   const isShared = participants.length > 1;
@@ -53,9 +57,18 @@ export default function HabitDetailPage() {
     [habit],
   );
 
-  const filteredFriends = friends.filter(f => 
-    f.name.toLowerCase().includes(searchFriend.toLowerCase()) && 
-    !participants.some(p => p.id === f.id)
+  const invitable = friends.filter((f) => !participants.some((p) => p.id === f.id));
+
+  const filteredFriends = invitable.filter((f) =>
+    f.name.toLowerCase().includes(searchFriend.toLowerCase()),
+  );
+
+  // Sin buscar nada, proponemos a los más activos: es con quien más sueles
+  // coincidir en los retos.
+  const suggested = useMemo(
+    () => [...invitable].sort((a, b) => (b.totalCompletions || 0) - (a.totalCompletions || 0)).slice(0, 5),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [friends, participants],
   );
 
   if (!habit) return (
@@ -174,7 +187,7 @@ ${url}`)}`, '_blank');
                                         {p.id === userId ? 'Tú' : p.name}
                                     </h3>
                                     {isCreator(p.name) && (
-                                        <span className="bg-amber-500/10 text-amber-500 text-[10px] font-normal px-1.5 py-0.5 rounded-md border border-amber-500/20 tracking-tight">El Creador</span>
+                                        <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                                     )}
                                 </div>
                             </div>
@@ -208,14 +221,85 @@ ${url}`)}`, '_blank');
                               : `Progreso de ${p.name}`}
                         </h4>
                         {isCreator(p.name) && (
-                            <span className="bg-amber-500/10 text-amber-500 text-[10px] font-medium px-1 py-0.5 rounded-md border border-amber-500/20 tracking-[0.1em]">El Creador</span>
+                            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-semibold px-2 py-[3px] rounded-full shadow-[0_2px_10px_rgba(245,158,11,0.35)] whitespace-nowrap"><Crown16Filled style={{ fontSize: 11 }} />Creador</span>
                         )}
                     </div>
                     <YearlyHeatmap data={p.history} colorTheme={habit.colorTheme} startDate={habit.createdAt} />
                 </div>
             ))}
         </section>
+        {/* Eliminar el reto */}
+        <section className="pt-4">
+          <button
+            onClick={() => setDeleteStep(1)}
+            className="w-full py-3.5 rounded-2xl border border-rose-500/25 text-rose-400 text-[13px] font-medium active:scale-[0.98] transition-transform"
+          >
+            Eliminar reto
+          </button>
+        </section>
       </main>
+
+      {/* BORRADO EN DOS PASOS */}
+      <AnimatePresence>
+        {deleteStep > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[400] bg-app/90 backdrop-blur-xl flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
+              className="bg-surface border border-line/10 rounded-[32px] p-7 w-full max-w-sm text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center mx-auto mb-4">
+                <Warning24Regular style={{ fontSize: 24 }} />
+              </div>
+
+              {deleteStep === 1 ? (
+                <>
+                  <h3 className="text-content text-lg font-medium mb-2">¿Eliminar este reto?</h3>
+                  <p className="text-muted text-[13px] leading-snug mb-6">
+                    {isShared
+                      ? 'Es un reto compartido. Si lo creaste tú, desaparecerá para todos los participantes.'
+                      : 'Se borrará el reto y todo su historial.'}
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setDeleteStep(0)} className="flex-1 py-3.5 rounded-2xl bg-surface-2 text-content text-[13px] font-medium">
+                      Cancelar
+                    </button>
+                    <button onClick={() => setDeleteStep(2)} className="flex-1 py-3.5 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/25 text-[13px] font-medium">
+                      Continuar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-content text-lg font-medium mb-2">Esto no se puede deshacer</h3>
+                  <p className="text-muted text-[13px] leading-snug mb-6">
+                    Perderás <span className="text-content">{myCompletions}</span>{' '}
+                    {myCompletions === 1 ? 'marca' : 'marcas'} y la racha de este reto. No hay vuelta atrás.
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setDeleteStep(0)} className="flex-1 py-3.5 rounded-2xl bg-surface-2 text-content text-[13px] font-medium">
+                      Mejor no
+                    </button>
+                    <button
+                      disabled={deleting}
+                      onClick={async () => {
+                        setDeleting(true);
+                        await deleteHabit(habit.id);
+                        router.push('/');
+                      }}
+                      className="flex-1 py-3.5 rounded-2xl bg-rose-500 text-white text-[13px] font-medium disabled:opacity-60"
+                    >
+                      {deleting ? 'Eliminando…' : 'Eliminar'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* INVITE MODAL */}
       <AnimatePresence>
@@ -239,6 +323,30 @@ ${url}`)}`, '_blank');
                             className="w-full bg-app/40 border border-line/5 rounded-3xl pl-16 pr-6 py-6 text-content font-medium outline-none focus:border-line/10 transition-all text-sm"
                         />
                     </div>
+
+                    {/* Sin escribir nada, proponemos a los más activos para no
+                        obligar a buscar cada vez */}
+                    {!searchFriend && suggested.length > 0 && (
+                        <div className="mb-4">
+                            <p className="text-[11px] font-medium text-muted tracking-tight mb-2 px-1">Sugeridos</p>
+                            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+                                {suggested.map((f) => (
+                                    <button
+                                        key={f.id}
+                                        onClick={() => handleInvite(f.id, f.name)}
+                                        className="shrink-0 w-[76px] flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-app/20 border border-line/5 active:scale-95 transition-transform"
+                                    >
+                                        <div className="w-11 h-11 rounded-full bg-surface-2 overflow-hidden flex items-center justify-center border border-line/5">
+                                            {f.avatar?.startsWith('http')
+                                                ? <img src={f.avatar} className="w-full h-full object-cover" alt={f.name} />
+                                                : <Person24Regular className="text-muted" />}
+                                        </div>
+                                        <span className="text-[10px] text-content truncate w-full text-center">{f.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                         {filteredFriends.length === 0 && <p className="text-center text-[10px] font-medium text-muted py-10">No hay amigos disponibles para invitar</p>}
