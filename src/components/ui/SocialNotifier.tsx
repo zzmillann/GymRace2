@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAppStore } from '@/store/useHabitStore';
+import { supabase } from '@/lib/supabase';
 
 const SEEN_KEY = 'gymrace-seen-social';
 
@@ -18,11 +19,46 @@ export function SocialNotifier() {
   const habitInvitations = useAppStore((s) => s.habitInvitations);
   const refreshSocial = useAppStore((s) => s.refreshSocial);
 
-  // Sondeo periódico mientras la app está abierta
+  // Tiempo real: en cuanto alguien te manda una solicitud o una invitación,
+  // llega el evento y refrescamos. Sin esperar al siguiente sondeo.
   useEffect(() => {
     if (!userId) return;
-    const id = setInterval(() => { refreshSocial(); }, 40_000);
+
+    const ch = supabase
+      .channel(`social:${userId}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'friendships', filter: `friend_id=eq.${userId}` },
+        () => refreshSocial())
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'friendships', filter: `user_id=eq.${userId}` },
+        () => refreshSocial())
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'habit_invitations', filter: `receiver_id=eq.${userId}` },
+        () => refreshSocial())
+      .subscribe();
+
+    return () => { supabase.removeChannel(ch); };
+  }, [userId, refreshSocial]);
+
+  // Respaldo: si el proyecto no tiene la replicación activada en esas tablas,
+  // el canal de arriba no recibe nada. Este sondeo lento cubre ese caso.
+  useEffect(() => {
+    if (!userId) return;
+    const id = setInterval(() => { refreshSocial(); }, 60_000);
     return () => clearInterval(id);
+  }, [userId, refreshSocial]);
+
+  // Al volver a la app (cambiar de pestaña o desbloquear el móvil) refrescamos:
+  // es cuando el usuario espera ver lo último.
+  useEffect(() => {
+    if (!userId) return;
+    const onVisible = () => { if (document.visibilityState === 'visible') refreshSocial(); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
   }, [userId, refreshSocial]);
 
   // Notifica lo nuevo (no visto previamente)

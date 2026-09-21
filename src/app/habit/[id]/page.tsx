@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useHabitStore';
 import { isCreator } from '@/store/useHabitStore';
+import { isImageSrc } from '@/components/ui/FramedAvatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft24Regular, 
@@ -25,11 +26,17 @@ import { ReminderPicker } from '@/components/ui/ReminderPicker';
 export default function HabitDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { habits, friends, inviteToHabit, deleteHabit, userId, userCode, habitReminders, setHabitReminder } = useAppStore();
+  const { habits, friends, inviteToHabit, deleteHabit, userId, userCode, habitReminders, setHabitReminder, localAvatar } = useAppStore();
+  // Mi foto local (guardada en el dispositivo) sustituye a la del servidor
+  const avatarOf = (p: { id: string; avatar: string }) => (p.id === userId && localAvatar ? localAvatar : p.avatar);
   const habit = habits.find(h => h.id === id);
   
   const [searchFriend, setSearchFriend] = useState('');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  // A quién ya hemos invitado en esta sesión: el botón se queda en
+  // "Invitado" para que nadie se quede con la duda de si se envió.
+  const [invited, setInvited] = useState<string[]>([]);
+  const [sending, setSending] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{msg: string, type: 's'|'e'} | null>(null);
   // Borrado en dos pasos: 0 = cerrado, 1 = primer aviso, 2 = confirmación final
   const [deleteStep, setDeleteStep] = useState(0);
@@ -50,6 +57,14 @@ export default function HabitDetailPage() {
   const podium = useMemo(() => {
     return [...participantsWithStats].sort((a, b) => b.totalCompletions - a.totalCompletions);
   }, [participantsWithStats]);
+
+  // Gráficos del año: el mío siempre arriba, después el resto en el orden de
+  // siempre. En un reto compartido lo primero que quieres ver es lo tuyo.
+  const chartOrder = useMemo(() => {
+    const mine = participants.filter((p) => p.id === userId);
+    const others = participants.filter((p) => p.id !== userId);
+    return [...mine, ...others];
+  }, [participants, userId]);
 
   // Total propio: en retos individuales se muestra junto al título
   const myCompletions = useMemo(
@@ -96,9 +111,19 @@ ${url}`)}`, '_blank');
   };
 
   const handleInvite = async (friendId: string, name: string) => {
-    const res = await inviteToHabit(habit.id, friendId);
-    setFeedback({ msg: res.success ? `¡Reto enviado a ${name}!` : res.message, type: res.success ? 's' : 'e' });
-    setTimeout(() => setFeedback(null), 3000);
+    // Sin esto, dos toques seguidos mandaban dos invitaciones (o una y un error)
+    if (sending || invited.includes(friendId)) return;
+    setSending(friendId);
+    try {
+      const res = await inviteToHabit(habit.id, friendId);
+      if (res.success) setInvited((prev) => [...prev, friendId]);
+      setFeedback({ msg: res.success ? `¡Reto enviado a ${name}!` : res.message, type: res.success ? 's' : 'e' });
+    } catch {
+      setFeedback({ msg: 'Algo ha fallado. Revisa tu conexión.', type: 'e' });
+    } finally {
+      setSending(null);
+      setTimeout(() => setFeedback(null), 3000);
+    }
   };
 
   return (
@@ -112,7 +137,7 @@ ${url}`)}`, '_blank');
             <div className="flex -space-x-3 pr-2">
                 {participants.map(p => (
                     <div key={p.id} className="w-10 h-10 rounded-full border-2 border-app bg-surface-2 flex items-center justify-center text-sm shadow-xl overflow-hidden">
-                        {p.avatar.startsWith('http') ? <img src={p.avatar} className="w-full h-full object-cover" /> : p.avatar}
+                        {isImageSrc(avatarOf(p)) ? <img src={avatarOf(p)} className="w-full h-full object-cover" /> : avatarOf(p)}
                     </div>
                 ))}
             </div>
@@ -175,8 +200,8 @@ ${url}`)}`, '_blank');
                         <div className="flex items-center gap-4 relative z-10">
                             <span className={`text-lg font-medium ${i === 0 ? 'text-amber-500' : 'text-muted'}`}>0{i + 1}</span>
                             <div className="w-12 h-12 rounded-full bg-surface-2 border border-line/5 overflow-hidden flex items-center justify-center text-xl">
-                                {p.avatar && p.avatar.startsWith('http') ? (
-                                    <img src={p.avatar} className="w-full h-full object-cover" />
+                                {isImageSrc(avatarOf(p)) ? (
+                                    <img src={avatarOf(p)} className="w-full h-full object-cover" />
                                 ) : (
                                     <Person24Regular className="text-muted" />
                                 )}
@@ -210,7 +235,7 @@ ${url}`)}`, '_blank');
                 <Calendar24Regular className="text-muted" style={{ fontSize: 18 }} />
                 <h2 className="text-[11px] font-medium text-muted tracking-tight">Progreso del año</h2>
             </div>
-            {participants.map((p, i) => (
+            {chartOrder.map((p) => (
                 <div key={p.id} className="space-y-4">
                     <div className="flex items-center gap-2 px-2">
                         <h4 className="font-normal text-content/80 text-[15px] tracking-tight">
@@ -334,7 +359,8 @@ ${url}`)}`, '_blank');
                                     <button
                                         key={f.id}
                                         onClick={() => handleInvite(f.id, f.name)}
-                                        className="shrink-0 w-[76px] flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-app/20 border border-line/5 active:scale-95 transition-transform"
+                                        disabled={!!sending || invited.includes(f.id)}
+                                        className={`shrink-0 w-[76px] flex flex-col items-center gap-1.5 p-2 rounded-2xl border active:scale-95 transition-transform ${invited.includes(f.id) ? 'bg-accent/10 border-accent/40' : 'bg-app/20 border-line/5'}`}
                                     >
                                         <div className="w-11 h-11 rounded-full bg-surface-2 overflow-hidden flex items-center justify-center border border-line/5">
                                             {f.avatar?.startsWith('http')
@@ -364,9 +390,11 @@ ${url}`)}`, '_blank');
                                 </div>
                                 <button 
                                     onClick={() => handleInvite(f.id, f.name)}
-                                    className="p-3 bg-white text-black rounded-2xl shadow-xl active:scale-90 transition-all flex items-center justify-center"
+                                    disabled={!!sending || invited.includes(f.id)}
+                                    className={`px-4 py-3 rounded-2xl shadow-xl active:scale-90 transition-all flex items-center justify-center gap-1.5 text-[11px] font-medium ${invited.includes(f.id) ? 'bg-accent/15 text-accent' : 'bg-white text-black disabled:opacity-50'}`}
                                 >
-                                    <Checkmark24Regular />
+                                    <Checkmark24Regular style={{ fontSize: 18 }} />
+                                    {invited.includes(f.id) ? 'Invitado' : sending === f.id ? 'Enviando' : ''}
                                 </button>
                             </div>
                         ))}

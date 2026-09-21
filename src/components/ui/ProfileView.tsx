@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Dismiss24Regular, 
   ArrowExit24Regular, 
-  Copy24Regular, 
   Checkmark24Regular, 
   Save24Regular, 
   Trophy24Regular,
-  Person24Regular
+  Person24Regular,
+  Camera24Regular
 } from '@fluentui/react-icons';
 import { useAppStore } from '@/store/useHabitStore';
 import { Wrapped } from './Wrapped';
@@ -21,35 +21,31 @@ const AVATAR_SEEDS = [
 ];
 
 export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const { userCode, userName, userAvatar, userFrame, setProfileFrame, updateProfile, signOut, habits, getProfileViewers } = useAppStore();
+  const { userName, userAvatar, userFrame, setProfileFrame, updateProfile, signOut, habits, localAvatar, setLocalAvatarFile, clearLocalAvatar } = useAppStore();
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<FrameId>((userFrame as FrameId) || 'none');
   const [newName, setNewName] = useState(userName);
   const [selectedAvatar, setSelectedAvatar] = useState(userAvatar);
-  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{t: string, type: 's'|'e'} | null>(null);
   const [wrappedOpen, setWrappedOpen] = useState(false);
-  const [viewersOpen, setViewersOpen] = useState(false);
-  const [viewers, setViewers] = useState<{ id: string; name: string; avatar: string; when: string }[]>([]);
-  const [viewersLoading, setViewersLoading] = useState(false);
 
   // El modal vive montado todo el tiempo, así que los valores iniciales de
-  // useState se quedaban con lo que hubiera al arrancar la app.
+  // useState se quedan con lo que hubiera al arrancar la app: los recargamos
+  // al abrir.
+  //
+  // Solo depende de isOpen a propósito. Con userFrame en las dependencias,
+  // elegir un marco relanzaba el efecto y pisaba el avatar que estabas
+  // probando con el que había guardado.
   useEffect(() => {
     if (!isOpen) return;
-    setNewName(userName);
-    setSelectedAvatar(userAvatar);
-    setSelectedFrame((userFrame as FrameId) || 'none');
+    const s = useAppStore.getState();
+    setNewName(s.userName);
+    setSelectedAvatar(s.userAvatar);
+    setSelectedFrame((s.userFrame as FrameId) || 'none');
     setMsg(null);
-  }, [isOpen, userName, userAvatar, userFrame]);
-
-  const openViewers = async () => {
-    setViewersOpen(true);
-    setViewersLoading(true);
-    const list = await getProfileViewers();
-    setViewers(list);
-    setViewersLoading(false);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const totalStreak = habits.reduce((acc, h) => acc + h.streak, 0);
 
@@ -66,12 +62,6 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
     setLoading(false);
   };
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(userCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -81,7 +71,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
         >
           <motion.div 
             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-            className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative shadow-2xl overflow-hidden"
+            className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-8 relative shadow-2xl max-h-[88vh] overflow-y-auto hide-scrollbar overscroll-contain"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl -mr-16 -mt-16" />
             
@@ -91,7 +81,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
 
             <header className="flex flex-col items-center mb-6">
                 <div className="mb-4">
-                    <FramedAvatar src={selectedAvatar} frame={selectedFrame} size={96} />
+                    <FramedAvatar src={localAvatar || selectedAvatar} frame={selectedFrame} size={96} />
                 </div>
 
                 {/* Selector de marco */}
@@ -114,13 +104,36 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <div className="w-full">
                   <p className="text-[11px] font-medium text-muted tracking-tight text-center mb-3">Elige tu Avatar</p>
                   <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar -mx-2 px-2">
+                    {/* Tu propia foto: se guarda en el dispositivo (IndexedDB), sin pasar por Supabase */}
+                    <label
+                      title="Subir foto"
+                      className={`flex-shrink-0 w-12 h-12 rounded-full border-2 overflow-hidden flex items-center justify-center cursor-pointer transition-all ${
+                        localAvatar ? 'border-accent scale-110 shadow-lg' : 'border-dashed border-line/30 text-muted hover:text-content'
+                      } ${photoBusy ? 'opacity-50 animate-pulse' : ''}`}
+                    >
+                      <input
+                        type="file" accept="image/*" className="hidden"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          e.target.value = '';
+                          if (!f) return;
+                          setPhotoBusy(true);
+                          const r = await setLocalAvatarFile(f);
+                          setPhotoBusy(false);
+                          if (!r.success) setMsg({ t: r.error || 'No se pudo guardar la foto', type: 'e' });
+                        }}
+                      />
+                      {localAvatar
+                        ? <img src={localAvatar} className="w-full h-full object-cover" alt="" />
+                        : <Camera24Regular style={{ fontSize: 20 }} />}
+                    </label>
                     {AVATAR_SEEDS.map((seed) => {
                       const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
-                      const isSelected = selectedAvatar === url;
+                      const isSelected = !localAvatar && selectedAvatar === url;
                       return (
                         <button
                           key={seed}
-                          onClick={() => setSelectedAvatar(url)}
+                          onClick={() => { setSelectedAvatar(url); if (localAvatar) clearLocalAvatar(); }}
                           className={`flex-shrink-0 w-12 h-12 rounded-full border-2 transition-all overflow-hidden ${isSelected ? 'border-accent scale-110 shadow-lg' : 'border-line/5 opacity-40 hover:opacity-100'}`}
                         >
                           <img src={url} className="w-full h-full bg-surface-2" alt={seed} loading="lazy" decoding="async" />
@@ -128,6 +141,14 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                       );
                     })}
                   </div>
+                  {localAvatar && (
+                    <button
+                      onClick={() => clearLocalAvatar()}
+                      className="block mx-auto -mt-1 mb-2 text-[11px] font-medium text-rose-400 tracking-tight"
+                    >
+                      Quitar mi foto
+                    </button>
+                  )}
                 </div>
 
                 <h2 className="text-2xl font-semibold text-content mt-1 tracking-tighter">Tu Leyenda</h2>
@@ -142,15 +163,6 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                     />
                 </div>
 
-                <div className="bg-app/40 border border-line/5 rounded-2xl p-4 flex items-center justify-between">
-                    <div>
-                        <p className="text-[11px] font-medium text-muted tracking-tight">Código de Invitación</p>
-                        <p className="text-lg font-medium text-content tracking-tight font-mono">{userCode}</p>
-                    </div>
-                    <button onClick={copyCode} className={`p-3 rounded-xl transition-all ${copied ? 'bg-accent text-content' : 'bg-surface-2 text-content'}`}>
-                        {copied ? <Checkmark24Regular /> : <Copy24Regular />}
-                    </button>
-                </div>
 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="bg-surface-2/50 p-4 rounded-2xl border border-line/5 flex flex-col items-center">
@@ -178,13 +190,6 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                     📊 Mi Wrapped del mes
                 </button>
 
-                <button
-                    onClick={openViewers}
-                    className="w-full bg-surface-2 text-content py-4 rounded-2xl font-medium tracking-tight text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all border border-line/5"
-                >
-                    👀 Quién ha visto tu perfil
-                </button>
-
                 <div className="flex gap-4 pb-4">
                     <button 
                         onClick={handleUpdate} disabled={loading}
@@ -204,34 +209,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
 
           <Wrapped isOpen={wrappedOpen} onClose={() => setWrappedOpen(false)} />
 
-          {/* Quién te ha visto */}
-          <AnimatePresence>
-            {viewersOpen && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-app/95 backdrop-blur-xl">
-                <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-surface border border-line/10 w-full max-w-sm rounded-[40px] p-7 relative shadow-2xl max-h-[80vh] flex flex-col">
-                  <button onClick={() => setViewersOpen(false)} className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center bg-surface-2 rounded-xl text-muted text-lg font-medium">✕</button>
-                  <div className="flex items-center gap-2 mb-5">
-                    <span className="text-xl">👀</span>
-                    <h2 className="text-lg font-medium text-content tracking-tighter">Quién te ha visto</h2>
-                  </div>
-                  <div className="flex-1 overflow-y-auto hide-scrollbar space-y-2">
-                    {viewersLoading ? (
-                      <div className="flex justify-center py-12"><div className="w-7 h-7 border-2 border-line/10 border-t-white rounded-full animate-spin" /></div>
-                    ) : viewers.length === 0 ? (
-                      <p className="text-center text-muted font-medium text-[10px] tracking-tight py-12">Aún no te ha visto nadie 👻</p>
-                    ) : viewers.map((v) => (
-                      <div key={v.id} className="flex items-center gap-3 bg-app/30 border border-line/5 rounded-2xl p-3">
-                        <div className="w-10 h-10 rounded-full bg-surface-2 overflow-hidden flex items-center justify-center border border-line/5">
-                          {v.avatar?.startsWith('http') ? <img src={v.avatar} className="w-full h-full object-cover" /> : <Person24Regular className="text-muted" />}
-                        </div>
-                        <span className="font-normal text-content text-sm">{v.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
         </motion.div>
       )}
     </AnimatePresence>

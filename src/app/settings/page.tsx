@@ -14,6 +14,7 @@ import {
 import { useAppStore, FREE_ACTIVITY_LIMIT, PAYWALL_ENABLED } from '@/store/useHabitStore';
 import { useT } from '@/lib/i18n';
 import { ProfileView } from '@/components/ui/ProfileView';
+import { isImageSrc } from '@/components/ui/FramedAvatar';
 import { beginSpotifyAuth, spotifyEnabled } from '@/lib/spotify';
 
 const APP_VERSION = '1.0.0';
@@ -27,7 +28,7 @@ export default function SettingsPage() {
   const t = useT();
   const {
     settings, updateSettings, isPro, subscriptionPlan, getActivityCount, openPaywall,
-    cancelPro, signOut, updatePassword, userName, userAvatar, userCode,
+    cancelPro, signOut, updatePassword, userName, userAvatar, localAvatar, userCode,
     habits, exercises, books, spotify, disconnectSpotify, nowPlaying,
   } = useAppStore();
 
@@ -231,7 +232,7 @@ export default function SettingsPage() {
       <Section title={t('set.sec.account')}>
         <NavRow icon={<User size={19} strokeWidth={2} />} label={t('set.editProfile')} sub={userName} onClick={() => setProfileOpen(true)}>
           <div className="w-8 h-8 rounded-lg bg-surface-2 overflow-hidden flex items-center justify-center text-sm">
-            {userAvatar?.startsWith('http') ? <img src={userAvatar} className="w-full h-full object-cover" /> : userAvatar}
+            {isImageSrc(localAvatar || userAvatar) ? <img src={localAvatar || userAvatar} className="w-full h-full object-cover" /> : userAvatar}
           </div>
         </NavRow>
         <NavRow icon={<KeyRound size={19} strokeWidth={2} />} label={t('set.changePass')} onClick={() => { setPwError(''); setNewPass(''); setConfirmPass(''); setPwOpen(true); }} />

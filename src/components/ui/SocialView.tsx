@@ -38,6 +38,31 @@ export function SocialView() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<{ id: string, name: string, avatar: string }[]>([]);
     const [feedback, setFeedback] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
+    // Acción en curso (por id): evita doble pulsación y permite mostrar
+    // "procesando" en el botón concreto.
+    const [busy, setBusy] = useState<string | null>(null);
+
+    /**
+     * Lanza una acción social y siempre acaba dando una respuesta al usuario:
+     * el mensaje que devuelva, o un aviso si la promesa revienta. El finally
+     * garantiza que el botón se desbloquea aunque falle la red.
+     */
+    const run = async (
+      key: string,
+      fn: () => Promise<{ success: boolean; message: string }>,
+    ) => {
+      if (busy) return;
+      setBusy(key);
+      try {
+        const res = await fn();
+        setFeedback({ msg: res.message, type: res.success ? 'success' : 'error' });
+      } catch {
+        setFeedback({ msg: 'Algo ha fallado. Revisa tu conexión.', type: 'error' });
+      } finally {
+        setBusy(null);
+        setTimeout(() => setFeedback(null), 3000);
+      }
+    };
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
     const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'search' | 'invites'>('friends');
     const [leaderboard, setLeaderboard] = useState<{ id: string, name: string, avatar: string, totalCompletions: number }[]>([]);
@@ -61,10 +86,8 @@ export function SocialView() {
         return () => clearInterval(id);
     }, [refreshFriendsNowPlaying]);
 
-    const logProfileView = useAppStore((s) => s.logProfileView);
 
     const openUserDetails = async (id: string) => {
-        logProfileView(id);
         setDetailsLoading(true);
         setUserDetails({ id, loading: true });
         const d = await getUserDetails(id);
@@ -141,19 +164,19 @@ export function SocialView() {
                 </div>
 
                 {/* Tab Switcher */}
-                <div className="flex gap-2 mb-6 bg-surface p-1 rounded-2xl border border-line/5">
+                <div className="flex gap-1 mb-6 bg-surface p-1.5 rounded-2xl border border-line/5">
                     {[
-                        { id: 'friends', label: `Amigos `, icon: People24Regular },
-                        { id: 'search', label: `Buscar`, icon: Search24Regular },
-                        { id: 'pending', label: `Social`, icon: PersonAdd24Regular },
-                        { id: 'invites', label: `Hábitos`, icon: Sparkle24Regular }
+                        { id: 'friends', label: 'Amigos', icon: People24Regular },
+                        { id: 'search', label: 'Buscar', icon: Search24Regular },
+                        { id: 'pending', label: 'Social', icon: PersonAdd24Regular },
+                        { id: 'invites', label: 'Hábitos', icon: Sparkle24Regular }
                     ].map(tab => (
                         <button
                             key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-                            className={`flex-1 py-4 rounded-xl text-[11px] font-medium tracking-tight transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id ? 'bg-white text-black shadow-lg font-medium' : 'text-muted'}`}
+                            className={`flex-1 min-w-0 px-2.5 py-3.5 rounded-xl text-[11px] font-medium tracking-tight transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id ? 'bg-white text-black shadow-lg font-medium' : 'text-muted'}`}
                         >
-                            <tab.icon />
-                            <span>{tab.label}</span>
+                            <tab.icon style={{ fontSize: 16, flexShrink: 0 }} />
+                            <span className="truncate">{tab.label}</span>
                             {(tab.id === 'pending' && pendingRequests.length > 0) || (tab.id === 'invites' && habitInvitations.length > 0) ? (
                                 <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
                             ) : null}
@@ -395,7 +418,7 @@ export function SocialView() {
                             )}
                             {friends.map((friend) => (
                                 <motion.div
-                                    layout key={friend.id} onClick={() => { logProfileView(friend.id); setSelectedFriend(friend); }}
+                                    layout key={friend.id} onClick={() => { setSelectedFriend(friend); }}
                                     className="bg-surface border border-line/5 rounded-[32px] p-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
                                 >
                                     <div className="flex items-center gap-4">
@@ -456,8 +479,8 @@ export function SocialView() {
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={() => declineHabitInvitation(invite.id)} className="p-3 bg-surface-2 text-rose-500 rounded-xl"><Dismiss24Regular /></button>
-                                        <button onClick={() => acceptHabitInvitation(invite.id)} className="p-3 bg-white text-black rounded-xl shadow-lg"><Checkmark24Regular /></button>
+                                        <button disabled={busy === `d${invite.id}`} onClick={() => run(`d${invite.id}`, () => declineHabitInvitation(invite.id))} className="p-3 bg-surface-2 text-rose-500 rounded-xl disabled:opacity-40"><Dismiss24Regular /></button>
+                                        <button disabled={busy === `a${invite.id}`} onClick={() => run(`a${invite.id}`, () => acceptHabitInvitation(invite.id))} className="p-3 bg-white text-black rounded-xl shadow-lg disabled:opacity-40"><Checkmark24Regular /></button>
                                     </div>
                                 </div>
                             ))}
@@ -493,8 +516,8 @@ export function SocialView() {
                                                         </td>
                                                         <td className="p-6 text-right">
                                                             <div className="flex gap-2 justify-end">
-                                                                <button onClick={() => declineFriendRequest(req.id)} className="w-10 h-10 flex items-center justify-center bg-surface-2 text-rose-500 rounded-xl hover:bg-surface-2 transition-all"><Dismiss24Regular /></button>
-                                                                <button onClick={() => acceptFriendRequest(req.id)} className="w-10 h-10 flex items-center justify-center bg-white text-black rounded-xl shadow-lg hover:scale-105 transition-all"><Checkmark24Regular /></button>
+                                                                <button disabled={!!busy} onClick={() => run(`dr${req.id}`, () => declineFriendRequest(req.id))} className="disabled:opacity-40 w-10 h-10 flex items-center justify-center bg-surface-2 text-rose-500 rounded-xl hover:bg-surface-2 transition-all"><Dismiss24Regular /></button>
+                                                                <button disabled={!!busy} onClick={() => run(`ar${req.id}`, () => acceptFriendRequest(req.id))} className="disabled:opacity-40 w-10 h-10 flex items-center justify-center bg-white text-black rounded-xl shadow-lg hover:scale-105 transition-all"><Checkmark24Regular /></button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -528,7 +551,8 @@ export function SocialView() {
                                                         </div>
                                                     </div>
                                                     <button
-                                                        onClick={() => declineFriendRequest(req.id)}
+                                                        disabled={!!busy}
+                                                        onClick={() => run(`cr${req.id}`, () => declineFriendRequest(req.id))}
                                                         className="w-10 h-10 flex items-center justify-center text-muted hover:text-rose-500 transition-colors"
                                                         title="Cancelar invitación"
                                                     >

@@ -12,6 +12,10 @@ export function ThemeApplier() {
   const theme = useAppStore((s) => s.settings.theme);
   const accent = useAppStore((s) => s.settings.accentColor);
   const palette = useAppStore((s) => s.settings.palette);
+  const loadLocalAvatar = useAppStore((s) => s.loadLocalAvatar);
+
+  // La foto de perfil local se lee de IndexedDB al arrancar (en cualquier ruta)
+  useEffect(() => { loadLocalAvatar(); }, [loadLocalAvatar]);
 
   useEffect(() => {
     const root = document.documentElement;

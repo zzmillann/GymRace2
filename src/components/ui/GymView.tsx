@@ -109,10 +109,10 @@ export function GymView() {
       {gymTab === 'rutas' && <RoutesView />}
 
       {gymTab === 'pesas' && (
-      <div className="grid gap-6">
+      <div className="grid grid-cols-2 gap-3">
         <AnimatePresence mode="popLayout">
           {filteredExercises.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-muted font-medium text-[10px] tracking-tight">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-2 text-center py-20 text-muted font-medium text-[10px] tracking-tight">
                 No hay ejercicios en {activeGymMuscle}
             </motion.div>
           )}
@@ -127,44 +127,44 @@ export function GymView() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 key={ex.id}
-                className="bg-surface/80 backdrop-blur-xl border border-line/5 rounded-[40px] p-8 relative overflow-hidden group shadow-2xl"
+                className="bg-surface/80 backdrop-blur-xl border border-line/5 rounded-[26px] p-4 relative overflow-hidden group shadow-xl"
               >
                 <button 
                   onClick={() => { if(confirm('¿Eliminar ejercicio?')) deleteExercise(ex.id) }} 
-                  className="absolute top-6 right-6 text-muted hover:text-red-500 transition-colors p-2"
+                  className="absolute top-3 right-3 text-muted hover:text-red-500 transition-colors p-1.5"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={15} />
                 </button>
 
-                <div className="mb-8">
-                    <span className={`inline-block px-3 py-1 rounded-full ${role.bg} ${role.color} text-[10px] font-medium tracking-tight mb-3`}>
+                <div className="mb-4 pr-6">
+                    <span className={`inline-block px-2 py-0.5 rounded-full ${role.bg} ${role.color} text-[10px] font-medium tracking-tight mb-2`}>
                         {role.label}
                     </span>
-                    <h3 className="text-3xl font-semibold text-content leading-tight">{ex.name}</h3>
+                    <h3 className="text-lg font-semibold text-content leading-tight break-words">{ex.name}</h3>
                 </div>
 
-                <div className="flex justify-between items-end mb-8">
+                <div className="flex justify-between items-end mb-4">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-medium text-muted tracking-tight mb-1">Peso Récord</span>
+                    <span className="text-[10px] font-medium text-muted tracking-tight mb-0.5">Récord</span>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-semibold text-content tabular-nums">{toDisplay(currentWeight)}</span>
-                        <span className="text-sm font-medium text-muted">{unitLabel}</span>
+                        <span className="text-3xl font-semibold text-content tabular-nums">{toDisplay(currentWeight)}</span>
+                        <span className="text-[11px] font-medium text-muted">{unitLabel}</span>
                     </div>
                   </div>
                   
                   <button 
                     onClick={() => setEditingExId(ex.id)}
-                    className="bg-surface-2 text-content p-4 rounded-3xl hover:bg-surface-2 transition-all shadow-xl active:scale-95"
+                    className="bg-surface-2 text-content p-2.5 rounded-2xl hover:bg-surface-2 transition-all shadow-lg active:scale-95"
                   >
-                    <Plus size={24} />
+                    <Plus size={18} />
                   </button>
                 </div>
 
                 {/* Stashed Weights */}
-                <div className="flex flex-wrap gap-3 p-4 bg-app/20 rounded-2xl border border-line/5">
-                  <History size={14} className="text-muted mr-2" />
+                <div className="flex flex-wrap items-center gap-2 p-2.5 bg-app/20 rounded-xl border border-line/5">
+                  <History size={12} className="text-muted" />
                   {ex.weightHistory.map((w, i) => (
-                    <span key={i} className={`text-xs font-medium tracking-tighter ${i === ex.weightHistory.length - 1 ? 'text-accent' : 'text-muted line-through opacity-40'}`}>
+                    <span key={i} className={`text-[11px] font-medium tracking-tighter ${i === ex.weightHistory.length - 1 ? 'text-accent' : 'text-muted line-through opacity-40'}`}>
                         {toDisplay(w)}{unit}
                     </span>
                   ))}

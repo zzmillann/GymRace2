@@ -2,6 +2,23 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { format, subDays, startOfWeek, startOfMonth, startOfDay } from 'date-fns';
 import { supabase } from '@/lib/supabase';
+import { loadLocalAvatar as readLocalAvatar, saveLocalAvatar, clearLocalAvatar as wipeLocalAvatar } from '@/lib/localAvatar';
+
+// --- Guardia contra pisar cambios locales ---
+// initialize() tarda un rato (una decena de consultas seguidas). Si el usuario
+// marca un hábito mientras está en vuelo, la respuesta llega con la foto vieja
+// y machacaba el tick optimista: "le doy, se pone, y desaparece". Anotamos por
+// hábito cuántas escrituras hay en curso y cuándo acabó la última; al fusionar
+// con el servidor, si hay algo en curso o acabó después de arrancar la carga,
+// manda lo local.
+const inflightWrites = new Map<string, number>();
+const lastSettledWrite = new Map<string, number>();
+const hasFreshLocalEdit = (habitId: string, fetchStartedAt: number) =>
+  (inflightWrites.get(habitId) ?? 0) > 0 || (lastSettledWrite.get(habitId) ?? 0) > fetchStartedAt;
+
+// Una sola carga a la vez: si ya hay un initialize() corriendo, reutilizamos
+// su promesa en vez de lanzar otra tanda de consultas que se pisen entre sí.
+let initializeInFlight: Promise<void> | null = null;
 
 // --- TYPES ---
 export interface Habit {
@@ -150,6 +167,8 @@ interface AppState {
 
   // Auth Actions
   initialize: () => Promise<void>;
+  /** Carga real desde Supabase; usar initialize(), que deduplica llamadas concurrentes */
+  loadFromServer: () => Promise<void>;
   signUp: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -158,6 +177,11 @@ interface AppState {
   updateProfile: (name: string, avatar: string) => Promise<{ success: boolean; error?: string }>;
   setProfileFrame: (frame: string) => Promise<void>;
   uploadAvatar: (file: File) => Promise<{ success: boolean; url?: string; error?: string }>;
+  /** Foto de perfil guardada en el dispositivo (IndexedDB). Al pintarse manda sobre userAvatar. */
+  localAvatar: string | null;
+  loadLocalAvatar: () => Promise<void>;
+  setLocalAvatarFile: (file: File) => Promise<{ success: boolean; error?: string }>;
+  clearLocalAvatar: () => Promise<void>;
 
   // Habits
   habits: Habit[];
@@ -170,12 +194,12 @@ interface AppState {
 
   // Shared Habits
   inviteToHabit: (habitId: string, friendId: string) => Promise<{ success: boolean; message: string }>;
-  acceptHabitInvitation: (invitationId: string) => Promise<void>;
+  acceptHabitInvitation: (invitationId: string) => Promise<{ success: boolean; message: string }>;
   /** Unirse a un reto desde un enlace compartido (y hacerse amigo de quien invita) */
   joinHabitByLink: (habitId: string, inviterCode?: string) => Promise<{ success: boolean; message: string; title?: string }>;
   /** Datos del reto para pintar la invitación antes de entrar */
   getHabitPreview: (habitId: string) => Promise<{ id: string; title: string; owner: string; ownerAvatar: string; members: number } | null>;
-  declineHabitInvitation: (invitationId: string) => Promise<void>;
+  declineHabitInvitation: (invitationId: string) => Promise<{ success: boolean; message: string }>;
 
   // Gym
   exercises: Exercise[];
@@ -208,9 +232,9 @@ interface AppState {
   getStudyRanking: () => Promise<{ id: string; name: string; avatar: string; minutes: number }[]>;
   addFriendByCode: (code: string) => Promise<{ success: boolean; message: string }>;
   addFriendById: (id: string) => Promise<{ success: boolean; message: string }>;
-  acceptFriendRequest: (requestId: string) => Promise<void>;
-  declineFriendRequest: (requestId: string) => Promise<void>;
-  removeFriend: (id: string) => void;
+  acceptFriendRequest: (requestId: string) => Promise<{ success: boolean; message: string }>;
+  declineFriendRequest: (requestId: string) => Promise<{ success: boolean; message: string }>;
+  removeFriend: (id: string) => Promise<{ success: boolean; message: string }>;
   getGlobalLeaderboard: () => Promise<{ id: string; name: string; avatar: string; totalCompletions: number }[]>;
 
   // Navigation
@@ -379,6 +403,17 @@ export const useAppStore = create<AppState>()(
       },
 
       initialize: async () => {
+        if (initializeInFlight) return initializeInFlight;
+        initializeInFlight = (async () => {
+          try { await get().loadFromServer(); } finally { initializeInFlight = null; }
+        })();
+        return initializeInFlight;
+      },
+
+      loadFromServer: async () => {
+        // Momento en que arranca la carga: todo cambio local posterior gana
+        // frente a lo que devuelva el servidor (ver hasFreshLocalEdit).
+        const fetchStartedAt = Date.now();
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           set({ initialized: true, userId: null });
@@ -479,46 +514,57 @@ export const useAppStore = create<AppState>()(
             habits: (allHabitsRaw || []).map((h: any) => {
               if (!h) return null;
               const myPart = (participantsRaw || []).find((p: any) => p.habit_id === h.id && p.user_id === currentUserId);
+              // Si el usuario ha tocado este hábito mientras cargábamos, lo
+              // local es más nuevo que la foto del servidor: no lo pisamos.
+              const local = hasFreshLocalEdit(h.id, fetchStartedAt)
+                ? get().habits.find((x) => x.id === h.id)
+                : undefined;
               return {
                 // capitalize también al leer: los hábitos creados antes de esta
                 // regla siguen guardados en minúscula (ver migración más abajo)
                 id: h.id, title: capitalize(h.title), colorTheme: h.color_theme,
                 // Individual progress for shared habits
-                history: myPart?.history || h.history || {},
-                streak: myPart?.streak || h.streak || 0,
-                maxStreak: h.max_streak, createdAt: h.created_at,
+                history: local ? local.history : (myPart?.history || h.history || {}),
+                streak: local ? local.streak : (myPart?.streak || h.streak || 0),
+                maxStreak: local ? Math.max(local.maxStreak || 0, h.max_streak || 0) : h.max_streak,
+                createdAt: h.created_at,
                 isShared: (participantsRaw || []).filter((p: any) => p.habit_id === h.id).length > 1,
                 participants: (participantsRaw || []).filter((p: any) => p.habit_id === h.id).map((p: any) => {
                     if (!p) return null;
+                    const mine = local && p.user_id === currentUserId;
                     return {
                         id: p.user_id, 
                         name: p.profiles?.user_name || 'Desconocido', 
                         avatar: p.profiles?.avatar_url || '👤',
-                        streak: p.streak || 0,
-                        history: p.history || {}
+                        streak: mine ? local.streak : (p.streak || 0),
+                        history: mine ? local.history : (p.history || {})
                     };
-                }).filter(Boolean)
+                }).filter((x): x is NonNullable<typeof x> => x !== null)
               };
-            }).filter(Boolean),
+            }).filter((x): x is NonNullable<typeof x> => x !== null)
+              // Orden fijo por fecha de creación. Sin ORDER BY, Postgres devolvía
+              // las filas en orden físico y el hábito recién marcado (fila
+              // actualizada) cambiaba de sitio en cada recarga.
+              .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || ''))),
             pendingRequests: (socialPending || []).map((p: any) => {
               if (!p) return null;
               return {
                 id: p.id, sender_name: p.profiles?.user_name || 'Alguien', sender_code: p.profiles?.user_code || '---', sender_id: p.user_id
               };
-            }).filter(Boolean),
+            }).filter((x): x is NonNullable<typeof x> => x !== null),
             outgoingRequests: (outgoing || []).map((o: any) => {
               if (!o) return null;
               return {
                 id: o.id, receiver_name: o.profiles?.user_name || 'Desconocido', receiver_id: o.friend_id
               };
-            }).filter(Boolean),
+            }).filter((x): x is NonNullable<typeof x> => x !== null),
             habitInvitations: (hInvites || []).map((i: any) => {
                 if (!i) return null;
                 return {
                     id: i.id, habit_id: i.habit_id, habit_title: i.habits?.title || 'Hábito',
                     sender_id: i.sender_id, sender_name: i.profiles?.user_name || 'Alguien', sender_avatar: i.profiles?.avatar_url || '👤'
                 };
-            }).filter(Boolean),
+            }).filter((x): x is NonNullable<typeof x> => x !== null),
             friends: (fProfiles || []).map((p: any) => {
                 const owned = (fOwnedHabits || []).filter(h => h.user_id === p.id);
                 const participated = (fParticipatedHabits || []).filter(h => h.user_id === p.id);
@@ -645,6 +691,26 @@ export const useAppStore = create<AppState>()(
         return { success: true, url: publicUrl };
       },
 
+      // --- Foto de perfil local (sin Supabase) ---
+      localAvatar: null,
+      loadLocalAvatar: async () => {
+        const v = await readLocalAvatar();
+        if (v) set({ localAvatar: v });
+      },
+      setLocalAvatarFile: async (file) => {
+        try {
+          const url = await saveLocalAvatar(file);
+          set({ localAvatar: url });
+          return { success: true };
+        } catch (e) {
+          return { success: false, error: e instanceof Error ? e.message : 'No se pudo guardar la foto' };
+        }
+      },
+      clearLocalAvatar: async () => {
+        set({ localAvatar: null });
+        await wipeLocalAvatar();
+      },
+
       signOut: async () => {
         await supabase.auth.signOut();
         set({ userId: null, userCode: '', userName: '', habits: [] });
@@ -722,19 +788,40 @@ export const useAppStore = create<AppState>()(
       inviteToHabit: async (habitId, friendId) => {
         if (!get().userId) return { success: false, message: 'No logueado' };
 
+        // Si ya está dentro del reto no tiene sentido invitarle (puede haber
+        // entrado por enlace desde otro sitio)
+        const { data: already } = await supabase
+          .from('habit_participants')
+          .select('user_id')
+          .eq('habit_id', habitId)
+          .eq('user_id', friendId)
+          .maybeSingle();
+
+        if (already) return { success: false, message: 'Ya está en el reto.' };
+
+        // maybeSingle y no single: sin filas, single devuelve error 406 y
+        // ensuciaba la consola en el caso normal
         const { data: existing } = await supabase
           .from('habit_invitations')
           .select('id')
           .eq('habit_id', habitId)
           .eq('receiver_id', friendId)
           .eq('status', 'pending')
-          .single();
+          .maybeSingle();
 
         if (existing) return { success: false, message: 'Ya tiene una invitación.' };
 
-        await supabase.from('habit_invitations').insert([
+        // Antes se ignoraba el error del insert y siempre se respondía
+        // "enviada": si RLS lo bloqueaba, al otro no le llegaba nada y nadie
+        // se enteraba.
+        const { error } = await supabase.from('habit_invitations').insert([
           { habit_id: habitId, sender_id: get().userId, receiver_id: friendId }
         ]);
+
+        if (error) {
+          if (error.code === '23505') return { success: false, message: 'Ya le has invitado.' };
+          return { success: false, message: 'No se pudo enviar la invitación. Inténtalo de nuevo.' };
+        }
 
         return { success: true, message: '¡Invitación enviada!' };
       },
@@ -793,23 +880,34 @@ export const useAppStore = create<AppState>()(
 
       acceptHabitInvitation: async (invitationId) => {
         const invite = get().habitInvitations.find(i => i.id === invitationId);
-        if (!invite || !get().userId) return;
+        if (!invite || !get().userId) return { success: false, message: 'Invitación no encontrada' };
 
-        // 1. Add as participant
-        await supabase.from('habit_participants').upsert([
-          { habit_id: invite.habit_id, user_id: get().userId }
-        ], { onConflict: 'habit_id,user_id' });
+        // 1. Entrar al reto. Si esto falla no seguimos: marcar la invitación
+        //    como aceptada sin estar dentro dejaría al usuario fuera y sin
+        //    forma de volver a intentarlo.
+        const { error: joinErr } = await supabase.from('habit_participants').upsert(
+          [{ habit_id: invite.habit_id, user_id: get().userId }],
+          { onConflict: 'habit_id,user_id' },
+        );
+        if (joinErr) return { success: false, message: 'No se pudo entrar al reto. Inténtalo de nuevo.' };
 
-        // 2. Update invitation
+        // 2. Marcar la invitación como aceptada
         await supabase.from('habit_invitations').update({ status: 'accepted' }).eq('id', invitationId);
 
-        // 3. Refresh
+        // La quitamos ya de la lista para que la pantalla responda al momento
+        set((state) => ({
+          habitInvitations: state.habitInvitations.filter((i) => i.id !== invitationId),
+        }));
+
         await get().initialize();
+        return { success: true, message: `Te has unido a "${capitalize(invite.habit_title)}"` };
       },
 
       declineHabitInvitation: async (invitationId) => {
-        await supabase.from('habit_invitations').delete().eq('id', invitationId);
+        const { error } = await supabase.from('habit_invitations').delete().eq('id', invitationId);
+        if (error) return { success: false, message: 'No se pudo rechazar. Inténtalo de nuevo.' };
         set(state => ({ habitInvitations: state.habitInvitations.filter(i => i.id !== invitationId) }));
+        return { success: true, message: 'Invitación rechazada' };
       },
 
       /**
@@ -865,6 +963,10 @@ export const useAppStore = create<AppState>()(
 
         const newMaxStreak = Math.max(habitToUpdate.maxStreak, currentStreak);
         
+        // Marcamos la escritura en curso ANTES del set optimista: así una carga
+        // que termine entre medias no nos pisa el tick.
+        inflightWrites.set(id, (inflightWrites.get(id) ?? 0) + 1);
+
         // Update Local State first for instant feedback (Root + Participants list)
         set(state => ({
           habits: state.habits.map(h => {
@@ -903,6 +1005,9 @@ export const useAppStore = create<AppState>()(
           await supabase.from('profiles').update({ total_completions: total }).eq('id', get().userId);
         } catch (err) {
           console.error("Sync error:", err);
+        } finally {
+          inflightWrites.set(id, Math.max(0, (inflightWrites.get(id) ?? 1) - 1));
+          lastSettledWrite.set(id, Date.now());
         }
       },
 
@@ -1111,30 +1216,41 @@ export const useAppStore = create<AppState>()(
 
       acceptFriendRequest: async (requestId) => {
         const req = get().pendingRequests.find(r => r.id === requestId);
-        if (!req || !get().userId) return;
+        if (!req || !get().userId) return { success: false, message: 'Solicitud no encontrada' };
 
-        // 1. Mark incoming as accepted
-        await supabase.from('friendships').update({ status: 'accepted' }).eq('id', requestId);
+        // 1. Aceptar la solicitud entrante. Si falla, paramos aquí: crear solo
+        //    el lado recíproco dejaría la amistad a medias.
+        const { error: accErr } = await supabase
+          .from('friendships').update({ status: 'accepted' }).eq('id', requestId);
+        if (accErr) return { success: false, message: 'No se pudo aceptar. Inténtalo de nuevo.' };
 
-        // 2. Create reciprocal (UPSERT to avoid unique constraint errors)
-        await supabase.from('friendships').upsert([
-          { user_id: get().userId, friend_id: req.sender_id, status: 'accepted' }
-        ], { onConflict: 'user_id,friend_id' });
+        // 2. Lado recíproco (upsert para no chocar con el índice único)
+        await supabase.from('friendships').upsert(
+          [{ user_id: get().userId, friend_id: req.sender_id, status: 'accepted' }],
+          { onConflict: 'user_id,friend_id' },
+        );
 
-        // 3. Sync to profiles.friends_list for backup robustness
-        await supabase.rpc('add_friend_to_list', { user_a: get().userId, user_b: req.sender_id });
+        // 3. Copia en profiles.friends_list. Es un respaldo: si falla, la
+        //    amistad ya es válida, así que no bloqueamos por esto.
+        try {
+          await supabase.rpc('add_friend_to_list', { user_a: get().userId, user_b: req.sender_id });
+        } catch { /* respaldo opcional */ }
+
+        // Quitamos la solicitud de la lista al momento
+        set((state) => ({ pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId) }));
 
         await get().initialize();
+        return { success: true, message: `Ahora sois amigos` };
       },
 
       declineFriendRequest: async (requestId) => {
         const { error } = await supabase.from('friendships').delete().eq('id', requestId);
-        if (!error) {
-          set(state => ({
-            pendingRequests: state.pendingRequests.filter(r => r.id !== requestId),
-            outgoingRequests: state.outgoingRequests.filter(r => r.id !== requestId)
-          }));
-        }
+        if (error) return { success: false, message: 'No se pudo rechazar. Inténtalo de nuevo.' };
+        set(state => ({
+          pendingRequests: state.pendingRequests.filter(r => r.id !== requestId),
+          outgoingRequests: state.outgoingRequests.filter(r => r.id !== requestId)
+        }));
+        return { success: true, message: 'Solicitud rechazada' };
       },
 
       getGlobalLeaderboard: async () => {
@@ -1155,7 +1271,28 @@ export const useAppStore = create<AppState>()(
           totalCompletions: p.total_completions || 0
         }));
       },
-      removeFriend: (id) => set(state => ({ friends: state.friends.filter(f => f.id !== id) }))
+      /**
+       * Eliminar amigo. Antes solo lo quitaba del estado local: al recargar
+       * la app el amigo volvía porque en la base seguía la amistad.
+       * Ahora borra las dos filas (la mía y la suya).
+       */
+      removeFriend: async (id) => {
+        const uid = get().userId;
+        if (!uid) return { success: false, message: 'No has iniciado sesión' };
+
+        const prev = get().friends;
+        // Optimista: desaparece de la lista al instante
+        set((state) => ({ friends: state.friends.filter((f) => f.id !== id) }));
+
+        const a = await supabase.from('friendships').delete().eq('user_id', uid).eq('friend_id', id);
+        const b = await supabase.from('friendships').delete().eq('user_id', id).eq('friend_id', uid);
+
+        if (a.error && b.error) {
+          set({ friends: prev });   // no se borró nada: lo devolvemos
+          return { success: false, message: 'No se pudo eliminar. Inténtalo de nuevo.' };
+        }
+        return { success: true, message: 'Amigo eliminado' };
+      }
     }),
     {
       name: 'gymrace-persistent-store-v7',
@@ -1164,6 +1301,9 @@ export const useAppStore = create<AppState>()(
       onRehydrateStorage: () => (state) => {
         if (state) state.activeTab = 'habits';
       },
+      // La foto local vive en IndexedDB (ver lib/localAvatar): no la
+      // duplicamos en el localStorage del store.
+      partialize: (s) => Object.fromEntries(Object.entries(s).filter(([k]) => k !== 'localAvatar')) as typeof s,
     }
   )
 );

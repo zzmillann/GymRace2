@@ -1,59 +1,112 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Timer24Regular,
-  Dismiss24Regular,
-  Play24Filled,
-  Pause24Filled,
-  ArrowCounterclockwise24Regular,
-  Add24Filled,
-} from '@fluentui/react-icons';
+import { Timer24Regular } from '@fluentui/react-icons';
+import { Bell, ChevronDown, Repeat } from 'lucide-react';
 import { haptic, playDing } from '@/lib/feedback';
 
+/**
+ * Cronómetro de descanso a pantalla completa, calcado al Temporizador del
+ * Reloj de iOS: fondo negro, anillo naranja fino que se vacía de forma
+ * continua, numerales grandes y finos, hora de fin con campanita debajo y los
+ * dos botones redondos Cancelar / Pausa. Con "Repetir" activado, al terminar
+ * vuelve a arrancar con el mismo tiempo (para encadenar series sin tocar).
+ */
+
 const PRESETS = [30, 60, 90, 120, 180];
-const R = 54;
+const ORANGE = '#FF9F0A';           // system orange de iOS
+const R = 56;                        // radio del anillo (viewBox 120)
 const C = 2 * Math.PI * R;
+
+const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+const fmtPreset = (s: number) => (s < 60 ? `${s} s` : s % 60 === 0 ? `${s / 60} min` : fmt(s));
+const fmtClock = (d: Date) => `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 export function RestTimer() {
   const [open, setOpen] = useState(false);
-  const [total, setTotal] = useState(0);
-  const [left, setLeft] = useState(0);
-  const [running, setRunning] = useState(false);
+  const [total, setTotal] = useState(0);                    // segundos del descanso elegido
+  const [endAt, setEndAt] = useState<number | null>(null);  // timestamp de fin (corriendo)
+  const [pausedMs, setPausedMs] = useState(0);              // lo que queda cuando está en pausa
+  const [repeat, setRepeat] = useState(false);              // reinicia solo al acabar
+  const [now, setNow] = useState(() => Date.now());
 
-  // Tick
+  const running = endAt !== null;
+  const leftMs = running ? Math.max(0, endAt - now) : pausedMs;
+  const leftS = Math.ceil(leftMs / 1000);
+  const active = running || pausedMs > 0;
+  const progress = total ? Math.min(1, leftMs / (total * 1000)) : 0;
+
+  // Reloj: mientras corre refrescamos a 10 fps (anillo suave); parado, nada.
   useEffect(() => {
     if (!running) return;
-    const id = setInterval(() => setLeft((l) => Math.max(0, l - 1)), 1000);
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(id);
   }, [running]);
 
-  // Fin del descanso
+  // Fin del descanso: aviso y, si toca, vuelta a empezar con el mismo tiempo.
+  const finishedRef = useRef(false);
   useEffect(() => {
-    if (running && left === 0) {
-      setRunning(false);
-      haptic([60, 80, 60, 80, 120]);
-      playDing(990);
+    if (!running) { finishedRef.current = false; return; }
+    if (leftMs > 0 || finishedRef.current) return;
+    finishedRef.current = true;
+    haptic([60, 80, 60, 80, 120]);
+    playDing(990);
+    if (repeat && total > 0) {
+      setEndAt(Date.now() + total * 1000);
+      finishedRef.current = false;
+    } else {
+      setEndAt(null);
+      setPausedMs(0);
     }
-  }, [left, running]);
+  }, [leftMs, running, repeat, total]);
 
-  const start = (s: number) => { setTotal(s); setLeft(s); setRunning(true); };
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  const progress = total ? left / total : 0;
-  const active = running || left > 0;
-  const ending = active && left <= 5 && left > 0;   // últimos segundos
+  const start = useCallback((s: number) => {
+    setTotal(s);
+    setPausedMs(0);
+    setEndAt(Date.now() + s * 1000);
+    haptic(20);
+  }, []);
+
+  const pause = () => {
+    if (endAt === null) return;
+    setPausedMs(Math.max(0, endAt - Date.now()));
+    setEndAt(null);
+    haptic(20);
+  };
+  const resume = () => {
+    if (running || pausedMs <= 0) return;
+    setEndAt(Date.now() + pausedMs);
+    setPausedMs(0);
+    haptic(20);
+  };
+  const cancel = () => {
+    setEndAt(null);
+    setPausedMs(0);
+    setTotal(0);
+    haptic(20);
+  };
+  const add15 = () => {
+    if (running) setEndAt((e) => (e ?? Date.now()) + 15_000);
+    else setPausedMs((p) => p + 15_000);
+    setTotal((t) => Math.max(t, leftS + 15));
+    haptic(15);
+  };
+
+  const endClock = active ? fmtClock(new Date(Date.now() + leftMs)) : '';
 
   return (
     <>
-      {/* Botón flotante */}
+      {/* Botón flotante en la pestaña de pesas */}
       <button
         onClick={() => setOpen(true)}
         className={`fixed bottom-28 right-5 z-[55] h-12 px-4 rounded-2xl flex items-center gap-2 font-medium tracking-tight text-[11px] shadow-2xl active:scale-95 transition-all ${
           active
-            ? 'bg-accent text-black shadow-[0_0_24px_rgba(16,185,129,0.45)]'
+            ? 'text-black shadow-[0_0_24px_rgba(255,159,10,0.45)]'
             : 'bg-surface border border-line/10 text-content'
         }`}
+        style={active ? { background: ORANGE } : undefined}
       >
         {active ? (
           <motion.span
@@ -66,130 +119,114 @@ export function RestTimer() {
         ) : (
           <Timer24Regular style={{ fontSize: 18 }} />
         )}
-        {active ? <span className="tabular-nums">{fmt(left)}</span> : <span>Descanso</span>}
+        {active ? <span className="tabular-nums">{fmt(leftS)}</span> : <span>Descanso</span>}
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[120] flex items-center justify-center p-5 bg-app/85 backdrop-blur-xl"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 340 }}
+            className="fixed inset-0 z-[120] bg-black text-white flex flex-col select-none"
+            style={{
+              paddingTop: 'max(env(safe-area-inset-top), 14px)',
+              paddingBottom: 'max(env(safe-area-inset-bottom), 24px)',
+            }}
           >
-            <motion.div
-              initial={{ scale: 0.92, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.94, y: 14, opacity: 0 }}
-              transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-surface border border-line/10 w-full max-w-[350px] rounded-[36px] p-7 relative shadow-2xl flex flex-col items-center overflow-hidden"
-            >
-              {/* halo que respira mientras corre */}
-              {running && (
-                <motion.div
-                  aria-hidden
-                  className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-accent/15 blur-[70px] pointer-events-none"
-                  animate={{ opacity: [0.5, 1, 0.5], scale: [0.92, 1.08, 0.92] }}
-                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                />
-              )}
-
-              <div className="w-full flex items-start justify-between mb-6 relative z-10">
-                <div>
-                  <p className="text-[11px] font-medium text-muted tracking-tight">Entre series</p>
-                  <h2 className="text-xl font-semibold text-content tracking-tight">Descanso</h2>
-                </div>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="w-9 h-9 flex items-center justify-center bg-surface-2 rounded-full text-muted hover:text-content transition-colors"
-                  aria-label="Cerrar"
-                >
-                  <Dismiss24Regular style={{ fontSize: 17 }} />
-                </button>
-              </div>
-
-              {/* Anillo de progreso */}
-              <motion.div
-                className="relative w-44 h-44 mb-7 z-10"
-                animate={ending ? { scale: [1, 1.04, 1] } : { scale: 1 }}
-                transition={{ repeat: ending ? Infinity : 0, duration: 1 }}
+            {/* Cabecera: minimizar (el descanso sigue corriendo detrás) */}
+            <div className="relative flex items-center justify-center h-12 px-4">
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="Minimizar"
+                className="absolute left-3 w-10 h-10 flex items-center justify-center rounded-full text-white/60 active:bg-white/10 transition-colors"
               >
-                <svg className="w-44 h-44 -rotate-90 overflow-visible" viewBox="0 0 120 120">
-                  <defs>
-                    <linearGradient id="restRing" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#34D399" />
-                      <stop offset="1" stopColor="#10B981" />
-                    </linearGradient>
-                  </defs>
-                  <circle cx="60" cy="60" r={R} fill="none" stroke="currentColor" strokeWidth="8" className="text-surface-2" />
-                  <motion.circle
+                <ChevronDown size={26} strokeWidth={2.2} />
+              </button>
+              <span className="text-[17px] font-semibold tracking-tight">Descanso</span>
+            </div>
+
+            {/* Anillo */}
+            <div className="flex-1 flex flex-col items-center justify-center gap-8 px-6">
+              <div className="relative" style={{ width: 'min(78vw, 330px)', height: 'min(78vw, 330px)' }}>
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r={R} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3.6" />
+                  <circle
                     cx="60" cy="60" r={R} fill="none"
-                    stroke={ending ? '#F43F5E' : 'url(#restRing)'}
-                    strokeWidth="8" strokeLinecap="round"
-                    style={{ strokeDasharray: C, filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.5))' }}
-                    animate={{ strokeDashoffset: C * (1 - progress) }}
-                    transition={{ duration: 0.5, ease: 'linear' }}
+                    stroke={ORANGE} strokeWidth="3.6" strokeLinecap="round"
+                    style={{
+                      strokeDasharray: C,
+                      strokeDashoffset: C * (1 - progress),
+                      transition: 'stroke-dashoffset 120ms linear',
+                    }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-[2.75rem] leading-none font-semibold text-content tabular-nums tracking-tight">{fmt(left)}</span>
-                  {active && (
-                    <span className="text-[11px] font-medium text-muted tracking-tight mt-2">
-                      {running ? 'en marcha' : 'en pausa'}
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-
-              {/* Presets */}
-              <div className="grid grid-cols-5 gap-1.5 w-full mb-4 relative z-10">
-                {PRESETS.map((s) => (
-                  <button
-                    key={s} onClick={() => start(s)}
-                    className={`py-3 rounded-xl font-medium text-xs tabular-nums active:scale-95 transition-all ${
-                      total === s && active
-                        ? 'bg-accent text-black'
-                        : 'bg-surface-2 text-content hover:bg-surface-2/70'
-                    }`}
+                  <span
+                    className="leading-none font-extralight tabular-nums tracking-[-0.03em]"
+                    style={{ fontSize: 'clamp(58px, 20vw, 86px)' }}
                   >
-                    {s < 60 ? `${s}s` : `${s / 60}m`}
-                  </button>
-                ))}
+                    {fmt(active ? leftS : total)}
+                  </span>
+                  <span className="mt-3 h-5 flex items-center gap-1.5 text-[15px] text-white/45 tabular-nums">
+                    {active && (<><Bell size={14} strokeWidth={2.2} fill="currentColor" />{endClock}</>)}
+                  </span>
+                </div>
               </div>
 
-              {/* Controles */}
-              <div className="w-full relative z-10">
-                {active ? (
-                  <div className="flex gap-1.5">
+              {/* Antes de arrancar: tiempos rápidos. Corriendo: repetir y +15 s */}
+              <div className="h-11 flex items-center justify-center gap-2">
+                {!active ? (
+                  PRESETS.map((s) => (
                     <button
-                      onClick={() => setLeft((l) => l + 15)}
-                      className="flex-1 bg-surface-2 text-content py-4 rounded-2xl font-medium text-[10px] tracking-tight active:scale-95 transition-all flex items-center justify-center gap-1"
+                      key={s} onClick={() => start(s)}
+                      className="h-10 px-4 rounded-full bg-white/[0.09] text-[14px] font-medium tabular-nums active:bg-white/20 transition-colors"
                     >
-                      <Add24Filled style={{ fontSize: 13 }} />15s
+                      {fmtPreset(s)}
                     </button>
-                    <button
-                      onClick={() => setRunning((r) => !r)}
-                      className="flex-[1.4] bg-white text-black py-4 rounded-2xl font-medium text-[10px] tracking-tight active:scale-95 transition-all flex items-center justify-center gap-1.5"
-                    >
-                      {running
-                        ? <><Pause24Filled style={{ fontSize: 14 }} />Pausa</>
-                        : <><Play24Filled style={{ fontSize: 14 }} />Seguir</>}
-                    </button>
-                    <button
-                      onClick={() => { setRunning(false); setLeft(0); setTotal(0); }}
-                      className="flex-1 bg-surface-2 text-rose-500 py-4 rounded-2xl font-medium text-[10px] tracking-tight active:scale-95 transition-all flex items-center justify-center"
-                      aria-label="Reiniciar"
-                    >
-                      <ArrowCounterclockwise24Regular style={{ fontSize: 16 }} />
-                    </button>
-                  </div>
+                  ))
                 ) : (
-                  <p className="text-muted text-[10px] font-medium tracking-tight text-center py-2">
-                    Elige un tiempo de descanso
-                  </p>
+                  <>
+                    <button
+                      onClick={() => { setRepeat((r) => !r); haptic(15); }}
+                      aria-pressed={repeat}
+                      className={`h-10 pl-3 pr-4 rounded-full text-[14px] font-medium flex items-center gap-1.5 transition-colors ${
+                        repeat ? 'text-black' : 'bg-white/[0.09] text-white/85 active:bg-white/20'
+                      }`}
+                      style={repeat ? { background: ORANGE } : undefined}
+                    >
+                      <Repeat size={15} strokeWidth={2.4} />
+                      {repeat ? 'Repite solo' : 'Repetir'}
+                    </button>
+                    <button
+                      onClick={add15}
+                      className="h-10 px-4 rounded-full bg-white/[0.09] text-[14px] font-medium tabular-nums active:bg-white/20 transition-colors"
+                    >
+                      +15 s
+                    </button>
+                  </>
                 )}
               </div>
-            </motion.div>
+            </div>
+
+            {/* Botones redondos iOS */}
+            <div className="flex items-center justify-between px-9 pb-2" style={{ maxWidth: 420, width: '100%', margin: '0 auto' }}>
+              <button
+                onClick={() => { cancel(); if (!active) setOpen(false); }}
+                className="w-[88px] h-[88px] rounded-full flex items-center justify-center text-[15px] font-medium active:opacity-70 transition-opacity"
+                style={{ background: 'rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.9)' }}
+              >
+                {active ? 'Cancelar' : 'Cerrar'}
+              </button>
+              <button
+                onClick={() => (running ? pause() : active ? resume() : start(total || 60))}
+                className="w-[88px] h-[88px] rounded-full flex items-center justify-center text-[15px] font-medium active:opacity-70 transition-opacity"
+                style={{ background: 'rgba(255,159,10,0.28)', color: ORANGE }}
+              >
+                {running ? 'Pausa' : active ? 'Reanudar' : 'Iniciar'}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

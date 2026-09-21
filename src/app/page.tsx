@@ -40,12 +40,14 @@ const alreadyBooted = () => {
 };
 
 export default function Home() {
-  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, userFrame, userName, activeGymMuscle, settings, setHabitReminder } = useAppStore();
+  const { habits, addHabit, toggleHabitToday, activeTab, initialize, userId, initialized, userAvatar, localAvatar, userFrame, userName, activeGymMuscle, settings, setHabitReminder } = useAppStore();
   const router = useRouter();
   const t = useT();
-  const [mounted, setMounted] = useState(() => bootedOnce);
+  // Arrancan en false, igual que en el servidor: el useLayoutEffect de más
+  // abajo los corrige antes del primer pintado si ya habíamos arrancado.
+  const [mounted, setMounted] = useState(false);
   // Duración mínima del splash para que dé tiempo a ver la animación de marca (solo en el primer arranque)
-  const [minSplashDone, setMinSplashDone] = useState(() => bootedOnce);
+  const [minSplashDone, setMinSplashDone] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGymAddOpen, setIsGymAddOpen] = useState(false);
   const [isLibraryAddOpen, setIsLibraryAddOpen] = useState(false);
@@ -191,7 +193,7 @@ export default function Home() {
     setIsModalOpen(false);
   };
 
-  if ((!mounted || !initialized || !minSplashDone) && !alreadyBooted()) {
+  if (!mounted || !initialized || !minSplashDone) {
     return (
       <div className="min-h-screen bg-app flex flex-col items-center justify-center p-8 overflow-hidden">
         <div className="relative flex flex-col items-center">
@@ -240,7 +242,7 @@ export default function Home() {
                     onClick={() => setIsProfileOpen(true)}
                     className="active:scale-95 transition-all"
                 >
-                    <FramedAvatar src={userAvatar} frame={userFrame as any} size={56} />
+                    <FramedAvatar src={localAvatar || userAvatar} frame={userFrame as any} size={56} />
                 </button>
                 <div className="flex flex-col gap-0.5">
                   <p className="text-muted text-[11px] font-medium tracking-tight">{dateFormatted}</p>

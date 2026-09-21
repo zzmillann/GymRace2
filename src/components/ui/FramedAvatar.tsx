@@ -2,6 +2,9 @@
 
 import { motion } from 'framer-motion';
 
+/** true si el avatar es una imagen (URL, data URL o blob) y no un emoji */
+export const isImageSrc = (s?: string | null) => !!s && /^(https?:|data:|blob:)/.test(s);
+
 export type FrameId = 'none' | 'emerald' | 'gold' | 'neon' | 'fire' | 'rainbow' | 'verified';
 
 export const FRAMES: { id: FrameId; label: string; emoji: string }[] = [
@@ -41,7 +44,7 @@ export function FramedAvatar({
 
   const inner = (
     <div className={`${rounded} overflow-hidden bg-surface-2 flex items-center justify-center w-full h-full`}>
-      {src && src.startsWith('http')
+      {isImageSrc(src)
         ? <img src={src} className="w-full h-full object-cover" alt="" />
         : <span style={{ fontSize: size * 0.45 }}>{src || '👤'}</span>}
     </div>
