@@ -56,14 +56,14 @@ export default function ResetPasswordPage() {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm relative z-10">
         <header className="text-center mb-10">
-          <h1 className="text-5xl font-semibold tracking-tighter text-content mb-2">GYMRACE</h1>
+          <h1 className="text-5xl font-semibold tracking-[-0.03em] text-content mb-2">gymrace<span className="text-accent">.</span></h1>
           <p className="text-muted font-medium text-[11px] tracking-tight">Nueva contraseña</p>
         </header>
 
         <div className="bg-surface/50 backdrop-blur-xl border border-line/5 p-8 rounded-[40px] shadow-2xl">
           {done ? (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center text-center py-4">
-              <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-5 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
+              <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-5 shadow-[0_0_50px_rgb(var(--accent)/0.4)]">
                 <CheckCircle2 size={44} className="text-black" />
               </div>
               <h2 className="text-xl font-semibold text-content tracking-tighter mb-2">¡Contraseña actualizada!</h2>
@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
 
               <button
                 type="submit" disabled={loading}
-                className="w-full bg-white text-black py-5 rounded-3xl font-medium tracking-tight mt-2 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-white/5"
+                className="w-full bg-content text-app py-5 rounded-3xl font-medium tracking-tight mt-2 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-white/5"
               >
                 {loading ? 'Guardando...' : 'Guardar contraseña'}
                 <ArrowRight size={20} strokeWidth={3} />

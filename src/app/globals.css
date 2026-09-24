@@ -4,34 +4,36 @@
 
 @layer base {
   /* ---- Tokens semánticos (canales RGB para soportar /opacidad) ---- */
-  /* Tema oscuro por defecto: azul-morado profundo en vez de negro plano.
-     El fondo lleva halos de color (ver el bloque de más abajo). */
-  :root, .dark {
-    --background: #191a3d;
-    --foreground: #f4f4fb;
+  /* Sistema de diseño Locodea bronce: papel, tinta y bronce, paneles arena.
+     El tema claro es el de por defecto. */
+  :root, .light {
+    --background: #F8F4EE;
+    --foreground: #1B1816;
 
-    --app: 25 26 61;         /* fondo app */
-    --surface: 42 43 82;     /* tarjetas */
-    --surface-2: 60 61 106;  /* inputs y botones suaves */
-    --line: 255 255 255;     /* bordes (se usa con opacidad) */
-    --content: 242 242 249;  /* texto principal */
-    --muted: 145 145 180;    /* texto atenuado */
-    --accent: 16 185 129;    /* emerald-500 */
-    --g1: rgba(124, 92, 255, 0.60);
-    --g2: rgba(186, 92, 235, 0.42);
-    --g3: rgba(70, 90, 220, 0.50);
+    --app: 248 244 238;      /* arena clara #F8F4EE */
+    --surface: 255 255 255;  /* papel: tarjetas */
+    --surface-2: 241 235 226;/* arena #F1EBE2: inputs y botones suaves */
+    --line: 27 24 22;        /* tinta (se usa con opacidad: anillos al 5 %) */
+    --content: 27 24 22;     /* tinta #1B1816 */
+    --muted: 104 99 94;      /* tinta 65 % */
+    --accent: 176 122 74;    /* bronce #B07A4A */
   }
 
-  .light {
-    --background: #f5f5f5;
-    --foreground: #111111;
+  /* Oscuro = "Noche" de Locodea: negro tostado con resplandor cobrizo.
+     El fondo lleva halos de color (ver el bloque de más abajo). */
+  .dark {
+    --background: #1B1816;
+    --foreground: #F8F4EE;
 
-    --app: 244 244 245;
-    --surface: 255 255 255;
-    --surface-2: 229 229 229;
-    --line: 17 17 17;
-    --content: 17 17 17;
-    --muted: 113 113 122;
+    --app: 27 24 22;
+    --surface: 42 37 33;
+    --surface-2: 61 54 48;
+    --line: 255 255 255;
+    --content: 248 244 238;
+    --muted: 170 158 147;
+    --g1: rgba(176, 122, 74, 0.40);
+    --g2: rgba(201, 155, 112, 0.22);
+    --g3: rgba(142, 94, 52, 0.45);
   }
 
   /* Tema "Medianoche": azul-morado profundo con superficies grises suaves,
@@ -50,6 +52,9 @@
   }
 
   /* ---- Paletas de color de acento ---- */
+  [data-accent="bronze"]  { --accent: 176 122 74; }
+  /* en claro, el bronce oscuro: se lee bien como texto sobre papel */
+  .light[data-accent="bronze"] { --accent: 156 106 62; }
   [data-accent="emerald"] { --accent: 16 185 129; }
   [data-accent="indigo"]  { --accent: 99 102 241; }
   [data-accent="rose"]    { --accent: 244 63 94; }
@@ -69,8 +74,8 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  /* Inter (next/font). Antes ponia Arial aqui y pisaba la fuente cargada. */
-  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* DM Sans (next/font), la única familia del sistema Locodea. */
+  font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
   font-weight: 400;
   letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
@@ -161,7 +166,26 @@ body {
     radial-gradient(95% 55% at 45% 108%, var(--g3) 0%, transparent 66%);
 }
 
+/* ── Tema claro Locodea: panel arena con halo bronce abajo ── */
+.light body {
+  background-attachment: fixed;
+  background-image:
+    radial-gradient(70% 40% at 50% 112%, rgba(176, 122, 74, 0.22) 0%, transparent 70%),
+    linear-gradient(180deg, #FFFFFF 0%, #F8F4EE 35%, #F1EBE2 100%);
+}
+::selection { background: #F1EBE2; color: #1B1816; }
+
 /* ── Paletas de color (se eligen en Ajustes → Estilo) ── */
+.dark[data-palette="locodea"] {
+  --app: 27 24 22;
+  --surface: 42 37 33;
+  --surface-2: 61 54 48;
+  --content: 248 244 238;
+  --muted: 170 158 147;
+  --g1: rgba(176, 122, 74, 0.40);
+  --g2: rgba(201, 155, 112, 0.22);
+  --g3: rgba(142, 94, 52, 0.45);
+}
 .dark[data-palette="aurora"] {
   --app: 25 26 61;
   --surface: 42 43 82;
@@ -244,9 +268,10 @@ body {
 }
 
 /* ── Tipografía de titular ──
-   Se usa SOLO en el nombre de los retos (la tarjeta y su pantalla de
-   detalle). Todo lo demás va en Inter. */
+   Nombre de los retos (tarjeta y detalle). Misma DM Sans, en 500 y con
+   tracking cerrado, como los titulares de Locodea: nunca en negrita. */
 .font-display {
-  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: -0.01em;
+  font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  font-weight: 500 !important;
+  letter-spacing: -0.03em;
 }

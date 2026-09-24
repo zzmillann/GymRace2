@@ -202,8 +202,8 @@ export default function Home() {
 
           <div className="relative flex flex-col items-center gap-2">
             {/* "GYMRACE." con barrido lateral nítido (clip-path CSS, letras 100% opacas), igual que la landing */}
-            <div className="gymrace-reveal text-white font-semibold italic text-5xl tracking-tighter">
-              GYMRACE<span className="text-accent">.</span>
+            <div className="gymrace-reveal text-content font-semibold text-5xl tracking-[-0.03em]">
+              gymrace<span className="text-accent">.</span>
             </div>
 
             {/* Subtítulo verde que aparece después del barrido */}
@@ -390,7 +390,7 @@ export default function Home() {
                   </button>
                   <motion.button
                     whileTap={{ scale: 0.96 }} onClick={acceptInvite} disabled={inviteBusy}
-                    className="flex-1 bg-accent text-black py-4 rounded-2xl font-medium tracking-tight text-[10px] touch-manipulation disabled:opacity-50"
+                    className="flex-1 bg-accent text-white py-4 rounded-2xl font-medium tracking-tight text-[10px] touch-manipulation disabled:opacity-50"
                   >
                     {inviteBusy ? '...' : 'Añadir'}
                   </motion.button>
@@ -446,7 +446,7 @@ export default function Home() {
                   </div>
                   <p className="text-[10px] text-muted font-normal mt-2">Te avisamos a esa hora si no lo has marcado.</p>
                 </div>
-                <button type="submit" disabled={!newTitle.trim()} className="w-full bg-white text-black font-medium py-4 rounded-2xl mt-2 tracking-tight hover:bg-neutral-200 transition-all">Crear Hábito</button>
+                <button type="submit" disabled={!newTitle.trim()} className="w-full bg-content text-app font-medium py-4 rounded-2xl mt-2 tracking-tight hover:opacity-90 transition-all">Crear Hábito</button>
               </form>
             </motion.div>
           </motion.div>
@@ -471,7 +471,7 @@ export default function Home() {
                      useAppStore.getState().addExercise(newExName, activeGymMuscle, Number(newExWeight));
                      setNewExName(''); setNewExWeight(''); setIsGymAddOpen(false);
                   }}
-                  className="bg-white text-black py-5 rounded-2xl font-medium tracking-tight mt-4 shadow-xl text-center w-full"
+                  className="bg-content text-app py-5 rounded-2xl font-medium tracking-tight mt-4 shadow-xl text-center w-full"
                 >
                   Guardar Ejercicio
                 </button>
@@ -497,7 +497,7 @@ export default function Home() {
                       useAppStore.getState().addBook(newLibTitle, newLibAuthor || 'Anónimo', Number(newLibPages));
                       setNewLibTitle(''); setNewLibAuthor(''); setNewLibPages(''); setIsLibraryAddOpen(false);
                   }}
-                  className="bg-white text-black py-5 rounded-2xl font-medium tracking-tight mt-4 shadow-xl text-center w-full"
+                  className="bg-content text-app py-5 rounded-2xl font-medium tracking-tight mt-4 shadow-xl text-center w-full"
                 >
                   Guardar en Biblioteca
                 </button>

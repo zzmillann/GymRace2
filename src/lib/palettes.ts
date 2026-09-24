@@ -24,6 +24,13 @@ export interface Palette {
 
 export const PALETTES: Palette[] = [
   {
+    id: 'locodea',
+    name: 'Locodea',
+    app: '#1b1816', surface: '#2a2521', content: '#f8f4ee', muted: '#aa9e93',
+    g1: 'rgba(176, 122, 74, 0.40)', g2: 'rgba(201, 155, 112, 0.22)', g3: 'rgba(142, 94, 52, 0.45)',
+    accent: '#b07a4a',
+  },
+  {
     id: 'aurora',
     name: 'Aurora',
     app: '#191a3d', surface: '#2a2b52', content: '#f2f2f9', muted: '#9191b4',
@@ -81,7 +88,7 @@ export const PALETTES: Palette[] = [
   },
 ];
 
-export const DEFAULT_PALETTE = 'aurora';
+export const DEFAULT_PALETTE = 'locodea';
 
 export const getPalette = (id?: string) =>
   PALETTES.find((p) => p.id === id) || PALETTES[0];

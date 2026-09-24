@@ -175,7 +175,7 @@ export function ThemeGallery() {
             </p>
 
             {p.id === saved && (
-              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent text-black flex items-center justify-center shadow-lg">
+              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center shadow-lg">
                 <Checkmark24Filled style={{ fontSize: 14 }} />
               </span>
             )}
