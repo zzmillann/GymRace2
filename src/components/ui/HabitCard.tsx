@@ -23,9 +23,9 @@ interface HabitCardProps {
 
 const colors: Record<string, { bg: string; text: string; gridActive: string }> = {
   emerald: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-500',
-    gridActive: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
+    bg: 'bg-accent/10',
+    text: 'text-accent',
+    gridActive: 'bg-accent shadow-[0_0_8px_rgb(var(--accent)/0.5)]',
   },
   indigo: {
     bg: 'bg-indigo-500/10',
@@ -80,9 +80,9 @@ export function HabitCard({ id, title, streak, colorTheme, history, onClick, onT
         whileTap={{ scale: 0.97 }}
         onTap={onClick}
         className="w-full text-left rounded-[32px] p-6 flex flex-col gap-5 relative overflow-hidden group cursor-pointer transition-colors
-                   bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14]
-                   shadow-[0_10px_36px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.16),inset_0_-1px_0_rgba(0,0,0,0.22)]
-                   hover:bg-white/[0.10] active:bg-white/[0.12]"
+                   bg-surface/80 backdrop-blur-2xl border border-line/[0.07]
+                   shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_20px_rgba(27,24,22,0.06)]
+                   hover:bg-surface/90 active:bg-surface"
       >
         {/* brillo superior, el reflejo típico del cristal */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />

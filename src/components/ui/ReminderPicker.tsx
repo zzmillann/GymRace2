@@ -182,7 +182,7 @@ export function ReminderPicker({
                     onClick={() => { const [qh, qm] = q.split(':'); setH(qh); setM(qm); }}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-medium tabular-nums transition-colors ${
                       `${h}:${m}` === q
-                        ? 'bg-accent text-black'
+                        ? 'bg-accent text-white'
                         : 'bg-surface-2 text-muted hover:text-content'
                     }`}
                   >
@@ -202,7 +202,7 @@ export function ReminderPicker({
                 )}
                 <button
                   onClick={save}
-                  className="flex-1 py-3.5 rounded-2xl bg-accent text-black font-medium text-[11px] tracking-tight flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                  className="flex-1 py-3.5 rounded-2xl bg-accent text-white font-medium text-[11px] tracking-tight flex items-center justify-center gap-2 active:scale-95 transition-transform"
                 >
                   <Checkmark24Filled style={{ fontSize: 16 }} />
                   Guardar

@@ -87,8 +87,8 @@ export function GymView() {
 
         {/* Toggle Pesas / Rutas */}
         <div className="flex gap-2 bg-surface p-1 rounded-2xl border border-line/5 mb-5">
-          <button onClick={() => setGymTab('pesas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'pesas' ? 'bg-white text-black shadow-lg' : 'text-muted'}`}>Pesas</button>
-          <button onClick={() => setGymTab('rutas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'rutas' ? 'bg-white text-black shadow-lg' : 'text-muted'}`}>Rutas</button>
+          <button onClick={() => setGymTab('pesas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'pesas' ? 'bg-content text-app shadow-lg' : 'text-muted'}`}>Pesas</button>
+          <button onClick={() => setGymTab('rutas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'rutas' ? 'bg-content text-app shadow-lg' : 'text-muted'}`}>Rutas</button>
         </div>
 
         {gymTab === 'pesas' && (
@@ -97,7 +97,7 @@ export function GymView() {
             <button
               key={m}
               onClick={() => setActiveGymMuscle(m)}
-              className={`px-6 py-3 rounded-2xl whitespace-nowrap font-medium text-[10px] tracking-tight transition-all ${activeGymMuscle === m ? 'bg-white text-black scale-105 shadow-2xl shadow-white/10' : 'bg-surface text-muted border border-line/5'}`}
+              className={`px-6 py-3 rounded-2xl whitespace-nowrap font-medium text-[10px] tracking-tight transition-all ${activeGymMuscle === m ? 'bg-content text-app scale-105 shadow-2xl shadow-white/10' : 'bg-surface text-muted border border-line/5'}`}
             >
               {m}
             </button>
@@ -186,7 +186,7 @@ export function GymView() {
               <form onSubmit={handleAdd} className="flex flex-col gap-4 text-content">
                 <input autoFocus placeholder="Nombre (ej. Press Banca)" value={newExName} onChange={e => setNewExName(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
                 <input type="number" placeholder={`Peso inicial (${unit})`} value={newExWeight} onChange={e => setNewExWeight(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
-                <button type="submit" className="bg-white text-black py-5 rounded-2xl font-medium tracking-tight mt-4">Guardar</button>
+                <button type="submit" className="bg-content text-app py-5 rounded-2xl font-medium tracking-tight mt-4">Guardar</button>
               </form>
             </motion.div>
           </motion.div>
@@ -204,7 +204,7 @@ export function GymView() {
                 <input type="number" autoFocus placeholder="00" value={updateWeightVal} onChange={e => setUpdateWeightVal(e.target.value)} className="bg-transparent text-content text-7xl font-medium text-center outline-none mb-4" />
                 <div className="flex gap-4">
                   <button type="button" onClick={() => setEditingExId(null)} className="flex-1 bg-surface-2 text-content py-5 rounded-2xl font-medium tracking-tight">Cancelar</button>
-                  <button type="submit" className="flex-1 bg-accent text-content py-5 rounded-2xl font-medium tracking-tight shadow-[0_0_20px_rgba(16,185,129,0.3)]">Confirmar</button>
+                  <button type="submit" className="flex-1 bg-accent text-content py-5 rounded-2xl font-medium tracking-tight shadow-[0_0_20px_rgb(var(--accent)/0.3)]">Confirmar</button>
                 </div>
               </form>
             </motion.div>

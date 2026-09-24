@@ -118,7 +118,7 @@ export function AuthView({ invite }: { invite?: { title: string; owner: string }
         className="w-full max-w-sm relative z-10"
       >
         <header className="text-center mb-10">
-          <h1 className="text-5xl font-semibold tracking-tighter text-content italic">GYMRACE</h1>
+          <h1 className="text-5xl font-semibold tracking-[-0.03em] text-content">gymrace<span className="text-accent">.</span></h1>
 
           {/* Llega desde un enlace de reto: le contamos a qué entra y por qué
               tiene que crearse la cuenta antes. */}
@@ -162,7 +162,7 @@ export function AuthView({ invite }: { invite?: { title: string; owner: string }
                 <motion.button
                   whileTap={{ scale: 0.96 }} transition={{ duration: 0.06 }}
                   type="submit" disabled={loading}
-                  className="w-full bg-white text-black py-5 rounded-3xl font-medium tracking-tight mt-2 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
+                  className="w-full bg-content text-app py-5 rounded-3xl font-medium tracking-tight mt-2 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
                 >
                   {loading ? t('auth.resetSending') : t('auth.resetSend')}
                   <ArrowRight size={20} strokeWidth={3} />
@@ -251,7 +251,7 @@ export function AuthView({ invite }: { invite?: { title: string; owner: string }
                 <motion.button
                   whileTap={{ scale: 0.96 }} transition={{ duration: 0.06 }}
                   type="submit" disabled={loading}
-                  className="w-full bg-white text-black py-5 rounded-3xl font-medium tracking-tight mt-4 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
+                  className="w-full bg-content text-app py-5 rounded-3xl font-medium tracking-tight mt-4 flex items-center justify-center gap-2 touch-manipulation disabled:opacity-50 shadow-xl shadow-white/5"
                 >
                   {loading ? t('auth.loading') : (isLogin ? t('auth.login') : t('auth.signup'))}
                 </motion.button>

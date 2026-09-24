@@ -136,7 +136,7 @@ export function Paywall() {
                     <motion.div
                       animate={{ rotate: [0, 8, -8, 0], scale: [1, 1.08, 1] }}
                       transition={{ duration: 3, repeat: Infinity }}
-                      className="w-16 h-16 rounded-3xl bg-gradient-to-br from-accent to-accent flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.4)] mb-4 text-3xl"
+                      className="w-16 h-16 rounded-3xl bg-gradient-to-br from-accent to-accent flex items-center justify-center shadow-[0_0_40px_rgb(var(--accent)/0.4)] mb-4 text-3xl"
                     >
                       ✨
                     </motion.div>
@@ -177,7 +177,7 @@ export function Paywall() {
                           }`}
                         >
                           <div className="flex items-center gap-3 text-left">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${active ? 'border-accent bg-accent text-black' : 'border-neutral-600'}`}>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${active ? 'border-accent bg-accent text-white' : 'border-line/30'}`}>
                               {active && <CheckIcon size={12} />}
                             </div>
                             <div>
@@ -200,7 +200,7 @@ export function Paywall() {
                   <button
                     onClick={() => pay('apple')}
                     disabled={processing}
-                    className="w-full bg-white text-black py-4 rounded-2xl font-medium flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60"
+                    className="w-full bg-content text-app py-4 rounded-2xl font-medium flex items-center justify-center gap-2 mb-3 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
                     {processing ? (
                       <span className="font-medium tracking-tight text-sm">{t('pw.processing')}</span>
@@ -299,7 +299,7 @@ export function Paywall() {
                   <button
                     onClick={() => pay('card')}
                     disabled={!cardValid || processing}
-                    className="w-full bg-accent text-black py-4 rounded-2xl font-medium tracking-tight text-sm mt-6 active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full bg-accent text-white py-4 rounded-2xl font-medium tracking-tight text-sm mt-6 active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {processing ? 'Procesando…' : `Pagar ${selectedPlan.price}`}
                   </button>
@@ -325,7 +325,7 @@ export function Paywall() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1, rotate: [0, -10, 10, 0] }}
                     transition={{ type: 'spring', damping: 12 }}
-                    className="w-24 h-24 rounded-full bg-accent flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.5)] mb-6 text-black"
+                    className="w-24 h-24 rounded-full bg-accent flex items-center justify-center shadow-[0_0_60px_rgb(var(--accent)/0.5)] mb-6 text-black"
                   >
                     <CheckIcon size={50} />
                   </motion.div>

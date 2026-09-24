@@ -182,7 +182,7 @@ export default function SettingsPage() {
       {/* ───────── SUSCRIPCIÓN ───────── */}
       {/* Oculta mientras PAYWALL_ENABLED sea false: todo el mundo es Pro */}
       {PAYWALL_ENABLED && (isPro ? (
-        <div className="relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-accent to-accent shadow-[0_10px_40px_rgba(16,185,129,0.3)]">
+        <div className="relative overflow-hidden rounded-[32px] p-6 mb-8 bg-gradient-to-br from-accent to-accent shadow-[0_10px_40px_rgb(var(--accent)/0.3)]">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
           <div className="flex items-center gap-2 mb-1">
             <Crown size={20} strokeWidth={2} className="text-content" />
@@ -268,7 +268,7 @@ export default function SettingsPage() {
           options={[{ v: 'dark', l: t('opt.dark') }, { v: 'midnight', l: 'Medianoche' }, { v: 'light', l: t('opt.light') }, { v: 'system', l: t('opt.system') }]}
           onChange={(v) => updateSettings({ theme: v as any })} onLocked={() => openPaywall('Los temas son una función Pro.')} />
         <SelectRow icon={<Palette size={19} strokeWidth={2} />} label={t('set.accent')} value={settings.accentColor} pro={PAYWALL_ENABLED && !isPro}
-          options={[{ v: 'emerald', l: t('opt.emerald') }, { v: 'indigo', l: t('opt.indigo') }, { v: 'rose', l: t('opt.rose') }, { v: 'amber', l: t('opt.amber') }, { v: 'sky', l: t('opt.sky') }]}
+          options={[{ v: 'bronze', l: 'Bronce' }, { v: 'emerald', l: t('opt.emerald') }, { v: 'indigo', l: t('opt.indigo') }, { v: 'rose', l: t('opt.rose') }, { v: 'amber', l: t('opt.amber') }, { v: 'sky', l: t('opt.sky') }]}
           onChange={(v) => updateSettings({ accentColor: v })} onLocked={() => openPaywall('La personalización de color es Pro.')} />
         <SelectRow icon={<Globe size={19} strokeWidth={2} />} label={t('set.language')} value={settings.language}
           options={[{ v: 'es', l: t('opt.es') }, { v: 'en', l: t('opt.en') }]}
@@ -306,7 +306,7 @@ export default function SettingsPage() {
 
       {/* ───────── INTEGRACIONES ───────── */}
       <Section title={t('set.sec.integrations')}>
-        <button onClick={handleSpotify} className="w-full flex items-center justify-between px-5 py-4 active:bg-white/5 transition-colors text-left">
+        <button onClick={handleSpotify} className="w-full flex items-center justify-between px-5 py-4 active:bg-line/5 transition-colors text-left">
           <div className="flex items-center gap-3">
             <SpotifyLogo />
             <div className="min-w-0">
@@ -343,10 +343,10 @@ export default function SettingsPage() {
 
       {/* ───────── ZONA PELIGROSA ───────── */}
       <Section title={t('set.sec.danger')}>
-        <button onClick={async () => { await signOut(); router.push('/'); }} className="w-full flex items-center gap-3 px-5 py-4 text-rose-400 font-medium active:bg-white/5 transition-colors">
+        <button onClick={async () => { await signOut(); router.push('/'); }} className="w-full flex items-center gap-3 px-5 py-4 text-rose-400 font-medium active:bg-line/5 transition-colors">
           <LogOut size={19} strokeWidth={2} /> {t('set.logout')}
         </button>
-        <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-medium border-t border-line/5 active:bg-white/5 transition-colors">
+        <button onClick={() => showToast('Contacta con soporte para eliminar tu cuenta')} className="w-full flex items-center gap-3 px-5 py-4 text-rose-500 font-medium border-t border-line/5 active:bg-line/5 transition-colors">
           <AlertTriangle size={19} strokeWidth={2} /> {t('set.deleteAccount')}
         </button>
       </Section>
@@ -360,7 +360,7 @@ export default function SettingsPage() {
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-2xl font-medium text-xs tracking-tight shadow-2xl z-[200] text-center"
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-content text-app px-6 py-3 rounded-2xl font-medium text-xs tracking-tight shadow-2xl z-[200] text-center"
           >
             {toast}
           </motion.div>
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                 {pwError && <p className="text-rose-500 text-[11px] font-medium text-center">{pwError}</p>}
                 <button
                   onClick={handleChangePassword} disabled={pwLoading}
-                  className="w-full bg-accent text-black py-4 rounded-2xl font-medium tracking-tight text-sm mt-1 active:scale-[0.98] transition-transform disabled:opacity-50"
+                  className="w-full bg-accent text-white py-4 rounded-2xl font-medium tracking-tight text-sm mt-1 active:scale-[0.98] transition-transform disabled:opacity-50"
                 >
                   {pwLoading ? '...' : t('common.save')}
                 </button>
@@ -469,7 +469,7 @@ function NavRow({
   icon, label, sub, onClick, pro, children,
 }: { icon: React.ReactNode; label: string; sub?: string; onClick: () => void; pro?: boolean; children?: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
+    <button onClick={onClick} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-line/5 transition-colors text-left">
       <div className="flex items-center gap-3 min-w-0">
         <span className="flex-shrink-0 text-muted">{icon}</span>
         <div className="flex items-center gap-2 min-w-0">
@@ -499,7 +499,7 @@ function SelectRow({
   };
   const current = options.find((o) => o.v === value);
   return (
-    <button onClick={cycle} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-white/5 transition-colors text-left">
+    <button onClick={cycle} className="w-full flex items-center justify-between px-5 py-4 border-b border-line/5 last:border-b-0 active:bg-line/5 transition-colors text-left">
       <div className="flex items-center gap-3">
         <span className="text-muted">{icon}</span>
         <span className="text-content font-medium text-sm">{label}</span>

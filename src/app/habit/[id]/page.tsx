@@ -154,7 +154,7 @@ ${url}`)}`, '_blank');
                 <button
                     onClick={shareHabit}
                     aria-label="Compartir enlace del reto"
-                    className="w-10 h-10 rounded-full bg-accent text-black flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                    className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center shadow-lg active:scale-90 transition-all"
                 >
                     <Share24Regular style={{ fontSize: 20 }} />
                 </button>
@@ -391,7 +391,7 @@ ${url}`)}`, '_blank');
                                 <button 
                                     onClick={() => handleInvite(f.id, f.name)}
                                     disabled={!!sending || invited.includes(f.id)}
-                                    className={`px-4 py-3 rounded-2xl shadow-xl active:scale-90 transition-all flex items-center justify-center gap-1.5 text-[11px] font-medium ${invited.includes(f.id) ? 'bg-accent/15 text-accent' : 'bg-white text-black disabled:opacity-50'}`}
+                                    className={`px-4 py-3 rounded-2xl shadow-xl active:scale-90 transition-all flex items-center justify-center gap-1.5 text-[11px] font-medium ${invited.includes(f.id) ? 'bg-accent/15 text-accent' : 'bg-content text-app disabled:opacity-50'}`}
                                 >
                                     <Checkmark24Regular style={{ fontSize: 18 }} />
                                     {invited.includes(f.id) ? 'Invitado' : sending === f.id ? 'Enviando' : ''}

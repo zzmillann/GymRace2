@@ -193,7 +193,7 @@ export function ProfileView({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <div className="flex gap-4 pb-4">
                     <button 
                         onClick={handleUpdate} disabled={loading}
-                        className="flex-1 bg-white text-black py-4 rounded-2xl font-medium tracking-tight text-[10px] flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all outline-none"
+                        className="flex-1 bg-content text-app py-4 rounded-2xl font-medium tracking-tight text-[10px] flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all outline-none"
                     >
                         <Save24Regular /> {loading ? '...' : 'Guardar'}
                     </button>

@@ -137,9 +137,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   streakAlerts: true,
   weeklySummary: true,
   socialNotifs: true,
-  theme: 'dark',
-  accentColor: 'emerald',
-  palette: 'aurora',
+  theme: 'light',
+  accentColor: 'bronze',
+  palette: 'locodea',
   confetti: true,
   language: 'es',
   weightUnit: 'kg',
@@ -1296,6 +1296,16 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'gymrace-persistent-store-v7',
+      // v1: pasa a todo el mundo al sistema de diseño Locodea bronce
+      // (tema claro, acento bronce, paleta oscura "Locodea") una sola vez.
+      version: 1,
+      migrate: (persisted, version) => {
+        const s = persisted as { settings?: Record<string, unknown> } | undefined;
+        if (version < 1 && s?.settings) {
+          s.settings = { ...s.settings, theme: 'light', accentColor: 'bronze', palette: 'locodea' };
+        }
+        return s as never;
+      },
       // La pestaña activa no se guarda: al abrir la app siempre se entra por
       // Hábitos, no por donde se quedó la última vez.
       onRehydrateStorage: () => (state) => {

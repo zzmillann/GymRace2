@@ -72,7 +72,7 @@ export function LibraryView() {
               : progress >= 66 ? 'from-violet-500 to-fuchsia-500'
               : progress >= 33 ? 'from-sky-500 to-indigo-500'
               : 'from-amber-400 to-orange-500';
-            const glow = progress >= 100 ? 'shadow-[0_0_18px_rgba(16,185,129,0.55)]'
+            const glow = progress >= 100 ? 'shadow-[0_0_18px_rgb(var(--accent)/0.55)]'
               : progress >= 66 ? 'shadow-[0_0_18px_rgba(168,85,247,0.5)]'
               : progress >= 33 ? 'shadow-[0_0_18px_rgba(14,165,233,0.5)]'
               : 'shadow-[0_0_18px_rgba(245,158,11,0.5)]';
@@ -170,7 +170,7 @@ export function LibraryView() {
                 <input placeholder="Título" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
                 <input placeholder="Autor" value={newAuthor} onChange={e => setNewAuthor(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
                 <input type="number" placeholder="Páginas totales" value={newPages} onChange={e => setNewPages(e.target.value)} className="bg-app border border-line/5 rounded-2xl px-6 py-5 font-medium outline-none focus:border-line/20" />
-                <button type="submit" className="bg-white text-black py-5 rounded-2xl font-medium tracking-tight mt-4">Guardar en Biblioteca</button>
+                <button type="submit" className="bg-content text-app py-5 rounded-2xl font-medium tracking-tight mt-4">Guardar en Biblioteca</button>
               </form>
             </motion.div>
           </motion.div>
@@ -188,7 +188,7 @@ export function LibraryView() {
                 <input type="number" autoFocus placeholder="00" value={updatePagesVal} onChange={e => setUpdatePagesVal(e.target.value)} className="bg-transparent text-content text-7xl font-medium text-center outline-none mb-4" />
                 <div className="flex gap-4">
                   <button type="button" onClick={() => setEditingBookId(null)} className="flex-1 bg-surface-2 text-content py-5 rounded-2xl font-medium tracking-tight">Atrás</button>
-                  <button type="submit" className="flex-1 bg-white text-black py-5 rounded-2xl font-medium tracking-tight shadow-xl">Actualizar</button>
+                  <button type="submit" className="flex-1 bg-content text-app py-5 rounded-2xl font-medium tracking-tight shadow-xl">Actualizar</button>
                 </div>
               </form>
             </motion.div>

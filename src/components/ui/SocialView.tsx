@@ -173,7 +173,7 @@ export function SocialView() {
                     ].map(tab => (
                         <button
                             key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-                            className={`flex-1 min-w-0 px-2.5 py-3.5 rounded-xl text-[11px] font-medium tracking-tight transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id ? 'bg-white text-black shadow-lg font-medium' : 'text-muted'}`}
+                            className={`flex-1 min-w-0 px-2.5 py-3.5 rounded-xl text-[11px] font-medium tracking-tight transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id ? 'bg-content text-app shadow-lg font-medium' : 'text-muted'}`}
                         >
                             <tab.icon style={{ fontSize: 16, flexShrink: 0 }} />
                             <span className="truncate">{tab.label}</span>
@@ -216,7 +216,7 @@ export function SocialView() {
                                                         <span className="text-2xl">{leaderboard[1].avatar || '👤'}</span>
                                                     )}
                                                 </div>
-                                                <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-slate-400 text-black text-[10px] font-medium rounded-lg flex items-center justify-center border-2 border-neutral-900">2</div>
+                                                <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-slate-400 text-black text-[10px] font-medium rounded-lg flex items-center justify-center border-2 border-app">2</div>
                                             </div>
                                             <div className="text-center flex flex-col items-center">
                                                 <p className="text-[10px] font-medium text-content truncate w-20">{leaderboard[1].name}</p>
@@ -240,7 +240,7 @@ export function SocialView() {
                                                         <span className="text-4xl">{leaderboard[0].avatar || '👤'}</span>
                                                     )}
                                                 </div>
-                                                <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-amber-500 text-black text-[12px] font-medium rounded-xl flex items-center justify-center border-4 border-neutral-900">1</div>
+                                                <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-amber-500 text-black text-[12px] font-medium rounded-xl flex items-center justify-center border-4 border-app">1</div>
                                             </div>
                                             <div className="text-center flex flex-col items-center">
                                                 <p className="text-xs font-medium text-content truncate w-24">{leaderboard[0].name}</p>
@@ -261,7 +261,7 @@ export function SocialView() {
                                                         <span className="text-2xl">{leaderboard[2].avatar || '👤'}</span>
                                                     )}
                                                 </div>
-                                                <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-amber-700 text-black text-[10px] font-medium rounded-lg flex items-center justify-center border-2 border-neutral-900">3</div>
+                                                <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-amber-700 text-black text-[10px] font-medium rounded-lg flex items-center justify-center border-2 border-app">3</div>
                                             </div>
                                             <div className="text-center flex flex-col items-center">
                                                 <p className="text-[10px] font-medium text-content truncate w-20">{leaderboard[2].name}</p>
@@ -349,13 +349,13 @@ export function SocialView() {
                                                         <span className="font-medium text-xs text-content truncate">{u.name}</span>
                                                     </button>
                                                     {requestedIds.includes(u.id) ? (
-                                                        <div className="p-3 bg-accent text-black rounded-xl shadow-lg flex-shrink-0 ml-2">
+                                                        <div className="p-3 bg-accent text-white rounded-xl shadow-lg flex-shrink-0 ml-2">
                                                             <Checkmark24Regular />
                                                         </div>
                                                     ) : (
                                                         <button
                                                             onClick={() => handleAddFriend(u.id, u.name)}
-                                                            className="p-3 bg-white text-black rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg flex-shrink-0 ml-2"
+                                                            className="p-3 bg-content text-app rounded-xl hover:scale-110 active:scale-95 transition-all shadow-lg flex-shrink-0 ml-2"
                                                         >
                                                             <PersonAdd24Regular />
                                                         </button>
@@ -480,7 +480,7 @@ export function SocialView() {
                                     </div>
                                     <div className="flex gap-2">
                                         <button disabled={busy === `d${invite.id}`} onClick={() => run(`d${invite.id}`, () => declineHabitInvitation(invite.id))} className="p-3 bg-surface-2 text-rose-500 rounded-xl disabled:opacity-40"><Dismiss24Regular /></button>
-                                        <button disabled={busy === `a${invite.id}`} onClick={() => run(`a${invite.id}`, () => acceptHabitInvitation(invite.id))} className="p-3 bg-white text-black rounded-xl shadow-lg disabled:opacity-40"><Checkmark24Regular /></button>
+                                        <button disabled={busy === `a${invite.id}`} onClick={() => run(`a${invite.id}`, () => acceptHabitInvitation(invite.id))} className="p-3 bg-content text-app rounded-xl shadow-lg disabled:opacity-40"><Checkmark24Regular /></button>
                                     </div>
                                 </div>
                             ))}
@@ -517,7 +517,7 @@ export function SocialView() {
                                                         <td className="p-6 text-right">
                                                             <div className="flex gap-2 justify-end">
                                                                 <button disabled={!!busy} onClick={() => run(`dr${req.id}`, () => declineFriendRequest(req.id))} className="disabled:opacity-40 w-10 h-10 flex items-center justify-center bg-surface-2 text-rose-500 rounded-xl hover:bg-surface-2 transition-all"><Dismiss24Regular /></button>
-                                                                <button disabled={!!busy} onClick={() => run(`ar${req.id}`, () => acceptFriendRequest(req.id))} className="disabled:opacity-40 w-10 h-10 flex items-center justify-center bg-white text-black rounded-xl shadow-lg hover:scale-105 transition-all"><Checkmark24Regular /></button>
+                                                                <button disabled={!!busy} onClick={() => run(`ar${req.id}`, () => acceptFriendRequest(req.id))} className="disabled:opacity-40 w-10 h-10 flex items-center justify-center bg-content text-app rounded-xl shadow-lg hover:scale-105 transition-all"><Checkmark24Regular /></button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -703,7 +703,7 @@ export function SocialView() {
                                     ) : (
                                         <button
                                             onClick={() => handleAddFriend(userDetails.id, userDetails.name)}
-                                            className="w-full bg-white text-black py-4 rounded-2xl font-medium tracking-tight text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl"
+                                            className="w-full bg-content text-app py-4 rounded-2xl font-medium tracking-tight text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl"
                                         >
                                             <PersonAdd24Regular /> Añadir amigo
                                         </button>

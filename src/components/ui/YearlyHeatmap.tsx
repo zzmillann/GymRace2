@@ -19,13 +19,13 @@ interface YearlyHeatmapProps {
 export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProps) {
   const activeColorFn = (theme: string) => {
     const map: Record<string, string> = {
-      emerald: 'bg-accent shadow-[0_0_12px_rgba(16,185,129,0.4)]',
+      emerald: 'bg-accent shadow-[0_0_12px_rgb(var(--accent)/0.4)]',
       indigo: 'bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.4)]',
       rose: 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]',
       amber: 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]',
       sky: 'bg-sky-500 shadow-[0_0_12px_rgba(14,165,233,0.4)]',
     };
-    return map[theme] || 'bg-accent shadow-[0_0_12px_rgba(16,185,129,0.4)]';
+    return map[theme] || 'bg-accent shadow-[0_0_12px_rgb(var(--accent)/0.4)]';
   };
 
   const activeBg = activeColorFn(colorTheme);

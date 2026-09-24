@@ -4,7 +4,8 @@ import confetti from 'canvas-confetti';
 // Paleta de confeti por tema de color del hábito: tono base, uno claro,
 // blanco (da chispa) y un pastel del mismo tono.
 const CONFETTI_COLORS: Record<string, string[]> = {
-  emerald: ['#10b981', '#34d399', '#ffffff', '#a7f3d0'],
+  // 'emerald' es el color "de acento" del hábito: con Locodea, bronce
+  emerald: ['#b07a4a', '#c99b70', '#ffffff', '#ebd0ae'],
   indigo:  ['#6366f1', '#818cf8', '#ffffff', '#c7d2fe'],
   rose:    ['#f43f5e', '#fb7185', '#ffffff', '#fecdd3'],
   amber:   ['#f59e0b', '#fbbf24', '#ffffff', '#fde68a'],

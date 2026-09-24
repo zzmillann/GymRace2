@@ -27,8 +27,8 @@ export function ThemeApplier() {
       root.classList.toggle('midnight', mode === 'midnight');
       // 'dark' es la base de los temas oscuros; midnight solo la reafina
       root.classList.toggle('dark', mode !== 'light');
-      root.setAttribute('data-accent', accent || 'emerald');
-      root.setAttribute('data-palette', palette || 'aurora');
+      root.setAttribute('data-accent', accent || 'bronze');
+      root.setAttribute('data-palette', palette || 'locodea');
     };
 
     apply();
