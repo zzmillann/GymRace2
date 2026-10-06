@@ -20,13 +20,16 @@ import {
   People24Regular
 } from '@fluentui/react-icons';
 import { useState, useMemo } from 'react';
+import { format, subDays } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { haptic, confettiBurst } from '@/lib/feedback';
 import { YearlyHeatmap } from '@/components/ui/YearlyHeatmap';
 import { ReminderPicker } from '@/components/ui/ReminderPicker';
 
 export default function HabitDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { habits, friends, inviteToHabit, deleteHabit, userId, userCode, habitReminders, setHabitReminder, localAvatar } = useAppStore();
+  const { habits, friends, inviteToHabit, deleteHabit, toggleHabitDay, settings, userId, userCode, habitReminders, setHabitReminder, localAvatar } = useAppStore();
   // Mi foto local (guardada en el dispositivo) sustituye a la del servidor
   const avatarOf = (p: { id: string; avatar: string }) => (p.id === userId && localAvatar ? localAvatar : p.avatar);
   const habit = habits.find(h => h.id === id);
@@ -85,6 +88,9 @@ export default function HabitDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [friends, participants],
   );
+
+  // "¡Ayer fui!": para cuando fuiste pero se te olvidó apuntarlo
+  const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
 
   if (!habit) return (
     <div className="min-h-screen bg-app flex flex-col items-center justify-center p-6 text-center">
@@ -170,6 +176,46 @@ ${url}`)}`, '_blank');
             </span>
           )}
         </div>
+        {/* Apuntar ayer a toro pasado. Si ya está marcado, el mismo botón lo deshace. */}
+        {(() => {
+          const doneYesterday = habit.history[yesterdayStr] === true;
+          return (
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                if (!doneYesterday) {
+                  if (settings.confetti !== false) confettiBurst(habit.colorTheme);
+                  if (settings.hapticFeedback) haptic([20, 30, 60]);
+                } else if (settings.hapticFeedback) {
+                  haptic(20);
+                }
+                toggleHabitDay(habit.id, yesterdayStr);
+              }}
+              className={`mt-4 w-full flex items-center gap-3 pl-1.5 pr-4 py-1.5 rounded-full border backdrop-blur-xl transition-colors duration-300 ${
+                doneYesterday
+                  ? 'bg-accent/10 border-accent/25'
+                  : 'bg-surface/70 border-line/[0.08] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_6px_16px_rgba(27,24,22,0.05)]'
+              }`}
+            >
+              {/* Icono en pastilla: se rellena de color al marcar */}
+              <span
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors duration-300 ${
+                  doneYesterday ? 'bg-accent text-white' : 'bg-surface-2 text-muted'
+                }`}
+              >
+                {doneYesterday
+                  ? <Checkmark24Regular style={{ fontSize: 15 }} />
+                  : <Calendar24Regular style={{ fontSize: 15 }} />}
+              </span>
+              <span className={`text-[13px] font-medium tracking-tight ${doneYesterday ? 'text-accent' : 'text-content'}`}>
+                {doneYesterday ? 'Ayer apuntado' : '¡Ayer fui!'}
+              </span>
+              <span className="ml-auto text-[11px] text-muted tabular-nums">
+                {doneYesterday ? 'Deshacer' : format(subDays(new Date(), 1), "EEE d MMM", { locale: es })}
+              </span>
+            </motion.button>
+          );
+        })()}
         <div className="flex items-center gap-2.5 mt-3">
           <ReminderPicker
             value={habitReminders[habit.id] || null}

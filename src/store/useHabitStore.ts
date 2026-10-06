@@ -190,6 +190,8 @@ interface AppState {
   habitReminders: Record<string, string>; // habitId -> 'HH:mm'
   setHabitReminder: (habitId: string, time: string | null) => void;
   toggleHabitToday: (id: string, userIdOverride?: string) => Promise<void>;
+  /** Marca o desmarca un día concreto ('yyyy-MM-dd'), p. ej. ayer si se olvidó apuntarlo. */
+  toggleHabitDay: (id: string, dateStr: string) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
 
   // Shared Habits
@@ -937,15 +939,19 @@ export const useAppStore = create<AppState>()(
       },
 
       toggleHabitToday: async (id) => {
+        await get().toggleHabitDay(id, format(new Date(), 'yyyy-MM-dd'));
+      },
+
+      toggleHabitDay: async (id, dateStr) => {
         const habitToUpdate = get().habits.find(h => h.id === id);
         if (!habitToUpdate || !get().userId) return;
 
         const todayStr = format(new Date(), 'yyyy-MM-dd');
         const newHistory = { ...habitToUpdate.history };
-        
-        // Toggle today
-        if (newHistory[todayStr]) delete newHistory[todayStr];
-        else newHistory[todayStr] = true;
+
+        // Toggle del día pedido (hoy, o ayer con "¡Ayer fui!")
+        if (newHistory[dateStr]) delete newHistory[dateStr];
+        else newHistory[dateStr] = true;
 
         // Calculate Streak
         let currentStreak = 0;
