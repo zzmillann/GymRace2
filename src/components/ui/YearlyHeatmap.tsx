@@ -7,8 +7,8 @@ import { useMemo, useEffect, useRef } from 'react';
 
 // Ancho del canalón izquierdo donde van las iniciales de los días
 const DAY_GUTTER = 16;
-// Paso real de columna: celda de 1rem + gap de 0.375rem = 22px
-const COL_W = 22;
+// Paso real de columna: celda de 1.25rem + gap de 0.375rem = 26px
+const COL_W = 26;
 
 interface YearlyHeatmapProps {
   data: Record<string, boolean>;
@@ -118,11 +118,11 @@ export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProp
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, ease: 'easeOut' }}
         >
-            {/* Meses. El paso real de columna es 1.375rem (celda 1rem + gap 0.375rem);
-                antes se usaba 1.5rem y las etiquetas se iban desplazando a la derecha. */}
+            {/* Meses. El paso de columna sale de COL_W (celda 1.25rem + gap 0.375rem);
+                si no cuadra con las celdas, las etiquetas se van desplazando. */}
             <div className="flex mb-3 h-4 relative" style={{ marginLeft: DAY_GUTTER }}>
                 {monthLabels.map((m, i) => (
-                    <span key={i} className="absolute text-[11px] font-medium text-muted" style={{ left: `${m.col * 1.375}rem` }}>
+                    <span key={i} className="absolute text-[11px] font-medium text-muted" style={{ left: m.col * COL_W }}>
                         {m.name}
                     </span>
                 ))}
@@ -135,7 +135,7 @@ export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProp
                     style={{ width: DAY_GUTTER }}
                 >
                     {dayLabels.map((d, i) => (
-                        <span key={i} className="h-4 flex items-center justify-start text-[11px] font-medium text-muted leading-none">
+                        <span key={i} className="h-5 flex items-center justify-start text-[11px] font-medium text-muted leading-none">
                             {d}
                         </span>
                     ))}
@@ -145,15 +145,18 @@ export function YearlyHeatmap({ data, colorTheme, startDate }: YearlyHeatmapProp
                     escalonados hacían que abrir el hábito tardase casi un
                     segundo. Ahora entra el bloque entero de una vez. */}
                 {heatmapGrid.map((week, weekIdx) => (
-                    <div key={weekIdx} className="flex flex-col gap-1.5 w-4">
+                    <div key={weekIdx} className="flex flex-col gap-1.5 w-5">
                     {week.map((dateStr) => (
                         <div
                             key={dateStr}
                             title={dateStr}
-                            className={`w-4 h-4 rounded-[4px] transition-colors duration-300 ${
-                                data[dateStr] ? activeBg : 'bg-surface-2/40 hover:bg-surface-2/60'
-                            } ${dateStr === todayStr ? 'ring-2 ring-white/70 ring-offset-1 ring-offset-surface' : ''}`}
-                        />
+                            className={`w-5 h-5 rounded-[5px] flex items-center justify-center text-[9px] font-medium tabular-nums leading-none select-none transition-colors duration-300 ${
+                                data[dateStr] ? `${activeBg} text-white` : 'bg-surface-2/40 hover:bg-surface-2/60 text-muted'
+                            } ${dateStr > todayStr ? 'opacity-50' : ''} ${dateStr === todayStr ? 'ring-2 ring-white/70 ring-offset-1 ring-offset-surface' : ''}`}
+                        >
+                            {/* Número del día del mes: así se ve de un vistazo qué día es cada cuadro */}
+                            {Number(dateStr.slice(8))}
+                        </div>
                     ))}
                     </div>
                 ))}
