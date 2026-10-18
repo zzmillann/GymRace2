@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { PLAN_CONFIG, type PlanId } from '@/lib/plans';
@@ -15,8 +16,9 @@ export async function POST(req: NextRequest) {
 
   let event: any;
   try {
+    // Versión asíncrona con Web Crypto: la que funciona en Cloudflare Workers.
     event = secret && sig
-      ? stripe.webhooks.constructEvent(body, sig, secret)
+      ? await stripe.webhooks.constructEventAsync(body, sig, secret, undefined, Stripe.createSubtleCryptoProvider())
       : JSON.parse(body);
   } catch (e: any) {
     return NextResponse.json({ error: `Firma inválida: ${e?.message}` }, { status: 400 });

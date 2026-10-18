@@ -4,4 +4,5 @@ import Stripe from 'stripe';
 // para que el Paywall pueda caer a modo demo sin romper.
 const key = process.env.STRIPE_SECRET_KEY;
 
-export const stripe = key ? new Stripe(key) : null;
+// httpClient de fetch: es el que funciona en Cloudflare Workers (y también en Node).
+export const stripe = key ? new Stripe(key, { httpClient: Stripe.createFetchHttpClient() }) : null;
