@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock24Regular, Dismiss24Regular, Checkmark24Filled } from '@fluentui/react-icons';
+import { enablePush } from '@/lib/push';
+import { useAppStore } from '@/store/useHabitStore';
 
 /**
  * Selector de hora para los recordatorios.
@@ -110,9 +112,8 @@ export function ReminderPicker({
 
   const save = () => {
     onChange(`${h}:${m}`);
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
+    // Se pide aquí, dentro del toque: en iPhone el permiso solo se puede pedir así
+    enablePush().then((r) => { if (r.ok) useAppStore.getState().updateSettings({ pushEnabled: true }); });
     setOpen(false);
   };
 

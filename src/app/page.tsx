@@ -16,6 +16,7 @@ import { AuthView } from '@/components/ui/AuthView';
 import { ProfileView } from '@/components/ui/ProfileView';
 import { useT } from '@/lib/i18n';
 import { FramedAvatar } from '@/components/ui/FramedAvatar';
+import { enablePush } from '@/lib/push';
 
 const THEMES = [
   { id: 'emerald', bg: 'bg-accent' },
@@ -180,13 +181,10 @@ export default function Home() {
   const handleAddHabit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
+    // El permiso se pide antes del primer await, aún dentro del toque (iPhone lo exige)
+    if (newReminder) enablePush().then((r) => { if (r.ok) useAppStore.getState().updateSettings({ pushEnabled: true }); });
     const id = await addHabit({ title: newTitle.trim(), colorTheme: newTheme });
-    if (id && newReminder) {
-      setHabitReminder(id, newReminder);
-      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-    }
+    if (id && newReminder) setHabitReminder(id, newReminder);
     setNewTitle('');
     setNewTheme('emerald');
     setNewReminder('');

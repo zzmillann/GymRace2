@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { format, subDays, startOfWeek, startOfMonth, startOfDay } from 'date-fns';
 import { supabase } from '@/lib/supabase';
+import { forgetPushForThisDevice } from '@/lib/push';
 import { loadLocalAvatar as readLocalAvatar, saveLocalAvatar, clearLocalAvatar as wipeLocalAvatar } from '@/lib/localAvatar';
 
 // --- Guardia contra pisar cambios locales ---
@@ -714,6 +715,7 @@ export const useAppStore = create<AppState>()(
       },
 
       signOut: async () => {
+        await forgetPushForThisDevice(); // antes de perder la sesión (lo borra con RLS)
         await supabase.auth.signOut();
         set({ userId: null, userCode: '', userName: '', habits: [] });
       },
@@ -1304,11 +1306,16 @@ export const useAppStore = create<AppState>()(
       name: 'gymrace-persistent-store-v7',
       // v1: pasa a todo el mundo al sistema de diseño Locodea bronce
       // (tema claro, acento bronce, paleta oscura "Locodea") una sola vez.
-      version: 1,
+      // v2: «Notificaciones push» pasa a ser el interruptor general del push.
+      // Antes no hacía nada, así que quien ya tenía recordatorios lo enciende.
+      version: 2,
       migrate: (persisted, version) => {
-        const s = persisted as { settings?: Record<string, unknown> } | undefined;
+        const s = persisted as { settings?: Record<string, unknown>; habitReminders?: Record<string, string> } | undefined;
         if (version < 1 && s?.settings) {
           s.settings = { ...s.settings, theme: 'light', accentColor: 'bronze', palette: 'locodea' };
+        }
+        if (version < 2 && s?.settings && (s.settings.dailyReminder || Object.keys(s.habitReminders || {}).length)) {
+          s.settings = { ...s.settings, pushEnabled: true };
         }
         return s as never;
       },

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { useAppStore } from '@/store/useHabitStore';
+import { pushActive } from '@/lib/push';
 
 const LS_KEY = 'gymrace-last-reminder';          // aviso global (por día)
 const LS_HABIT_KEY = 'gymrace-habit-reminders';  // avisos por hábito (por día)
@@ -11,7 +12,9 @@ const LS_HABIT_KEY = 'gymrace-habit-reminders';  // avisos por hábito (por día
  * Notificaciones locales:
  *  - Recordatorio global diario (settings.reminderTime) si quedan hábitos sin marcar.
  *  - Recordatorio por hábito a su hora (habitReminders[habitId]) si no está hecho.
- * Funciona con la app abierta o instalada como PWA.
+ * Solo funciona con la app abierta: es el respaldo para cuando no hay push.
+ * Si este dispositivo ya recibe push del servidor (PushSync), no hace nada
+ * para no avisar dos veces.
  */
 export function ReminderScheduler() {
   const { settings, habits, userId, habitReminders } = useAppStore();
@@ -27,6 +30,7 @@ export function ReminderScheduler() {
 
     const check = (allowCatchUp: boolean) => {
       if (Notification.permission !== 'granted') return;
+      if (pushActive()) return; // ya avisa el servidor
       const now = new Date();
       const today = format(now, 'yyyy-MM-dd');
       const nowHM = format(now, 'HH:mm');

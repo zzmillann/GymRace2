@@ -16,6 +16,7 @@ import { useT } from '@/lib/i18n';
 import { ProfileView } from '@/components/ui/ProfileView';
 import { isImageSrc } from '@/components/ui/FramedAvatar';
 import { beginSpotifyAuth, spotifyEnabled } from '@/lib/spotify';
+import { enablePush, disablePush } from '@/lib/push';
 
 const APP_VERSION = '1.0.0';
 
@@ -69,19 +70,31 @@ export default function SettingsPage() {
   const planLabel = (p: string) => t(`plan.${p}`);
 
   // --- Acciones ---
+  // Notificaciones push: las manda el servidor, así que llegan con la app cerrada
+  const togglePush = async () => {
+    if (settings.pushEnabled) {
+      updateSettings({ pushEnabled: false });
+      await disablePush();
+      showToast('Notificaciones desactivadas en este dispositivo');
+      return;
+    }
+    const res = await enablePush();
+    if (res.ok) {
+      updateSettings({ pushEnabled: true });
+      showToast('Notificaciones activadas ✅');
+    } else {
+      showToast(res.message);
+    }
+  };
+
   const toggleDailyReminder = async () => {
     if (settings.dailyReminder) { updateSettings({ dailyReminder: false }); return; }
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      showToast('Tu navegador no soporta notificaciones'); return;
-    }
-    let perm = Notification.permission;
-    if (perm === 'default') perm = await Notification.requestPermission();
-    if (perm === 'granted') {
+    const res = await enablePush();
+    if (res.ok) {
       updateSettings({ dailyReminder: true, pushEnabled: true });
       showToast('Recordatorio diario activado ✅');
-      try { new Notification('GymRace', { body: 'Te avisaremos cada día si te quedan actividades 💪' }); } catch {}
     } else {
-      showToast('Permiso de notificaciones denegado');
+      showToast(res.message);
     }
   };
 
@@ -241,7 +254,7 @@ export default function SettingsPage() {
 
       {/* ───────── NOTIFICACIONES ───────── */}
       <Section title={t('set.sec.notifs')}>
-        <ToggleRow icon={<Bell size={19} strokeWidth={2} />} label={t('set.pushNotifs')} checked={settings.pushEnabled} onChange={() => updateSettings({ pushEnabled: !settings.pushEnabled })} />
+        <ToggleRow icon={<Bell size={19} strokeWidth={2} />} label={t('set.pushNotifs')} checked={settings.pushEnabled} onChange={togglePush} />
         <ToggleRow icon={<AlarmClock size={19} strokeWidth={2} />} label={t('set.dailyReminder')} sub={t('set.dailyReminderSub')} checked={settings.dailyReminder} onChange={toggleDailyReminder} />
         {settings.dailyReminder && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-line/5">

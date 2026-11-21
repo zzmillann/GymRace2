@@ -7,6 +7,7 @@ import { ReminderScheduler } from '@/components/ui/ReminderScheduler';
 import { ThemeApplier } from '@/components/ui/ThemeApplier';
 import { SpotifySync } from '@/components/ui/SpotifySync';
 import { SocialNotifier } from '@/components/ui/SocialNotifier';
+import { PushSync } from '@/components/ui/PushSync';
 
 // Sistema de diseño Locodea bronce: una sola familia, DM Sans. Texto en 400,
 // énfasis, botones y titulares en 500; 600 solo para el logotipo.
@@ -54,6 +55,7 @@ export default function RootLayout({
         <ReminderScheduler />
         <SpotifySync />
         <SocialNotifier />
+        <PushSync />
       </body>
     </html>
   );

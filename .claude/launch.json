@@ -4,8 +4,50 @@
     {
       "name": "gymrace-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "aldia-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "C:/Users/Alejandro/Documents/Freelance/SmartConnectAldia",
+        "run",
+        "dev",
+        "--",
+        "-p",
+        "3021"
+      ],
+      "port": 3021
+    },
+    {
+      "name": "novia",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "http-server",
+        "C:/Users/Alejandro/Documents/Freelance/quieres-ser-mi-novia/public",
+        "-p",
+        "3033",
+        "-c-1"
+      ],
+      "port": 3033
+    },
+    {
+      "name": "locodea-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5183",
+        "--directory",
+        "C:/Users/Alejandro/Desktop/Locodea/Web Locodea"
+      ],
+      "port": 5183
     }
   ]
 }

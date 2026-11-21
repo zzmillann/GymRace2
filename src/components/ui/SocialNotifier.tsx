@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useAppStore } from '@/store/useHabitStore';
 import { supabase } from '@/lib/supabase';
+import { pushActive } from '@/lib/push';
 
 const SEEN_KEY = 'gymrace-seen-social';
 
@@ -70,9 +71,11 @@ export function SocialNotifier() {
     let seen: string[] = [];
     try { seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch {}
     const seenSet = new Set(seen);
+    // Si este dispositivo recibe push, el aviso ya lo manda el servidor: aquí solo apuntamos lo visto
+    const viaPush = pushActive();
 
     pendingRequests
-      .filter((r) => !seenSet.has('fr_' + r.id))
+      .filter((r) => !viaPush && !seenSet.has('fr_' + r.id))
       .forEach((r) => {
         try {
           new Notification('👋 Nueva solicitud de amistad', {
@@ -83,7 +86,7 @@ export function SocialNotifier() {
       });
 
     habitInvitations
-      .filter((i) => !seenSet.has('inv_' + i.id))
+      .filter((i) => !viaPush && !seenSet.has('inv_' + i.id))
       .forEach((i) => {
         try {
           new Notification('🔥 Invitación a un reto', {

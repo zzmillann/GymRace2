@@ -3,20 +3,29 @@
 // @ts-ignore `.open-next/worker.js` se genera al compilar
 import { default as handler } from './.open-next/worker.js';
 
+// Cada minuto (wrangler.jsonc → triggers.crons) se llaman estas rutas internas.
+const CRON_PATHS = [
+  '/api/spotify-poll', // "ahora suena" de Spotify
+  '/api/push-cron',    // notificaciones push (recordatorios y avisos sociales)
+];
+
 export default {
   fetch: handler.fetch,
 
-  // Cada minuto (wrangler.jsonc → triggers.crons): sondea Spotify igual que Vercel Cron.
   async scheduled(_event: unknown, env: Record<string, string | undefined>, ctx: { waitUntil(p: Promise<unknown>): void }) {
     const headers: Record<string, string> = {};
     if (env.CRON_SECRET) headers.authorization = `Bearer ${env.CRON_SECRET}`;
-    const req = new Request('https://gymrace.internal/api/spotify-poll', { headers });
     // El resultado queda en los logs del Worker (Observability) para poder revisarlo.
-    ctx.waitUntil(
-      handler.fetch(req, env, ctx).then(async (res: Response) => {
-        console.log(`[cron spotify-poll] ${res.status} ${(await res.text()).slice(0, 200)}`);
-      }),
-    );
+    for (const path of CRON_PATHS) {
+      const req = new Request(`https://gymrace.internal${path}`, { headers });
+      ctx.waitUntil(
+        handler.fetch(req, env, ctx)
+          .then(async (res: Response) => {
+            console.log(`[cron ${path}] ${res.status} ${(await res.text()).slice(0, 200)}`);
+          })
+          .catch((e: unknown) => console.log(`[cron ${path}] error ${String(e)}`)),
+      );
+    }
   },
 };
 
