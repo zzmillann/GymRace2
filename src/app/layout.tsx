@@ -18,7 +18,7 @@ const dmSans = DM_Sans({
 });
 
 export const viewport: Viewport = {
-  themeColor: '#F8F4EE',
+  themeColor: '#0c0e12',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1, // Crucial para que el usuario en iOS no haga zoom accidental

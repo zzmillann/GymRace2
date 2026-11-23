@@ -21,7 +21,7 @@ import { enablePush, disablePush } from '@/lib/push';
 const APP_VERSION = '1.0.0';
 
 const ACCENT_HEX: Record<string, string> = {
-  emerald: '#10b981', indigo: '#6366f1', rose: '#f43f5e', amber: '#f59e0b', sky: '#0ea5e9',
+  lime: '#a3e635', emerald: '#10b981', indigo: '#6366f1', rose: '#f43f5e', amber: '#f59e0b', sky: '#0ea5e9',
 };
 
 export default function SettingsPage() {
@@ -281,7 +281,7 @@ export default function SettingsPage() {
           options={[{ v: 'dark', l: t('opt.dark') }, { v: 'midnight', l: 'Medianoche' }, { v: 'light', l: t('opt.light') }, { v: 'system', l: t('opt.system') }]}
           onChange={(v) => updateSettings({ theme: v as any })} onLocked={() => openPaywall('Los temas son una función Pro.')} />
         <SelectRow icon={<Palette size={19} strokeWidth={2} />} label={t('set.accent')} value={settings.accentColor} pro={PAYWALL_ENABLED && !isPro}
-          options={[{ v: 'bronze', l: 'Bronce' }, { v: 'emerald', l: t('opt.emerald') }, { v: 'indigo', l: t('opt.indigo') }, { v: 'rose', l: t('opt.rose') }, { v: 'amber', l: t('opt.amber') }, { v: 'sky', l: t('opt.sky') }]}
+          options={[{ v: 'lime', l: 'Lima (openGym)' }, { v: 'bronze', l: 'Bronce' }, { v: 'emerald', l: t('opt.emerald') }, { v: 'indigo', l: t('opt.indigo') }, { v: 'rose', l: t('opt.rose') }, { v: 'amber', l: t('opt.amber') }, { v: 'sky', l: t('opt.sky') }]}
           onChange={(v) => updateSettings({ accentColor: v })} onLocked={() => openPaywall('La personalización de color es Pro.')} />
         <SelectRow icon={<Globe size={19} strokeWidth={2} />} label={t('set.language')} value={settings.language}
           options={[{ v: 'es', l: t('opt.es') }, { v: 'en', l: t('opt.en') }]}

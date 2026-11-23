@@ -1,13 +1,57 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, ArrowUpRight, History, Trash2, ChevronRight } from 'lucide-react';
+import { Plus, History, Trash2 } from 'lucide-react';
 import { useAppStore } from '@/store/useHabitStore';
 import { haptic, playDing, confettiBig } from '@/lib/feedback';
 import { RestTimer } from '@/components/ui/RestTimer';
 import { RoutesView } from '@/components/ui/RoutesView';
+import { GymHome } from '@/components/gym/GymHome';
+import { PlanView } from '@/components/gym/PlanView';
+import { WorkoutView } from '@/components/gym/WorkoutView';
+import { ExerciseLibrary } from '@/components/gym/ExerciseLibrary';
+import { ProgressView } from '@/components/gym/ProgressView';
+import { DataView } from '@/components/gym/DataView';
+import { GymSettings } from '@/components/gym/GymSettings';
+import { useGymStore } from '@/store/useGymStore';
+
+// Gimnasio al estilo openGym: Hoy · Plan · Ejercicios · Progreso, más Récords (lo de siempre), Rutas, Datos y Ajustes.
+const TABS = [
+  { id: 'hoy', label: 'Hoy' }, { id: 'plan', label: 'Plan' }, { id: 'ejercicios', label: 'Ejercicios' }, { id: 'progreso', label: 'Progreso' },
+  { id: 'records', label: 'Récords' }, { id: 'rutas', label: 'Rutas' }, { id: 'datos', label: 'Datos' }, { id: 'ajustes', label: 'Ajustes' },
+] as const;
+type Tab = (typeof TABS)[number]['id'];
+
+export function GymView() {
+  const [tab, setTab] = useState<Tab>('hoy');
+  const [workoutOpen, setWorkoutOpen] = useState(false);
+  const active = useGymStore((s) => s.active);
+  return (
+    <div className="pb-32 px-1">
+      <header className="mb-5">
+        <h1 className="text-[34px] font-semibold tracking-tight text-content mb-4">Gimnasio</h1>
+        <div className="flex gap-1.5 overflow-x-auto hide-scrollbar -mx-6 px-6">
+          {TABS.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`px-3.5 h-9 rounded-full whitespace-nowrap text-[14px] font-semibold transition-colors ${tab === t.id ? 'bg-accent text-[#0c0e12]' : 'bg-surface text-muted border border-line/10'}`}>
+              {t.label}{t.id === 'hoy' && active ? ' •' : ''}
+            </button>
+          ))}
+        </div>
+      </header>
+      {tab === 'hoy' && <GymHome onOpenWorkout={() => setWorkoutOpen(true)} onGoPlan={() => setTab('plan')} />}
+      {tab === 'plan' && <PlanView />}
+      {tab === 'ejercicios' && <ExerciseLibrary />}
+      {tab === 'progreso' && <ProgressView />}
+      {tab === 'records' && <RecordsTab />}
+      {tab === 'rutas' && <RoutesView />}
+      {tab === 'datos' && <DataView />}
+      {tab === 'ajustes' && <GymSettings />}
+      {workoutOpen && <WorkoutView onClose={() => setWorkoutOpen(false)} />}
+    </div>
+  );
+}
 
 // Conversión kg <-> unidad mostrada (los pesos se guardan SIEMPRE en kg)
 const KG_TO_LB = 2.20462;
@@ -24,9 +68,9 @@ const getInsultRole = (weight: number) => {
   return { label: 'Mutante', color: 'text-red-500', bg: 'bg-red-500/10' };
 };
 
-export function GymView() {
+/** Récords por músculo (lo que ya tenía GymRace). */
+function RecordsTab() {
   const { exercises, addExercise, updateWeight, deleteExercise, activeGymMuscle, setActiveGymMuscle, settings } = useAppStore();
-  const router = useRouter();
 
   // Unidad de peso (Ajustes). Almacenamos en kg y mostramos según preferencia.
   const unit = settings.weightUnit; // 'kg' | 'lb'
@@ -40,7 +84,7 @@ export function GymView() {
   const [newExWeight, setNewExWeight] = useState('');
   const [updateWeightVal, setUpdateWeightVal] = useState('');
   const [prCelebration, setPrCelebration] = useState<{ name: string; weight: number } | null>(null);
-  const [gymTab, setGymTab] = useState<'pesas' | 'rutas'>('pesas');
+  const gymTab = 'pesas' as 'pesas' | 'rutas';
 
   const filteredExercises = exercises.filter(ex => ex.muscle === activeGymMuscle);
 
@@ -79,18 +123,8 @@ export function GymView() {
   };
 
   return (
-    <div className="pb-32 px-1">
-      <header className="mb-10">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-semibold tracking-tighter text-content">Gimnasio</h1>
-        </div>
-
-        {/* Toggle Pesas / Rutas */}
-        <div className="flex gap-2 bg-surface p-1 rounded-2xl border border-line/5 mb-5">
-          <button onClick={() => setGymTab('pesas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'pesas' ? 'bg-content text-app shadow-lg' : 'text-muted'}`}>Pesas</button>
-          <button onClick={() => setGymTab('rutas')} className={`flex-1 py-3 rounded-xl font-medium text-[10px] tracking-tight transition-all ${gymTab === 'rutas' ? 'bg-content text-app shadow-lg' : 'text-muted'}`}>Rutas</button>
-        </div>
-
+    <div>
+      <header className="mb-6">
         {gymTab === 'pesas' && (
         <div className="flex gap-2 overflow-x-auto hide-scrollbar -mx-6 px-6">
           {MUSCLES.map(m => (

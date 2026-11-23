@@ -24,6 +24,14 @@ export interface Palette {
 
 export const PALETTES: Palette[] = [
   {
+    // Estilo openGym: negro azulado, superficies grafito y acento lima, como una app nativa de iOS
+    id: 'opengym',
+    name: 'openGym',
+    app: '#0c0e12', surface: '#17191f', content: '#f5f5f7', muted: '#8e8e93',
+    g1: 'rgba(163, 230, 53, 0.10)', g2: 'rgba(100, 210, 255, 0.06)', g3: 'rgba(163, 230, 53, 0.06)',
+    accent: '#a3e635',
+  },
+  {
     id: 'locodea',
     name: 'Locodea',
     app: '#1b1816', surface: '#2a2521', content: '#f8f4ee', muted: '#aa9e93',
@@ -88,7 +96,7 @@ export const PALETTES: Palette[] = [
   },
 ];
 
-export const DEFAULT_PALETTE = 'locodea';
+export const DEFAULT_PALETTE = 'opengym';
 
 export const getPalette = (id?: string) =>
   PALETTES.find((p) => p.id === id) || PALETTES[0];

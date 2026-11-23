@@ -138,9 +138,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   streakAlerts: true,
   weeklySummary: true,
   socialNotifs: true,
-  theme: 'light',
-  accentColor: 'bronze',
-  palette: 'locodea',
+  theme: 'dark',
+  accentColor: 'lime',
+  palette: 'opengym',
   confetti: true,
   language: 'es',
   weightUnit: 'kg',
@@ -1308,7 +1308,8 @@ export const useAppStore = create<AppState>()(
       // (tema claro, acento bronce, paleta oscura "Locodea") una sola vez.
       // v2: «Notificaciones push» pasa a ser el interruptor general del push.
       // Antes no hacía nada, así que quien ya tenía recordatorios lo enciende.
-      version: 2,
+      // v3: estilo openGym (oscuro, acento lima, paleta openGym) para todos, una sola vez.
+      version: 3,
       migrate: (persisted, version) => {
         const s = persisted as { settings?: Record<string, unknown>; habitReminders?: Record<string, string> } | undefined;
         if (version < 1 && s?.settings) {
@@ -1316,6 +1317,9 @@ export const useAppStore = create<AppState>()(
         }
         if (version < 2 && s?.settings && (s.settings.dailyReminder || Object.keys(s.habitReminders || {}).length)) {
           s.settings = { ...s.settings, pushEnabled: true };
+        }
+        if (version < 3 && s?.settings) {
+          s.settings = { ...s.settings, theme: 'dark', accentColor: 'lime', palette: 'opengym' };
         }
         return s as never;
       },

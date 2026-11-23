@@ -275,3 +275,70 @@ body {
   font-weight: 500 !important;
   letter-spacing: -0.03em;
 }
+
+
+/* ══════════════ Estilo openGym ══════════════
+   Negro azulado, superficies grafito, acento lima y la fuente del sistema (como una app nativa
+   de iOS). Colores de estado de sistema: verde, naranja, rojo, azul. Tarjetas con radio 14-18 px
+   y listas agrupadas con separadores finos. */
+[data-accent="lime"] { --accent: 163 230 53; }
+.light[data-accent="lime"] { --accent: 77 124 15; }   /* lima oscuro: legible sobre blanco */
+
+:root { --og-green: #34c759; --og-orange: #ff9f0a; --og-red: #ff453a; --og-blue: #0a84ff; --og-teal: #64d2ff; --og-yellow: #ffd60a; }
+.light { --og-green: #248a3d; --og-orange: #c93400; --og-red: #d70015; --og-blue: #0040dd; --og-teal: #0071a4; --og-yellow: #a16a00; }
+
+.dark[data-palette="opengym"] {
+  --background: #0c0e12;
+  --app: 12 14 18;
+  --surface: 23 25 31;
+  --surface-2: 36 39 47;
+  --line: 255 255 255;
+  --content: 245 245 247;
+  --muted: 142 142 147;
+  --g1: rgba(163, 230, 53, 0.10);
+  --g2: rgba(100, 210, 255, 0.05);
+  --g3: rgba(163, 230, 53, 0.05);
+}
+.light[data-palette="opengym"] {
+  --background: #f2f2f7;
+  --app: 242 242 247;
+  --surface: 255 255 255;
+  --surface-2: 229 229 234;
+  --line: 0 0 0;
+  --content: 28 28 30;
+  --muted: 108 108 112;
+}
+.light[data-palette="opengym"] body { background-image: none; background: #f2f2f7; }
+
+[data-palette="opengym"] body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.01em;
+}
+[data-palette="opengym"] .font-display {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+  font-weight: 600 !important;
+  letter-spacing: -0.025em;
+}
+[data-palette="opengym"] ::selection { background: rgba(163, 230, 53, .35); color: inherit; }
+
+/* Piezas del módulo de gimnasio (src/components/gym) */
+.og-card { background: rgb(var(--surface)); border-radius: 16px; border: 1px solid rgb(var(--line) / .06); }
+.og-group { background: rgb(var(--surface)); border-radius: 14px; overflow: hidden; border: 1px solid rgb(var(--line) / .06); }
+.og-group > * + * { border-top: 1px solid rgb(var(--line) / .07); }
+.og-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 48px; }
+.og-label { font-size: 12px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: rgb(var(--muted)); padding: 0 6px 6px; }
+.og-seg { display: flex; padding: 3px; gap: 2px; border-radius: 10px; background: rgb(var(--surface-2)); }
+.og-seg > button { flex: 1; min-height: 32px; border-radius: 8px; font-size: 13px; font-weight: 600; color: rgb(var(--muted)); transition: background .15s, color .15s; }
+.og-seg > button.on { background: rgb(var(--surface)); color: rgb(var(--content)); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.og-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 12px; font-weight: 600; font-size: 15px;
+  background: rgb(var(--accent)); color: #0c0e12; transition: transform .1s, filter .15s; }
+.light .og-btn { color: #fff; }
+.og-btn:active { transform: scale(.98); }
+.og-btn.soft { background: rgb(var(--surface-2)); color: rgb(var(--content)); }
+.og-btn.danger { background: rgb(255 69 58 / .14); color: var(--og-red); }
+.og-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 600; background: rgb(var(--surface-2)); color: rgb(var(--muted)); }
+.og-chip.on { background: rgb(var(--accent) / .18); color: rgb(var(--accent)); }
+.og-input { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; background: rgb(var(--surface-2)); color: rgb(var(--content)); outline: none; border: 1px solid transparent; font-size: 16px; }
+.og-input:focus { border-color: rgb(var(--accent) / .7); }
+.og-num { font-variant-numeric: tabular-nums; }
+.og-good { color: var(--og-green); } .og-warn { color: var(--og-orange); } .og-bad { color: var(--og-red); } .og-info { color: var(--og-blue); }
